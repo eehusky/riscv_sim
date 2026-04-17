@@ -1,0 +1,26 @@
+#--inplace
+--column_limit=120
+--wrap_spaces=0
+--indentation_spaces=4
+--assignment_statement_alignment=align
+--case_items_alignment=align
+--class_member_variable_alignment=align
+--distribution_items_alignment=align
+--enum_assignment_statement_alignment=align
+--formal_parameters_alignment=align
+--formal_parameters_indentation=indent
+--module_net_variable_alignment=align
+--named_parameter_alignment=align
+--named_parameter_indentation=indent
+--named_port_alignment=align
+--named_port_indentation=indent
+--port_declarations_alignment=align
+--port_declarations_indentation=indent
+--struct_union_members_alignment=align
+--compact_indexing_and_selections
+--port_declarations_right_align_packed_dimensions
+--port_declarations_right_align_unpacked_dimensions
+#--expand_coverpoints false
+#--no-try_wrap_long_lines false
+#--wrap_end_else_clauses false
+--line_break_penalty=50

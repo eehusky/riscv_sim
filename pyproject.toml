@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Tool Config"
+authors = [
+    {name = "Brandon Riggin", email = "eehusky@gmail.com"},
+]
+description = "Tool Config"
+readme = "README.md"
+requires-python = ">=3.12"
+keywords = [""]
+license = {file = "LICENSE"}
+classifiers = [
+]
+dependencies = []
+dynamic = ["version"]
+
+#[tool.setuptools]
+#packages = ["remote_port"]
+#package-dir = {"" = "src"}
+
+
+#[project.optional-dependencies]
+#dev = [""]
+
+#[project.scripts]
+#my-script = "my_package.module:function"
+
+[tool.autoflake]
+remove-all-unused-imports = true
+in-place = true
+recursive = true
+ignore-init-module-imports = true
+exclude = "venv"
+
+[tool.isort]
+profile = "black"
+py_version=312
+line_length = 140
+src_paths = ["src"]
+sections="FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
+
+[tool.black]
+line-length = 140
+target-version = ['py314']
+include='\.pyi?$'
+preview=true
+enable-unstable-feature=['hug_parens_with_braces_and_square_brackets']
+
+
+
+[tool.pytest.ini_options]
+addopts=[
+    "-vv"
+]
+asyncio_mode="auto"
+testpaths=[
+    "test",
+]

@@ -1,0 +1,39 @@
+{
+    "folders": [
+        {
+            "path": ".",
+            "index_exclude_patterns": [
+                "${project_path}/tools/*"
+            ],
+        },
+    ],
+    "settings": {
+        "python_interpreter": "${project_path}/tools/venv/Scripts/Python",
+        "LSP": {
+            "verible": {
+                "enabled": true,
+                "command": [
+                    "${project_path}/tools/verible/bin/verible-verilog-ls",
+                    "--flagfile",
+                    "${project_path}/.veriblerc"
+                ],
+                "selector": "source.systemverilog",
+            },
+            "LSP-pyright": {
+                "enabled": true,
+                "settings": {
+                    "python.pythonPath": "${project_path}/tools/venv/bin/python",
+                    "python.venvPath": "${project_path}/tools",
+                },
+            },
+        },
+        "SublimeLinter.linters.mypy.disable": true,
+        "SublimeLinter.linters.flake8.disable": true,
+        "SublimeLinter.linters.pylint.disable": true,
+        //LD_LIBRARY_PATH=${project_path}/tools/python/lib
+        "isorted.isort_command": "LD_LIBRARY_PATH=${project_path}/tools/python/lib ${project_path}/tools/venv/bin/isort",
+    },
+    "build_systems": [
+    ],
+    "virtualenv": "${project_path}/tools/venv",
+}

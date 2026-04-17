@@ -1,0 +1,9 @@
+{
+    "venvPath":"./tools",
+    "venv":"venv",
+    "pythonVersion": "3.14",
+    "enableExperimentalFeatures": true,
+    "typeCheckingMode": "standard",
+
+    "reportConstantRedefinition": "none"
+}
