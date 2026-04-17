@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(risvc_tcm)
+project(risvc_top)
 
 set(REPO_DIR                  ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
 set(BIRISCV                   ${REPO_DIR}/cores/biriscv)
@@ -47,14 +47,14 @@ set(MY_VERILATOR_ARGS
 )
 
 
-add_executable(risvc_tcm
+add_executable(risvc_top
     ../common/elf_load.cpp
     sim_main.cpp
 )
 
-verilate(risvc_tcm
+verilate(risvc_top
     PREFIX
-        Vtb_riscv_tcm_top
+        Vtb_riscv_top
     OPT_GLOBAL
         ${CMAKE_CXX_FLAGS}
     OPT_SLOW
@@ -64,7 +64,7 @@ verilate(risvc_tcm
     INCLUDE_DIRS
         ${BIRISCV}/src/core/
     TOP_MODULE
-        tb_riscv_tcm_top
+        tb_riscv_top
     SOURCES
         ##
         ${BIRISCV}/src/core/biriscv_alu.v
@@ -102,23 +102,17 @@ verilate(risvc_tcm
         ${BIRISCV}/src/icache/icache_tag_ram.v
         ${BIRISCV}/src/icache/icache.v
         ##
-        ${BIRISCV}/src/tcm/dport_axi.v
-        ${BIRISCV}/src/tcm/dport_mux.v
-        ${BIRISCV}/src/tcm/tcm_mem_pmem.v
-        ${BIRISCV}/src/tcm/tcm_mem_ram.v
-        ${BIRISCV}/src/tcm/tcm_mem.v
+        ${BIRISCV}/src/top/riscv_top.v
         ##
-        ${BIRISCV}/src/top/riscv_tcm_top.v
-        ##
-        riscv_tcm_top_wrapper.v
-        tb_riscv_tcm_top.sv
+        riscv_top_wrapper.v
+        tb_riscv_top.sv
         #
     VERILATOR_ARGS
         ${MY_VERILATOR_ARGS}
 )
 
 
-target_include_directories(risvc_tcm
+target_include_directories(risvc_top
     PUBLIC
         SystemC::systemc
         ${.}

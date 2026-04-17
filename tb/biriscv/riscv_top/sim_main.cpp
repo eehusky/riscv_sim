@@ -6,8 +6,8 @@
 #include "elf_load.h"
 #include "mem_api.h"
 
-#include "Vtb_riscv_tcm_top.h"
-#include "Vtb_riscv_tcm_top__Syms.h"
+#include "Vtb_riscv_top.h"
+#include "Vtb_riscv_top__Syms.h"
 
 #define CLK_PERIOD 10
 #define MEM_BASE 0x00000000
@@ -35,9 +35,9 @@ static void help_options(void)
 class bootstrap: public mem_api
 {
 public:
-    Vtb_riscv_tcm_top           *m_dut;
+    Vtb_riscv_top           *m_dut;
 
-    bootstrap(Vtb_riscv_tcm_top *dut)
+    bootstrap(Vtb_riscv_top *dut)
     {
         m_dut = dut;
     }
@@ -50,13 +50,13 @@ public:
     bool valid_addr(uint32_t addr) { return true; }
     void write(uint32_t addr, uint8_t data)
     {
-        m_dut->tb_riscv_tcm_top->i_riscv_tcm_top->vlSymsp->\
-            TOP__tb_riscv_tcm_top__i_riscv_tcm_top__i_riscv_tcm_top__u_tcm.write(addr, data);
+        //m_dut->tb_riscv_tcm_top->i_riscv_tcm_top->vlSymsp->\
+        //    TOP__tb_riscv_tcm_top__i_riscv_tcm_top__i_riscv_tcm_top__u_tcm.write(addr, data);
     }
     uint8_t read(uint32_t addr)
     {
-        return m_dut->tb_riscv_tcm_top->i_riscv_tcm_top->vlSymsp->\
-            TOP__tb_riscv_tcm_top__i_riscv_tcm_top__i_riscv_tcm_top__u_tcm.read(addr);
+        //return m_dut->tb_riscv_tcm_top->i_riscv_tcm_top->vlSymsp->\
+        //    TOP__tb_riscv_tcm_top__i_riscv_tcm_top__i_riscv_tcm_top__u_tcm.read(addr);
     }
 };
 
@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    const std::unique_ptr<Vtb_riscv_tcm_top> top{new Vtb_riscv_tcm_top{contextp.get(), "TOP"}};
+    const std::unique_ptr<Vtb_riscv_top> top{new Vtb_riscv_top{contextp.get(), "TOP"}};
     elf_load elf(filename, new bootstrap(top.get()));
     if (!elf.load()) {
         fprintf (stderr,"Error: Could not open %s\n", filename);
@@ -108,7 +108,6 @@ int main(int argc, char** argv) {
 
     top->i_clk = 0;
     top->i_rst = 1;
-    top->i_rst_cpu = 1;
 
     while (!contextp->gotFinish()) {
         contextp->timeInc(CLK_PERIOD/2);
@@ -120,7 +119,6 @@ int main(int argc, char** argv) {
     }
 
     top->i_rst = 0;
-    top->i_rst_cpu = 0;
 
     while (!contextp->gotFinish() && !(max_cycles != -1 && cycles >= max_cycles)) {
         contextp->timeInc(CLK_PERIOD/2);
