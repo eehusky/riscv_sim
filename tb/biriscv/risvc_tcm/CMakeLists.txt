@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
-project(tb_simple)
+project(risvc_tcm)
 
 set(REPO_DIR                  ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
-set(BIRISCV                   ${REPO_DIR}/cores/birisc)
+set(BIRISCV                   ${REPO_DIR}/cores/biriscv)
 
 find_package(verilator
     NO_DEFAULT_PATH
@@ -47,12 +47,12 @@ set(MY_VERILATOR_ARGS
 )
 
 
-add_executable(tb_simple
+add_executable(risvc_tcm
     elf_load.cpp
     sim_main.cpp
 )
 
-verilate(tb_simple
+verilate(risvc_tcm
     PREFIX
         Vtb_riscv_tcm_top
     OPT_GLOBAL
@@ -118,7 +118,7 @@ verilate(tb_simple
 )
 
 
-target_include_directories(tb_simple
+target_include_directories(risvc_tcm
     PUBLIC
         SystemC::systemc
         ${.}
