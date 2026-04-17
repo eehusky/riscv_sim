@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(tb_simple)
 
-set(REPO_DIR                  ${CMAKE_CURRENT_SOURCE_DIR}/../../)
+set(REPO_DIR                  ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
 set(BIRISCV                   ${REPO_DIR}/cores/birisc)
 
 find_package(verilator
