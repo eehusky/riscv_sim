@@ -3,12 +3,7 @@ __pycache__
 *.vcd
 *.fst
 *.fst.hier
-results.xml
 tools
 build
-pyregblock
-regblock
-*_hwif.rpt
-results/
-*results*.xml
-.generated/
+.build
+.cache

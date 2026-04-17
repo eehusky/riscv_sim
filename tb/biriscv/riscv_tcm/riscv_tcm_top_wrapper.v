@@ -23,10 +23,10 @@ module riscv_tcm_top_wrapper #(
     parameter NUM_RAS_ENTRIES           = 8,
     parameter NUM_RAS_ENTRIES_W         = 3
 ) (
-    input         i_clk,
-    input         i_rst,
-    input         i_rst_cpu,
-    input  [31:0] i_intr,
+    input        i_clk,
+    input        i_rst,
+    input        i_rst_cpu,
+    input [31:0] i_intr,
 
     output        s_axi_awready,
     input         s_axi_awvalid,
