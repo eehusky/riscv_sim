@@ -1,0 +1,3 @@
+[submodule "cores/biriscv"]
+	path = cores/biriscv
+	url = git@github.com:ultraembedded/biriscv.git
