@@ -3,6 +3,8 @@ from __future__ import annotations
 import warnings
 from collections import deque
 
+from cocotbext.axi.axi_master import AxiReadResp, AxiWriteResp
+
 warnings.simplefilter("ignore")
 
 import asyncio
@@ -14,7 +16,7 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.handle import HierarchyObject
 from cocotb.triggers import ClockCycles, Combine, RisingEdge, ValueChange
-from cocotbext.axi import AxiBus, AxiLiteBus, AxiSlave, AxiMaster, AxiLiteSlave, MemoryRegion, Pool
+from cocotbext.axi import AxiBus, AxiLiteBus, AxiResp, AxiSlave, AxiMaster, AxiLiteSlave, MemoryRegion, Pool
 from rich import get_console
 from rich.text import Text
 from rich.tree import Tree
@@ -87,8 +89,8 @@ class TB:
         logging.getLogger("cocotb.tb").setLevel(tb_loglevel)
 
         self.pool = Pool(parent=None, base=0, size=4096 * 32)
-        self.pool.alloc_region((1<<16)-1)
-        self.pool.alloc_region((1<<16)-1)
+        self.pool.alloc_region((1<<16))
+        self.pool.alloc_region((1<<16))
 
 
         self.s_data_axi = AxiMaster(
@@ -127,10 +129,10 @@ class TB:
         self.reset.value = 0
         await self.clkcycle(10)
         #self.axi_logger.setLevel(logging.INFO)
-        logging.getLogger("cocotb.tb_soc_top.s_data_axi").setLevel(logging.DEBUG)
-        logging.getLogger("cocotb.tb_soc_top.s_instr_axi").setLevel(logging.DEBUG)
-        logging.getLogger("cocotb.tb_soc_top.s_axi").setLevel(logging.DEBUG)
-        logging.getLogger("cocotb.tb_soc_top.m_axil").setLevel(logging.DEBUG)
+        logging.getLogger("cocotb.tb_soc_top.s_data_axi").setLevel(logging.INFO)
+        logging.getLogger("cocotb.tb_soc_top.s_instr_axi").setLevel(logging.INFO)
+        logging.getLogger("cocotb.tb_soc_top.s_axi").setLevel(logging.INFO)
+        logging.getLogger("cocotb.tb_soc_top.m_axil").setLevel(logging.INFO)
 
 ## ----------------------------------------------------------------------------
 ## ----------------------------------------------------------------------------
@@ -178,6 +180,48 @@ async def test_init(dut):
     await tb.s_instr_axi.read(1<<16,4)
     await tb.clkcycle(100)
 
-    await Combine(*[cocotb.start_soon(tb.s_data_axi.read(0x00000000,16)) for _ in range(4)])
+    await Combine(*[cocotb.start_soon(tb.s_data_axi.read(0x00000000,4)) for _ in range(4)])
 
     await tb.clkcycle(100)
+
+
+async def read(master:AxiMaster, address, length, **kwargs)->bytes:
+    resp = await master.read(address, length, **kwargs)
+    assert isinstance(resp,AxiReadResp)
+    assert resp.resp == AxiResp.OKAY
+    assert len(resp.data) == length
+    return resp.data
+
+async def write(master:AxiMaster, address, data, **kwargs):
+    resp = await master.write(address, data, **kwargs)
+    assert isinstance(resp,AxiWriteResp)
+    assert resp.resp == AxiResp.OKAY
+
+
+@cocotb.test(timeout_time=10, timeout_unit="ms", skip=False, name=testname("test_regions"))
+async def test_regions(dut):
+    tb = TB(dut)
+    await tb.cycle_reset()
+    await tb.clkcycle(100)
+
+    # 0 ( 0): 00000000 / 16 -- 00000000-0000ffff
+    # 1 ( 0): 00010000 / 16 -- 00010000-0001ffff
+
+    ranges = [
+        (0x00000000,0x0000ffff, [tb.s_data_axi, tb.s_instr_axi, tb.s_axi ] ),
+        (0x00010000,0x0001ffff, [tb.s_data_axi, ] ),
+    ]
+
+    for low, high, masters in ranges:
+        for master in masters:
+            await read(master,low,4)
+            await read(master,(high+1)-4,4)
+
+    for low, high, masters in ranges:
+        for master in masters:
+            payload = random.randbytes(4)
+            await write(master,low,payload)
+            assert await read(master,low,4) == payload
+            payload = random.randbytes(4)
+            await write(master,(high+1)-4,payload)
+            assert await read(master,(high+1)-4,4)== payload

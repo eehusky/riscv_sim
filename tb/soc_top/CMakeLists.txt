@@ -76,6 +76,13 @@ verilate(Vtop
         --timing
         --vpi
         --trace-fst
+
+        #--json-only-output tree_temp.json
+        #--json-only-meta-output meta_temp.json
+        #--bbox-sys
+        #--bbox-unsup
+        #--prefix vljson
+
         #--waiver-multiline
         #--waiver-output mywaiver.vlt
         #--public-flat-rw

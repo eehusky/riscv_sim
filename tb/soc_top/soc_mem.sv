@@ -301,32 +301,31 @@ module soc_mem #(
         .M01_CONNECT_READ (3'b010),
         .M01_CONNECT_WRITE(3'b010),
         //
-        .S00_AW_REG_TYPE  (2),  //0
-        .S00_W_REG_TYPE   (2),  //0
-        .S00_B_REG_TYPE   (2),  //1
-        .S00_AR_REG_TYPE  (2),  //0
-        .S00_R_REG_TYPE   (2),  //2
-        .S01_AW_REG_TYPE  (2),  //0
-        .S01_W_REG_TYPE   (2),  //0
-        .S01_B_REG_TYPE   (2),  //1
-        .S01_AR_REG_TYPE  (2),  //0
-        .S01_R_REG_TYPE   (2),  //2
-        .S02_AW_REG_TYPE  (2),  //0
-        .S02_W_REG_TYPE   (2),  //0
-        .S02_B_REG_TYPE   (2),  //1
-        .S02_AR_REG_TYPE  (2),  //0
-        .S02_R_REG_TYPE   (2),  //2
-        .M00_AW_REG_TYPE  (2),  //1
-        .M00_W_REG_TYPE   (2),  //2
-        .M00_B_REG_TYPE   (2),  //0
-        .M00_AR_REG_TYPE  (2),  //1
-        .M00_R_REG_TYPE   (2),  //0
-        .M01_AW_REG_TYPE  (2),  //1
-        .M01_W_REG_TYPE   (2),  //2
-        .M01_B_REG_TYPE   (2),  //0
-        .M01_AR_REG_TYPE  (2),  //1
-        .M01_R_REG_TYPE   (2)   //0
-
+        .S00_AW_REG_TYPE  (2),           //0
+        .S00_W_REG_TYPE   (2),           //0
+        .S00_B_REG_TYPE   (2),           //1
+        .S00_AR_REG_TYPE  (2),           //0
+        .S00_R_REG_TYPE   (2),           //2
+        .S01_AW_REG_TYPE  (2),           //0
+        .S01_W_REG_TYPE   (2),           //0
+        .S01_B_REG_TYPE   (2),           //1
+        .S01_AR_REG_TYPE  (2),           //0
+        .S01_R_REG_TYPE   (2),           //2
+        .S02_AW_REG_TYPE  (2),           //0
+        .S02_W_REG_TYPE   (2),           //0
+        .S02_B_REG_TYPE   (2),           //1
+        .S02_AR_REG_TYPE  (2),           //0
+        .S02_R_REG_TYPE   (2),           //2
+        .M00_AW_REG_TYPE  (2),           //1
+        .M00_W_REG_TYPE   (2),           //2
+        .M00_B_REG_TYPE   (2),           //0
+        .M00_AR_REG_TYPE  (2),           //1
+        .M00_R_REG_TYPE   (2),           //0
+        .M01_AW_REG_TYPE  (2),           //1
+        .M01_W_REG_TYPE   (2),           //2
+        .M01_B_REG_TYPE   (2),           //0
+        .M01_AR_REG_TYPE  (2),           //1
+        .M01_R_REG_TYPE   (2)            //0
     ) i_axi_crossbar_wrap_3x2 (
         .clk             (clk),
         .rst             (rst),

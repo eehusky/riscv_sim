@@ -7,3 +7,4 @@ tools
 build
 .build
 .cache
+results.xml
