@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(tb_soc_top)
 
-set(S2MMRB      ${CMAKE_CURRENT_SOURCE_DIR}/../../)
+set(REPO        ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 set(VERILOG_AXI $ENV{HOME}/github/alexforencich/verilog-axi/)
 
 find_package(verilator
@@ -52,10 +52,11 @@ verilate(Vtop
         ${VERILOG_AXI}/rtl/axi_axil_adapter_rd.v
         ${VERILOG_AXI}/rtl/arbiter.v
         ${VERILOG_AXI}/rtl/priority_encoder.v
-
-        soc_mem.vlt
-        soc_mem.sv
-        axi_crossbar_wrap_3x2.v
+        #
+        ${REPO}/rtl/soc_mem.vlt
+        ${REPO}/rtl/soc_mem.sv
+        ${REPO}/rtl/axi_crossbar_wrap_3x2.v
+        #
         tb_soc_top.sv
         tb_soc_top.vlt
         #
