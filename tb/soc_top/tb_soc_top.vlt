@@ -1,5 +1,2 @@
 `verilator_config
 public_flat_rw -module "tb_soc_top" -var "*"
-
-//lint_off -rule UNUSEDPARAM  -file "*tb_ringbuffer.sv" -match "*N_MASTERS"
-//lint_off -rule UNUSEDPARAM  -file "*tb_ringbuffer.sv" -match "*N_SLAVES"
