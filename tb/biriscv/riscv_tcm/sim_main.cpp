@@ -36,10 +36,14 @@ class bootstrap: public mem_api
 {
 public:
     Vtb_riscv_tcm_top           *m_dut;
+    uint32_t           lo_addr;
+    uint32_t           hi_addr;
 
     bootstrap(Vtb_riscv_tcm_top *dut)
     {
         m_dut = dut;
+        lo_addr = 0xFFFFFFFF;
+        hi_addr = 0x0;
     }
 
     bool create_memory(uint32_t base, uint32_t size, uint8_t *mem = NULL)
@@ -50,6 +54,8 @@ public:
     bool valid_addr(uint32_t addr) { return true; }
     void write(uint32_t addr, uint8_t data)
     {
+        lo_addr = addr<lo_addr ? addr : lo_addr;
+        hi_addr = addr>hi_addr ? addr : hi_addr;
         m_dut->tb_riscv_tcm_top->i_riscv_tcm_top->vlSymsp->\
             TOP__tb_riscv_tcm_top__i_riscv_tcm_top__i_riscv_tcm_top__u_tcm.write(addr, data);
     }
@@ -58,6 +64,28 @@ public:
         return m_dut->tb_riscv_tcm_top->i_riscv_tcm_top->vlSymsp->\
             TOP__tb_riscv_tcm_top__i_riscv_tcm_top__i_riscv_tcm_top__u_tcm.read(addr);
     }
+
+    void dump()
+    {
+        printf("lo_addr = 0x%08X\n", lo_addr);
+        printf("hi_addr = 0x%08X\n", hi_addr);
+        for (int i = 0; i < hi_addr-lo_addr; i+=8)
+        {
+            printf(
+                "%02X %02X %02X %02X %02X %02X %02X %02X\n",
+                read(i+0),
+                read(i+1),
+                read(i+2),
+                read(i+3),
+                read(i+4),
+                read(i+5),
+                read(i+6),
+                read(i+7)
+            );
+        }
+    }
+
+
 };
 
 
@@ -100,7 +128,8 @@ int main(int argc, char** argv) {
     }
 
     const std::unique_ptr<Vtb_riscv_tcm_top> top{new Vtb_riscv_tcm_top{contextp.get(), "TOP"}};
-    elf_load elf(filename, new bootstrap(top.get()));
+    bootstrap *boot = new bootstrap(top.get());
+    elf_load elf(filename, boot);
     if (!elf.load()) {
         fprintf (stderr,"Error: Could not open %s\n", filename);
         exit(1);
@@ -118,7 +147,7 @@ int main(int argc, char** argv) {
             break;
         }
     }
-
+    boot->dump();
     top->i_rst = 0;
     top->i_rst_cpu = 0;
 

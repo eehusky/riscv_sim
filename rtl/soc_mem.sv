@@ -18,7 +18,7 @@ module soc_mem #(
     input  logic [                1:0] s_data_axi_arburst,
     input  logic [                3:0] s_data_axi_arid,
     input  logic [                7:0] s_data_axi_arlen,
-    output logic [                2:0] s_data_axi_arsize,
+    input  logic [                2:0] s_data_axi_arsize,
     output logic                       s_data_axi_arready,
     input  logic                       s_data_axi_arvalid,
     input  logic [               31:0] s_data_axi_awaddr,
@@ -26,7 +26,7 @@ module soc_mem #(
     input  logic [                3:0] s_data_axi_awid,
     input  logic [                7:0] s_data_axi_awlen,
     output logic                       s_data_axi_awready,
-    output logic [                2:0] s_data_axi_awsize,
+    input  logic [                2:0] s_data_axi_awsize,
     input  logic                       s_data_axi_awvalid,
     output logic [                3:0] s_data_axi_bid,
     input  logic                       s_data_axi_bready,
@@ -48,14 +48,14 @@ module soc_mem #(
     input  logic [                1:0] s_instr_axi_arburst,
     input  logic [                3:0] s_instr_axi_arid,
     input  logic [                7:0] s_instr_axi_arlen,
-    output logic [                2:0] s_instr_axi_arsize,
+    input  logic [                2:0] s_instr_axi_arsize,
     output logic                       s_instr_axi_arready,
     input  logic                       s_instr_axi_arvalid,
     input  logic [               31:0] s_instr_axi_awaddr,
     input  logic [                1:0] s_instr_axi_awburst,
     input  logic [                3:0] s_instr_axi_awid,
     input  logic [                7:0] s_instr_axi_awlen,
-    output logic [                2:0] s_instr_axi_awsize,
+    input  logic [                2:0] s_instr_axi_awsize,
     output logic                       s_instr_axi_awready,
     input  logic                       s_instr_axi_awvalid,
     output logic [                3:0] s_instr_axi_bid,
@@ -626,46 +626,6 @@ module soc_mem #(
         .m_axil_rvalid (m_axil_rvalid),
         .m_axil_rready (m_axil_rready)
     );
-
-`ifdef verilator
-    //-------------------------------------------------------------
-    // write: Write byte into memory
-    //-------------------------------------------------------------
-    function write;  /*verilator public*/
-        input [31:0] addr;
-        input [7:0] data;
-        begin
-            case (addr[1:0])
-                2'd0: i_axi_ram.mem[addr/8][7:0] = data;
-                2'd1: i_axi_ram.mem[addr/8][15:8] = data;
-                2'd2: i_axi_ram.mem[addr/8][23:16] = data;
-                2'd3: i_axi_ram.mem[addr/8][31:24] = data;
-                //3'd4: i_axi_ram.mem[addr/8][39:32] = data;
-                //3'd5: i_axi_ram.mem[addr/8][47:40] = data;
-                //3'd6: i_axi_ram.mem[addr/8][55:48] = data;
-                //3'd7: i_axi_ram.mem[addr/8][63:56] = data;
-            endcase
-        end
-    endfunction
-    //-------------------------------------------------------------
-    // read: Read byte from memory
-    //-------------------------------------------------------------
-    function [7:0] read;  /*verilator public*/
-        input [31:0] addr;
-        begin
-            case (addr[1:0])
-                2'd0: read = i_axi_ram.mem[addr/8][7:0];
-                2'd1: read = i_axi_ram.mem[addr/8][15:8];
-                2'd2: read = i_axi_ram.mem[addr/8][23:16];
-                2'd3: read = i_axi_ram.mem[addr/8][31:24];
-                //3'd4: read = i_axi_ram.mem[addr/8][39:32];
-                //3'd5: read = i_axi_ram.mem[addr/8][47:40];
-                //3'd6: read = i_axi_ram.mem[addr/8][55:48];
-                //3'd7: read = i_axi_ram.mem[addr/8][63:56];
-            endcase
-        end
-    endfunction
-`endif
 
 
 endmodule : soc_mem

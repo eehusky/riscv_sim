@@ -3,6 +3,7 @@ project(risvc_top)
 
 set(REPO_DIR                  ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
 set(BIRISCV                   ${REPO_DIR}/cores/biriscv)
+set(VERILOG_AXI $ENV{HOME}/github/alexforencich/verilog-axi/)
 
 find_package(verilator
     NO_DEFAULT_PATH
@@ -103,6 +104,25 @@ verilate(risvc_top
         ${BIRISCV}/src/icache/icache.v
         ##
         ${BIRISCV}/src/top/riscv_top.v
+        ##
+        ##
+        ${VERILOG_AXI}/rtl/axi_ram.v
+        ${VERILOG_AXI}/rtl/axi_crossbar.v
+        ${VERILOG_AXI}/rtl/axi_crossbar_wr.v
+        ${VERILOG_AXI}/rtl/axi_crossbar_rd.v
+        ${VERILOG_AXI}/rtl/axi_crossbar_addr.v
+        ${VERILOG_AXI}/rtl/axi_register_rd.v
+        ${VERILOG_AXI}/rtl/axi_register_wr.v
+        ${VERILOG_AXI}/rtl/axi_axil_adapter.v
+        ${VERILOG_AXI}/rtl/axi_axil_adapter_wr.v
+        ${VERILOG_AXI}/rtl/axi_axil_adapter_rd.v
+        ${VERILOG_AXI}/rtl/arbiter.v
+        ${VERILOG_AXI}/rtl/priority_encoder.v
+        #
+        ${REPO_DIR}/rtl/soc_mem.vlt
+        ${REPO_DIR}/rtl/soc_mem.sv
+        ${REPO_DIR}/rtl/axi_crossbar_wrap_3x2.v
+        ##
         ##
         riscv_top_wrapper.v
         tb_riscv_top.sv
