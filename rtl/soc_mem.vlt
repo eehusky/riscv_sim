@@ -22,5 +22,3 @@ lint_off -rule CASEINCOMPLETE -file "*axi_ram.v"
 lint_off -rule WIDTHEXPAND    -file "*axi_ram.v"
 lint_off -rule WIDTHTRUNC     -file "*axi_ram.v"
 lint_off -rule WIDTHTRUNC     -file "*priority_encoder.v"
-
-//public -module "axi_ram" -var "mem"

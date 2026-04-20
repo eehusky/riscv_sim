@@ -10,8 +10,8 @@
 #include "Vtb_biriscv_idcache_top__Syms.h"
 
 #define CLK_PERIOD 10
-#define MEM_BASE 0x00000000
-#define MEM_SIZE (64 * 1024)
+#define MEM_BASE (0x80000000)
+#define MEM_SIZE (1<<17)
 #define GETOPTS_ARGS "f:c:h"
 
 static struct option long_options[] =
@@ -48,12 +48,14 @@ public:
 
     bool create_memory(uint32_t base, uint32_t size, uint8_t *mem = NULL)
     {
+        //printf("base=%08X size=%08X\n", base, size);
         assert(base >= MEM_BASE && ((base + size) < (MEM_BASE + MEM_SIZE)));
         return true;
     }
     bool valid_addr(uint32_t addr) { return true; }
     void write(uint32_t addr, uint8_t data)
     {
+        addr = addr-MEM_BASE;
         lo_addr = addr<lo_addr ? addr : lo_addr;
         hi_addr = addr>hi_addr ? addr : hi_addr;
         m_dut->tb_biriscv_idcache_top->vlSymsp->TOP__tb_biriscv_idcache_top.write(addr, data);
@@ -63,6 +65,7 @@ public:
     }
     uint8_t read(uint32_t addr)
     {
+        addr = addr-MEM_BASE;
         return m_dut->tb_biriscv_idcache_top->vlSymsp->TOP__tb_biriscv_idcache_top.read(addr);
     }
     void dump()

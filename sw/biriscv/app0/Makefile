@@ -51,7 +51,7 @@ LIBS        += /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libm_nano.a
 
 LDFLAGS    += -T $(LD_SCRIPT)
 LDFLAGS    += --entry _start
-#LDFLAGS    += --gc-sections
+LDFLAGS    += --gc-sections
 LDFLAGS    += -Map .build/$(TARGET).map
 LDFLAGS    += --cref
 #LDFLAGS    += -nostdlib

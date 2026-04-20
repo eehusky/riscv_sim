@@ -5,47 +5,46 @@
 #include "riscv-interrupts.h"
 
 
-void riscv_mtvec_table(void)  __attribute__ ((naked, section(".text.mtvec_table") ,aligned(16)));
-
-void riscv_mtvec_table(void) {
-    __asm__ volatile (
-        ".org  riscv_mtvec_table + 0*4;"
-        "jal   zero,riscv_mtvec_exception;"  /* 0  */
-        ".org  riscv_mtvec_table + 1*4;"
-        "jal   zero,riscv_mtvec_ssi;"  /* 1  */
-        ".org  riscv_mtvec_table + 3*4;"
-        "jal   zero,riscv_mtvec_msi;"  /* 3  */
-        ".org  riscv_mtvec_table + 5*4;"
-        "jal   zero,riscv_mtvec_sti;"  /* 5  */
-        ".org  riscv_mtvec_table + 7*4;"
-        "jal   zero,riscv_mtvec_mti;"  /* 7  */
-        ".org  riscv_mtvec_table + 9*4;"
-        "jal   zero,riscv_mtvec_sei;"  /* 9  */
-        ".org  riscv_mtvec_table + 11*4;"
-        "jal   zero,riscv_mtvec_mei;"  /* 11 */
-        ".org  riscv_mtvec_table + 16*4;"
-        "jal   riscv_mtvec_platform_irq0;"
-        "jal   riscv_mtvec_platform_irq1;"
-        "jal   riscv_mtvec_platform_irq2;"
-        "jal   riscv_mtvec_platform_irq3;"
-        "jal   riscv_mtvec_platform_irq4;"
-        "jal   riscv_mtvec_platform_irq5;"
-        "jal   riscv_mtvec_platform_irq6;"
-        "jal   riscv_mtvec_platform_irq7;"
-        "jal   riscv_mtvec_platform_irq8;"
-        "jal   riscv_mtvec_platform_irq9;"
-        "jal   riscv_mtvec_platform_irq10;"
-        "jal   riscv_mtvec_platform_irq11;"
-        "jal   riscv_mtvec_platform_irq12;"
-        "jal   riscv_mtvec_platform_irq13;"
-        "jal   riscv_mtvec_platform_irq14;"
-        "jal   riscv_mtvec_platform_irq15;"
-
-        : /* output: none */
-        : /* input : immediate */
-        : /* clobbers: none */
-        );
-}
+//void riscv_mtvec_table(void)  __attribute__ ((naked, section(".text.mtvec_table") ,aligned(16)));
+//void riscv_mtvec_table(void) {
+//    __asm__ volatile (
+//        ".org  riscv_mtvec_table + 0*4;"
+//        "jal   zero,riscv_mtvec_exception;"  /* 0  */
+//        ".org  riscv_mtvec_table + 1*4;"
+//        "jal   zero,riscv_mtvec_ssi;"  /* 1  */
+//        ".org  riscv_mtvec_table + 3*4;"
+//        "jal   zero,riscv_mtvec_msi;"  /* 3  */
+//        ".org  riscv_mtvec_table + 5*4;"
+//        "jal   zero,riscv_mtvec_sti;"  /* 5  */
+//        ".org  riscv_mtvec_table + 7*4;"
+//        "jal   zero,riscv_mtvec_mti;"  /* 7  */
+//        ".org  riscv_mtvec_table + 9*4;"
+//        "jal   zero,riscv_mtvec_sei;"  /* 9  */
+//        ".org  riscv_mtvec_table + 11*4;"
+//        "jal   zero,riscv_mtvec_mei;"  /* 11 */
+//        ".org  riscv_mtvec_table + 16*4;"
+//        "jal   riscv_mtvec_platform_irq0;"
+//        "jal   riscv_mtvec_platform_irq1;"
+//        "jal   riscv_mtvec_platform_irq2;"
+//        "jal   riscv_mtvec_platform_irq3;"
+//        "jal   riscv_mtvec_platform_irq4;"
+//        "jal   riscv_mtvec_platform_irq5;"
+//        "jal   riscv_mtvec_platform_irq6;"
+//        "jal   riscv_mtvec_platform_irq7;"
+//        "jal   riscv_mtvec_platform_irq8;"
+//        "jal   riscv_mtvec_platform_irq9;"
+//        "jal   riscv_mtvec_platform_irq10;"
+//        "jal   riscv_mtvec_platform_irq11;"
+//        "jal   riscv_mtvec_platform_irq12;"
+//        "jal   riscv_mtvec_platform_irq13;"
+//        "jal   riscv_mtvec_platform_irq14;"
+//        "jal   riscv_mtvec_platform_irq15;"
+//
+//        : /* output: none */
+//        : /* input : immediate */
+//        : /* clobbers: none */
+//        );
+//}
 
 void riscv_mtvec_nop(void){}
 

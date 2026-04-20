@@ -2,17 +2,28 @@ module tb_biriscv_idcache_top (
     input logic i_clk,
     input logic i_rst
 );
-    localparam S_ID_WIDTH = 4;
-    localparam ADDR_WIDTH = 32;
-    localparam DATA_WIDTH = 32;
-    localparam STRB_WIDTH = DATA_WIDTH / 8;
-    localparam AWUSER_WIDTH = 1;
-    localparam WUSER_WIDTH = 1;
-    localparam BUSER_WIDTH = 1;
-    localparam ARUSER_WIDTH = 1;
-    localparam RUSER_WIDTH = 1;
-    localparam AXIL_DATA_WIDTH = 32;
-    localparam AXIL_STRB_WIDTH = AXIL_DATA_WIDTH / 8;
+    localparam int S_ID_WIDTH = 4;
+    localparam int ADDR_WIDTH = 32;
+    localparam int DATA_WIDTH = 32;
+    localparam int STRB_WIDTH = DATA_WIDTH / 8;
+    localparam int AWUSER_WIDTH = 1;
+    localparam int WUSER_WIDTH = 1;
+    localparam int BUSER_WIDTH = 1;
+    localparam int ARUSER_WIDTH = 1;
+    localparam int RUSER_WIDTH = 1;
+    localparam int AXIL_DATA_WIDTH = 32;
+    localparam int AXIL_STRB_WIDTH = AXIL_DATA_WIDTH / 8;
+    localparam int RAM_BASE_ADDRESS = 'h80000000;
+    localparam int RAM_ADDR_WIDTH = 17;
+    localparam int PERIPH_BASE_ADDRESS = 'hA0000000;
+    localparam int PERIPH_ADDR_WIDTH = 16;
+    localparam int PERIPH_ADDR_MIN = PERIPH_BASE_ADDRESS;
+    localparam int PERIPH_ADDR_MAX = PERIPH_BASE_ADDRESS + ((1 << PERIPH_ADDR_WIDTH) - 1);
+    localparam int MEM_ADDR_MIN = RAM_BASE_ADDRESS;
+    localparam int MEM_ADDR_MAX = RAM_BASE_ADDRESS + ((1 << RAM_ADDR_WIDTH) - 1);
+    localparam int MEM_CACHE_ADDR_MIN = RAM_BASE_ADDRESS;
+    localparam int MEM_CACHE_ADDR_MAX = RAM_BASE_ADDRESS + ((1 << (RAM_ADDR_WIDTH - 1)) - 1);
+    localparam int RESET_VECTOR = RAM_BASE_ADDRESS;
 
     logic                       i_intr;
     logic [               31:0] i_reset_vector;
@@ -146,7 +157,7 @@ module tb_biriscv_idcache_top (
 
     initial begin
         i_intr              = 0;
-        i_reset_vector      = 0;
+        i_reset_vector      = RESET_VECTOR;
         s_data_axi_araddr   = 0;
         s_data_axi_arburst  = 0;
         s_data_axi_arid     = 0;
@@ -225,8 +236,8 @@ module tb_biriscv_idcache_top (
     biriscv_idcache_top #(
         .ICACHE_AXI_ID     (0),
         .DCACHE_AXI_ID     (1),
-        .MEM_CACHE_ADDR_MIN(0),
-        .MEM_CACHE_ADDR_MAX((1 << 16) - 1)
+        .MEM_CACHE_ADDR_MIN(MEM_CACHE_ADDR_MIN),
+        .MEM_CACHE_ADDR_MAX(MEM_CACHE_ADDR_MAX)
     ) i_riscv_top_wrapper (
         .i_clk              (i_clk),
         .i_rst              (i_rst),
@@ -291,7 +302,12 @@ module tb_biriscv_idcache_top (
 
 
 
-    soc_mem i_soc_mem (
+    soc_mem #(
+        .RAM_BASE_ADDRESS   (RAM_BASE_ADDRESS),
+        .RAM_ADDR_WIDTH     (RAM_ADDR_WIDTH),
+        .PERIPH_BASE_ADDRESS(PERIPH_BASE_ADDRESS),
+        .PERIPH_ADDR_WIDTH  (PERIPH_ADDR_WIDTH)
+    ) i_soc_mem (
         .clk                (i_clk),
         .rst                (i_rst),
         .s_data_axi_araddr  (s_data_axi_araddr),

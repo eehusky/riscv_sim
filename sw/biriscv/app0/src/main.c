@@ -78,7 +78,7 @@ void riscv_mtvec_mti(void)  {
 }
 
 
-extern void riscv_mtvec_table(void);
+extern void riscv_mtvec_exception(void);
 void interrupt_stuff()
 {
     // Global interrupt disable
@@ -86,7 +86,7 @@ void interrupt_stuff()
     csr_write_mie(0);
 
     // Setup the IRQ handler entry point, set the mode to vectored
-    csr_write_mtvec((uint_xlen_t) riscv_mtvec_table | 1);
+    csr_write_mtvec((uint_xlen_t) riscv_mtvec_exception | 1);
 
     // Enable MIE.MTI
     csr_set_bits_mie(MIE_MEI_BIT_MASK);

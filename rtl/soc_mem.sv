@@ -1,15 +1,19 @@
 module soc_mem #(
-    parameter int S_ID_WIDTH      = 4,
-    parameter int ADDR_WIDTH      = 32,
-    parameter int DATA_WIDTH      = 32,
-    parameter int STRB_WIDTH      = DATA_WIDTH / 8,
-    parameter int AWUSER_WIDTH    = 1,
-    parameter int WUSER_WIDTH     = 1,
-    parameter int BUSER_WIDTH     = 1,
-    parameter int ARUSER_WIDTH    = 1,
-    parameter int RUSER_WIDTH     = 1,
-    parameter int AXIL_DATA_WIDTH = 32,
-    parameter int AXIL_STRB_WIDTH = AXIL_DATA_WIDTH / 8
+    parameter int S_ID_WIDTH          = 4,
+    parameter int ADDR_WIDTH          = 32,
+    parameter int DATA_WIDTH          = 32,
+    parameter int STRB_WIDTH          = DATA_WIDTH / 8,
+    parameter int AWUSER_WIDTH        = 1,
+    parameter int WUSER_WIDTH         = 1,
+    parameter int BUSER_WIDTH         = 1,
+    parameter int ARUSER_WIDTH        = 1,
+    parameter int RUSER_WIDTH         = 1,
+    parameter int AXIL_DATA_WIDTH     = 32,
+    parameter int AXIL_STRB_WIDTH     = AXIL_DATA_WIDTH / 8,
+    parameter int RAM_BASE_ADDRESS    = 'h80000000,
+    parameter int RAM_ADDR_WIDTH      = 16,
+    parameter int PERIPH_BASE_ADDRESS = 'hA0000000,
+    parameter int PERIPH_ADDR_WIDTH   = 16
 ) (
     input                              clk,
     input                              rst,
@@ -139,7 +143,6 @@ module soc_mem #(
 );
     localparam int S_COUNT = 3;
     localparam int M_ID_WIDTH = S_ID_WIDTH + $clog2(S_COUNT);
-    localparam int RAM_ADDR_WIDTH = 16;
 
     logic [  M_ID_WIDTH-1:0] m00_to_ram_axi_awid;
     logic [  ADDR_WIDTH-1:0] m00_to_ram_axi_awaddr;
@@ -287,17 +290,16 @@ module soc_mem #(
         .s_axi_rready (m00_to_ram_axi_rready)
     );
 
-
     axi_crossbar_wrap_3x2 #(
         .S_ID_WIDTH       (S_ID_WIDTH),
         //
-        .M00_BASE_ADDR    (0),
-        .M00_ADDR_WIDTH   (16),
+        .M00_BASE_ADDR    (RAM_BASE_ADDRESS),
+        .M00_ADDR_WIDTH   (RAM_ADDR_WIDTH),
         .M00_CONNECT_READ (3'b111),
         .M00_CONNECT_WRITE(3'b111),
         //
-        .M01_BASE_ADDR    (1 << 16),
-        .M01_ADDR_WIDTH   (16),
+        .M01_BASE_ADDR    (PERIPH_BASE_ADDRESS),
+        .M01_ADDR_WIDTH   (PERIPH_ADDR_WIDTH),
         .M01_CONNECT_READ (3'b010),
         .M01_CONNECT_WRITE(3'b010),
         //

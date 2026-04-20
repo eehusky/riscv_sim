@@ -2,7 +2,7 @@ _stack_size = 4K;
 
 MEMORY
 {
-    SRAM (rwx) : ORIGIN = 0x00000000, LENGTH = 32K
+    SRAM (rwx) : ORIGIN = 0x80000000, LENGTH = 32K
 }
 
 SECTIONS
