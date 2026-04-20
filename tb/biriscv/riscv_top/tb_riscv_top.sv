@@ -1,8 +1,6 @@
 module tb_riscv_top (
     input logic i_clk,
-    input logic i_rst,
-    input logic i_intr
-
+    input logic i_rst
 );
     localparam S_ID_WIDTH = 4;
     localparam ADDR_WIDTH = 32;
@@ -16,8 +14,8 @@ module tb_riscv_top (
     localparam AXIL_DATA_WIDTH = 32;
     localparam AXIL_STRB_WIDTH = AXIL_DATA_WIDTH / 8;
 
-    //logic        i_intr;
-    logic [31:0] i_reset_vector;
+    logic                       i_intr;
+    logic [               31:0] i_reset_vector;
     logic [               31:0] s_data_axi_araddr;
     logic [                1:0] s_data_axi_arburst;
     logic [     S_ID_WIDTH-1:0] s_data_axi_arid;
@@ -147,7 +145,7 @@ module tb_riscv_top (
     end
 
     initial begin
-        //i_intr              = 0;
+        i_intr              = 0;
         i_reset_vector      = 0;
         s_data_axi_araddr   = 0;
         s_data_axi_arburst  = 0;
@@ -185,50 +183,50 @@ module tb_riscv_top (
         s_data_axi_awsize   = 2;
         s_instr_axi_arsize  = 2;
         s_instr_axi_awsize  = 2;
-        s_axi_awid = 0;
-        s_axi_awaddr = 0;
-        s_axi_awlen = 0;
-        s_axi_awsize = 0;
-        s_axi_awburst = 0;
-        s_axi_awlock = 0;
-        s_axi_awcache = 0;
-        s_axi_awprot = 0;
-        s_axi_awqos = 0;
-        s_axi_awuser = 0;
-        s_axi_awvalid = 0;
-        s_axi_wdata = 0;
-        s_axi_wstrb = 0;
-        s_axi_wlast = 0;
-        s_axi_wuser = 0;
-        s_axi_wvalid = 0;
-        s_axi_bready = 0;
-        s_axi_arid = 0;
-        s_axi_araddr = 0;
-        s_axi_arlen = 0;
-        s_axi_arsize = 0;
-        s_axi_arburst = 0;
-        s_axi_arlock = 0;
-        s_axi_arcache = 0;
-        s_axi_arprot = 0;
-        s_axi_arqos = 0;
-        s_axi_aruser = 0;
-        s_axi_arvalid = 0;
-        s_axi_rready = 0;
-        m_axil_awready = 0;
-        m_axil_wready = 0;
-        m_axil_bresp = 0;
-        m_axil_bvalid = 0;
-        m_axil_arready = 0;
-        m_axil_rdata = 0;
-        m_axil_rresp = 0;
-        m_axil_rvalid = 0;
+        s_axi_awid          = 0;
+        s_axi_awaddr        = 0;
+        s_axi_awlen         = 0;
+        s_axi_awsize        = 0;
+        s_axi_awburst       = 0;
+        s_axi_awlock        = 0;
+        s_axi_awcache       = 0;
+        s_axi_awprot        = 0;
+        s_axi_awqos         = 0;
+        s_axi_awuser        = 0;
+        s_axi_awvalid       = 0;
+        s_axi_wdata         = 0;
+        s_axi_wstrb         = 0;
+        s_axi_wlast         = 0;
+        s_axi_wuser         = 0;
+        s_axi_wvalid        = 0;
+        s_axi_bready        = 0;
+        s_axi_arid          = 0;
+        s_axi_araddr        = 0;
+        s_axi_arlen         = 0;
+        s_axi_arsize        = 0;
+        s_axi_arburst       = 0;
+        s_axi_arlock        = 0;
+        s_axi_arcache       = 0;
+        s_axi_arprot        = 0;
+        s_axi_arqos         = 0;
+        s_axi_aruser        = 0;
+        s_axi_arvalid       = 0;
+        s_axi_rready        = 0;
+        m_axil_awready      = 0;
+        m_axil_wready       = 0;
+        m_axil_bresp        = 0;
+        m_axil_bvalid       = 0;
+        m_axil_arready      = 0;
+        m_axil_rdata        = 0;
+        m_axil_rresp        = 0;
+        m_axil_rvalid       = 0;
     end
 
     riscv_top_wrapper #(
-        .ICACHE_AXI_ID(0),
-        .DCACHE_AXI_ID(1),
+        .ICACHE_AXI_ID     (0),
+        .DCACHE_AXI_ID     (1),
         .MEM_CACHE_ADDR_MIN(0),
-        .MEM_CACHE_ADDR_MAX((1<<16)-1)
+        .MEM_CACHE_ADDR_MAX((1 << 16) - 1)
     ) i_riscv_top_wrapper (
         .i_clk              (i_clk),
         .i_rst              (i_rst),

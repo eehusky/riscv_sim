@@ -45,6 +45,13 @@ set(MY_VERILATOR_ARGS
     --unroll-count 512
     -CFLAGS "${CMAKE_CXX_FLAGS}"
     -LDFLAGS "-lelf -lbfd"
+
+    #--json-only-output tree_temp.json
+    #--json-only-meta-output meta_temp.json
+    #--bbox-sys
+    #--bbox-unsup
+    #--prefix vljson
+
 )
 
 
@@ -68,6 +75,7 @@ verilate(risvc_top
         tb_riscv_top
     SOURCES
         ##
+        ##BIRISCV I/D Cache Core
         ${BIRISCV}/src/core/biriscv_alu.v
         ${BIRISCV}/src/core/biriscv_csr_regfile.v
         ${BIRISCV}/src/core/biriscv_csr.v
@@ -88,7 +96,6 @@ verilate(risvc_top
         ${BIRISCV}/src/core/biriscv_trace_sim.v
         ${BIRISCV}/src/core/biriscv_xilinx_2r1w.v
         ${BIRISCV}/src/core/riscv_core.v
-        ##
         ${BIRISCV}/src/dcache/dcache_axi_axi.v
         ${BIRISCV}/src/dcache/dcache_axi.v
         ${BIRISCV}/src/dcache/dcache_core_data_ram.v
@@ -98,33 +105,36 @@ verilate(risvc_top
         ${BIRISCV}/src/dcache/dcache_mux.v
         ${BIRISCV}/src/dcache/dcache_pmem_mux.v
         ${BIRISCV}/src/dcache/dcache.v
-        ##
         ${BIRISCV}/src/icache/icache_data_ram.v
         ${BIRISCV}/src/icache/icache_tag_ram.v
         ${BIRISCV}/src/icache/icache.v
-        ##
         ${BIRISCV}/src/top/riscv_top.v
+        riscv_top_wrapper.v
         ##
-        ##
-        ${VERILOG_AXI}/rtl/axi_ram.v
+        ## AXI Crossbar
         ${VERILOG_AXI}/rtl/axi_crossbar.v
         ${VERILOG_AXI}/rtl/axi_crossbar_wr.v
         ${VERILOG_AXI}/rtl/axi_crossbar_rd.v
         ${VERILOG_AXI}/rtl/axi_crossbar_addr.v
         ${VERILOG_AXI}/rtl/axi_register_rd.v
         ${VERILOG_AXI}/rtl/axi_register_wr.v
+        ${VERILOG_AXI}/rtl/arbiter.v
+        ${VERILOG_AXI}/rtl/priority_encoder.v
+        ${REPO_DIR}/rtl/axi_crossbar_wrap_3x2.v
+        ##
+        ## AXI2AXIL Adapter
         ${VERILOG_AXI}/rtl/axi_axil_adapter.v
         ${VERILOG_AXI}/rtl/axi_axil_adapter_wr.v
         ${VERILOG_AXI}/rtl/axi_axil_adapter_rd.v
-        ${VERILOG_AXI}/rtl/arbiter.v
-        ${VERILOG_AXI}/rtl/priority_encoder.v
-        #
+        ##
+        ## AXI RAM
+        ${VERILOG_AXI}/rtl/axi_ram.v
+        ##
+        ## SOC Memory Network
         ${REPO_DIR}/rtl/soc_mem.vlt
         ${REPO_DIR}/rtl/soc_mem.sv
-        ${REPO_DIR}/rtl/axi_crossbar_wrap_3x2.v
         ##
         ##
-        riscv_top_wrapper.v
         tb_riscv_top.sv
         #
     VERILATOR_ARGS
