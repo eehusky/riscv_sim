@@ -1,6 +1,8 @@
 module tb_riscv_top (
     input logic i_clk,
-    input logic i_rst
+    input logic i_rst,
+    input logic i_intr
+
 );
     localparam S_ID_WIDTH = 4;
     localparam ADDR_WIDTH = 32;
@@ -14,7 +16,7 @@ module tb_riscv_top (
     localparam AXIL_DATA_WIDTH = 32;
     localparam AXIL_STRB_WIDTH = AXIL_DATA_WIDTH / 8;
 
-    logic        i_intr;
+    //logic        i_intr;
     logic [31:0] i_reset_vector;
     logic [               31:0] s_data_axi_araddr;
     logic [                1:0] s_data_axi_arburst;
@@ -145,7 +147,7 @@ module tb_riscv_top (
     end
 
     initial begin
-        i_intr              = 0;
+        //i_intr              = 0;
         i_reset_vector      = 0;
         s_data_axi_araddr   = 0;
         s_data_axi_arburst  = 0;

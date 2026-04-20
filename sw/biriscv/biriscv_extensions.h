@@ -15,6 +15,10 @@ static inline void biriscv_timer_set_mtimecmp(uint32_t next)
 {
     csr_write(0x7c0, next);
 }
+static inline uint32_t biriscv_timer_get_mtimecmp(void)
+{
+    return csr_read(0x7c0);
+}
 
 static inline uint32_t biriscv_timer_get_mtime(void)
 {
@@ -59,6 +63,15 @@ static inline void biriscv_sim_putc(int ch)
 {
     unsigned int arg = CSR_SIM_CTRL_PUTC | (ch & 0xFF);
     asm volatile ("csrw dscratch,%0": : "r" (arg));
+}
+
+
+static inline void biriscv_putstring(char * s)
+{
+    char *p = s;
+    while (*p) {
+        biriscv_sim_putc(*p++);
+    }
 }
 
 #endif

@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
 
 
     uint64_t       cycles         = 0;
-    int64_t        max_cycles     = (int64_t)-1;
+    int64_t        max_cycles     = 3000;//(int64_t)-1;
     const char *   filename       = NULL;
     int            help           = 0;
     int c;
@@ -131,6 +131,7 @@ int main(int argc, char** argv) {
 
 
     top->i_clk = 0;
+    top->i_intr = 0;
     top->i_rst = 1;
     top->eval();
 
@@ -153,6 +154,24 @@ int main(int argc, char** argv) {
     top->i_rst = 0;
 
     while (!contextp->gotFinish() && !(max_cycles != -1 && cycles >= max_cycles)) {
+        contextp->timeInc(CLK_PERIOD/2);
+        top->i_clk = !top->i_clk;
+        top->eval();
+        cycles += 1;
+    }
+    top->i_intr = 1;
+
+    contextp->timeInc(CLK_PERIOD/2);
+    top->i_clk = !top->i_clk;
+    top->eval();
+    contextp->timeInc(CLK_PERIOD/2);
+    top->i_clk = !top->i_clk;
+    top->eval();
+
+    top->i_intr = 0;
+
+
+    while (!contextp->gotFinish()) {
         contextp->timeInc(CLK_PERIOD/2);
         top->i_clk = !top->i_clk;
         top->eval();

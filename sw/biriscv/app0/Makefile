@@ -5,7 +5,9 @@ TARGET      = proj0
 # List all the source files here
 C_SOURCES    += main.c
 C_SOURCES    += syscalls.c
+C_SOURCES    += vector_table.c
 S_SOURCES    += start.s
+#S_SOURCES    += vector.s
 
 #SOURCES  = $(wildcard src/*.c)
 
