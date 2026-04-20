@@ -1,4 +1,4 @@
-module riscv_top_wrapper #(
+module biriscv_idcache_top #(
     parameter CORE_ID                   = 0,
     parameter ICACHE_AXI_ID             = 0,
     parameter DCACHE_AXI_ID             = 0,
@@ -167,4 +167,4 @@ module riscv_top_wrapper #(
         .axi_d_wstrb_o  (s_data_axi_wstrb),
         .axi_d_wvalid_o (s_data_axi_wvalid)
     );
-endmodule : riscv_top_wrapper
+endmodule : biriscv_idcache_top

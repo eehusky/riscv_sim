@@ -6,8 +6,8 @@
 #include "elf_load.h"
 #include "mem_api.h"
 
-#include "Vtb_riscv_top.h"
-#include "Vtb_riscv_top__Syms.h"
+#include "Vtb_biriscv_idcache_top.h"
+#include "Vtb_biriscv_idcache_top__Syms.h"
 
 #define CLK_PERIOD 10
 #define MEM_BASE 0x00000000
@@ -35,11 +35,11 @@ static void help_options(void)
 class bootstrap: public mem_api
 {
 public:
-    Vtb_riscv_top           *m_dut;
+    Vtb_biriscv_idcache_top           *m_dut;
     uint32_t           lo_addr;
     uint32_t           hi_addr;
 
-    bootstrap(Vtb_riscv_top *dut)
+    bootstrap(Vtb_biriscv_idcache_top *dut)
     {
         m_dut = dut;
         lo_addr = 0xFFFFFFFF;
@@ -56,14 +56,14 @@ public:
     {
         lo_addr = addr<lo_addr ? addr : lo_addr;
         hi_addr = addr>hi_addr ? addr : hi_addr;
-        m_dut->tb_riscv_top->vlSymsp->TOP__tb_riscv_top.write(addr, data);
+        m_dut->tb_biriscv_idcache_top->vlSymsp->TOP__tb_biriscv_idcache_top.write(addr, data);
         //auto mem = m_dut->tb_riscv_top->vlSymsp->TOP__tb_riscv_top.i_soc_mem->i_axi_ram->mem.data();
         //auto offset = ((addr%4)*8);
         //mem[addr/4] = (mem[addr/4] & ~(0xFF<<offset)) | (data<<offset);
     }
     uint8_t read(uint32_t addr)
     {
-        return m_dut->tb_riscv_top->vlSymsp->TOP__tb_riscv_top.read(addr);
+        return m_dut->tb_biriscv_idcache_top->vlSymsp->TOP__tb_biriscv_idcache_top.read(addr);
     }
     void dump()
     {
@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
 
 
     uint64_t       cycles         = 0;
-    int64_t        max_cycles     = 3000;//(int64_t)-1;
+    int64_t        max_cycles     = (int64_t)-1;
     const char *   filename       = NULL;
     int            help           = 0;
     int c;
@@ -126,12 +126,11 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    const std::unique_ptr<Vtb_riscv_top> top{new Vtb_riscv_top{contextp.get(), "TOP"}};
+    const std::unique_ptr<Vtb_biriscv_idcache_top> top{new Vtb_biriscv_idcache_top{contextp.get(), "TOP"}};
     bootstrap *boot = new bootstrap(top.get());
 
 
     top->i_clk = 0;
-    top->i_intr = 0;
     top->i_rst = 1;
     top->eval();
 
@@ -159,37 +158,11 @@ int main(int argc, char** argv) {
         top->eval();
         cycles += 1;
     }
-    top->i_intr = 1;
-
-    contextp->timeInc(CLK_PERIOD/2);
-    top->i_clk = !top->i_clk;
-    top->eval();
-    contextp->timeInc(CLK_PERIOD/2);
-    top->i_clk = !top->i_clk;
-    top->eval();
-
-    top->i_intr = 0;
-
-
-    while (!contextp->gotFinish()) {
-        contextp->timeInc(CLK_PERIOD/2);
-        top->i_clk = !top->i_clk;
-        top->eval();
-        cycles += 1;
-    }
-
-
-    //for (int i = 0; i < 500; ++i)
-    //{
-    //    contextp->timeInc(CLK_PERIOD/2);
-    //    top->i_clk = !top->i_clk;
-    //    top->eval();
-    //}
 
 
     top->final();
 
-    contextp->statsPrintSummary();
+    //contextp->statsPrintSummary();
 
     return 0;
 }

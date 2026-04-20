@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(risvc_top)
+project(tb_biriscv_idcache_top)
 
 set(REPO_DIR                  ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
 set(BIRISCV                   ${REPO_DIR}/cores/biriscv)
@@ -55,14 +55,14 @@ set(MY_VERILATOR_ARGS
 )
 
 
-add_executable(risvc_top
+add_executable(tb_biriscv_idcache_top
     ../common/elf_load.cpp
     sim_main.cpp
 )
 
-verilate(risvc_top
+verilate(tb_biriscv_idcache_top
     PREFIX
-        Vtb_riscv_top
+        Vtb_biriscv_idcache_top
     OPT_GLOBAL
         ${CMAKE_CXX_FLAGS}
     OPT_SLOW
@@ -72,7 +72,7 @@ verilate(risvc_top
     INCLUDE_DIRS
         ${BIRISCV}/src/core/
     TOP_MODULE
-        tb_riscv_top
+        tb_biriscv_idcache_top
     SOURCES
         ##
         ##BIRISCV I/D Cache Core
@@ -109,7 +109,7 @@ verilate(risvc_top
         ${BIRISCV}/src/icache/icache_tag_ram.v
         ${BIRISCV}/src/icache/icache.v
         ${BIRISCV}/src/top/riscv_top.v
-        riscv_top_wrapper.v
+        biriscv_idcache_top.v
         ##
         ## AXI Crossbar
         ${VERILOG_AXI}/rtl/axi_crossbar.v
@@ -135,14 +135,14 @@ verilate(risvc_top
         ${REPO_DIR}/rtl/soc_mem.sv
         ##
         ##
-        tb_riscv_top.sv
+        tb_biriscv_idcache_top.sv
         #
     VERILATOR_ARGS
         ${MY_VERILATOR_ARGS}
 )
 
 
-target_include_directories(risvc_top
+target_include_directories(tb_biriscv_idcache_top
     PUBLIC
         SystemC::systemc
         ${.}

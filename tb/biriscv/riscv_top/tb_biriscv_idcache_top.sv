@@ -1,4 +1,4 @@
-module tb_riscv_top (
+module tb_biriscv_idcache_top (
     input logic i_clk,
     input logic i_rst
 );
@@ -222,7 +222,7 @@ module tb_riscv_top (
         m_axil_rvalid       = 0;
     end
 
-    riscv_top_wrapper #(
+    biriscv_idcache_top #(
         .ICACHE_AXI_ID     (0),
         .DCACHE_AXI_ID     (1),
         .MEM_CACHE_ADDR_MIN(0),
@@ -458,4 +458,4 @@ module tb_riscv_top (
 `endif
 
 
-endmodule : tb_riscv_top
+endmodule : tb_biriscv_idcache_top
