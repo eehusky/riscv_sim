@@ -93,7 +93,7 @@ READELF     = $(TOOL)/bin/riscv64-unknown-elf-readelf
 DEBUG       = $(TOOL)/bin/riscv64-unknown-elf-gdb
 
 CP          = cp -p
-RM          = rm -rf
+RM          = rm
 MV          = mv
 MKDIR       = mkdir -p
 ###############################################################################
@@ -161,7 +161,7 @@ asm: $(ASMS)
 size: .build/$(TARGET).elf
 	@if [ 'x${VERBOSE}' = x ];                                                \
 	 then                                                                     \
-		 echo "SIZE      ${<}";                                               \
+		 echo "SIZE         ${<}";                                            \
 	 else                                                                     \
 		 echo $(SIZE) $<;                                                     \
 	 fi
