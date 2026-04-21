@@ -43,6 +43,14 @@ static inline void biriscv_dcache_writeback(uint32_t addr)
 {
     asm volatile ("csrw pmpcfg1, %0": : "r" (addr)); // 0x3a1
 }
+static inline void biriscv_dcache_writeback_range(uint32_t addr, uint32_t count)
+{
+    for (int i = (addr&0xFFFFFFF8); i < (((addr+count)&0xFFFFFFF8)+8); i+=8)
+    {
+        biriscv_dcache_writeback(i);
+    }
+}
+
 static inline void biriscv_dcache_invalidate(uint32_t addr)
 {
     asm volatile ("csrw pmpcfg2, %0": : "r" (addr)); // 0x3a2

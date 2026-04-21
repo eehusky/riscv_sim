@@ -212,38 +212,54 @@ void riscv_mtvec_exception(void)  {
 
     switch (this_cause) {
         case RISCV_EXCP_INSTRUCTION_ADDRESS_MISALIGNED:
+            biriscv_putstring("RISCV_EXCP_INSTRUCTION_ADDRESS_MISALIGNED\n");
             break;
         case RISCV_EXCP_INSTRUCTION_ACCESS_FAULT:
+            biriscv_putstring("RISCV_EXCP_INSTRUCTION_ACCESS_FAULT\n");
             break;
         case RISCV_EXCP_ILLEGAL_INSTRUCTION:
+            biriscv_putstring("RISCV_EXCP_ILLEGAL_INSTRUCTION\n");
             break;
         case RISCV_EXCP_BREAKPOINT:
+            biriscv_putstring("RISCV_EXCP_BREAKPOINT\n");
             break;
         case RISCV_EXCP_LOAD_ADDRESS_MISALIGNED:
+            biriscv_putstring("RISCV_EXCP_LOAD_ADDRESS_MISALIGNED\n");
             break;
         case RISCV_EXCP_LOAD_ACCESS_FAULT:
+            biriscv_putstring("RISCV_EXCP_LOAD_ACCESS_FAULT\n");
             break;
         case RISCV_EXCP_STORE_AMO_ADDRESS_MISALIGNED:
+            biriscv_putstring("RISCV_EXCP_STORE_AMO_ADDRESS_MISALIGNED\n");
             break;
         case RISCV_EXCP_STORE_AMO_ACCESS_FAULT:
+            biriscv_putstring("RISCV_EXCP_STORE_AMO_ACCESS_FAULT\n");
             break;
         case RISCV_EXCP_ENVIRONMENT_CALL_FROM_U_MODE:
+            biriscv_putstring("RISCV_EXCP_ENVIRONMENT_CALL_FROM_U_MODE\n");
             break;
         case RISCV_EXCP_ENVIRONMENT_CALL_FROM_S_MODE:
+            biriscv_putstring("RISCV_EXCP_ENVIRONMENT_CALL_FROM_S_MODE\n");
             break;
         case RISCV_EXCP_RESERVED10:
+            biriscv_putstring("RISCV_EXCP_RESERVED10\n");
             break;
         case RISCV_EXCP_ENVIRONMENT_CALL_FROM_M_MODE:
+            biriscv_putstring("RISCV_EXCP_ENVIRONMENT_CALL_FROM_M_MODE\n");
             // Make sure the return address is the instruction AFTER ecall
             csr_write_mepc(csr_read_mepc()+4);
             break;
         case RISCV_EXCP_INSTRUCTION_PAGE_FAULT:
+            biriscv_putstring("RISCV_EXCP_INSTRUCTION_PAGE_FAULT\n");
             break;
         case RISCV_EXCP_LOAD_PAGE_FAULT:
+            biriscv_putstring("RISCV_EXCP_LOAD_PAGE_FAULT\n");
             break;
         case RISCV_EXCP_RESERVED14:
+            biriscv_putstring("RISCV_EXCP_RESERVED14\n");
             break;
         case RISCV_EXCP_STORE_AMO_PAGE_FAULT:
+            biriscv_putstring("RISCV_EXCP_STORE_AMO_PAGE_FAULT\n");
             break;
 
     }

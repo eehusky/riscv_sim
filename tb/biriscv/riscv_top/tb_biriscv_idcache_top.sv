@@ -431,6 +431,97 @@ module tb_biriscv_idcache_top (
         .m_axil_rready      (m_axil_rready)
     );
 
+    localparam int M_AXI_DATA_WIDTH = 32;
+    localparam int M_AXI_ADDR_WIDTH = 32;
+    localparam int M_AXI_ID_WIDTH = S_ID_WIDTH;
+    localparam int M00_AXIS_TDATA_WIDTH = 8;
+    localparam int M01_AXIS_TDATA_WIDTH = 16;
+    localparam int S00_AXIS_TDATA_WIDTH = 8;
+    localparam int S01_AXIS_TDATA_WIDTH = 16;
+    localparam int S_AXIL_DATA_WIDTH    = ringbuffer_addrmap_pkg::RINGBUFFER_ADDRMAP_MIN_ADDR_WIDTH;
+
+    ringbuffer_axis_if #(.TDATA_WIDTH(M00_AXIS_TDATA_WIDTH)) m00_axis ();
+    ringbuffer_axis_if #(.TDATA_WIDTH(M01_AXIS_TDATA_WIDTH)) m01_axis ();
+    ringbuffer_axis_if #(.TDATA_WIDTH(S00_AXIS_TDATA_WIDTH)) s00_axis ();
+    ringbuffer_axis_if #(.TDATA_WIDTH(S01_AXIS_TDATA_WIDTH)) s01_axis ();
+
+    initial begin
+        m00_axis.tready = 1;
+        m01_axis.tready = 1;
+        s00_axis.tvalid = 0;
+        s01_axis.tvalid = 0;
+    end
+
+    ringbuffer_axil #(
+        .M00_AXIS_TDATA_WIDTH(M00_AXIS_TDATA_WIDTH),
+        .M01_AXIS_TDATA_WIDTH(M01_AXIS_TDATA_WIDTH),
+        .S00_AXIS_TDATA_WIDTH(S00_AXIS_TDATA_WIDTH),
+        .S01_AXIS_TDATA_WIDTH(S01_AXIS_TDATA_WIDTH),
+        .M_AXI_ADDR_WIDTH    (M_AXI_ADDR_WIDTH),
+        .M_AXI_DATA_WIDTH    (M_AXI_DATA_WIDTH),
+        .M_AXI_ID_WIDTH      (M_AXI_ID_WIDTH)
+    ) i_ringbuffer_axil (
+        .i_clk         (i_clk),
+        .i_reset       (i_rst),
+        //
+        .o_interrupt   (i_intr),
+        //
+        .m00_axis      (m00_axis),
+        .m01_axis      (m01_axis),
+        .s00_axis      (s00_axis),
+        .s01_axis      (s01_axis),
+        //
+        .s_axil_awready(m_axil_awready),
+        .s_axil_awvalid(m_axil_awvalid),
+        .s_axil_awaddr (m_axil_awaddr[S_AXIL_DATA_WIDTH-1:0]),
+        .s_axil_awprot (m_axil_awprot),
+        .s_axil_wready (m_axil_wready),
+        .s_axil_wvalid (m_axil_wvalid),
+        .s_axil_wdata  (m_axil_wdata),
+        .s_axil_wstrb  (m_axil_wstrb),
+        .s_axil_bready (m_axil_bready),
+        .s_axil_bvalid (m_axil_bvalid),
+        .s_axil_bresp  (m_axil_bresp),
+        .s_axil_arready(m_axil_arready),
+        .s_axil_arvalid(m_axil_arvalid),
+        .s_axil_araddr (m_axil_araddr[S_AXIL_DATA_WIDTH-1:0]),
+        .s_axil_arprot (m_axil_arprot),
+        .s_axil_rready (m_axil_rready),
+        .s_axil_rvalid (m_axil_rvalid),
+        .s_axil_rdata  (m_axil_rdata),
+        .s_axil_rresp  (m_axil_rresp),
+        //
+        .m_axi_arvalid (s_axi_arvalid),
+        .m_axi_arready (s_axi_arready),
+        .m_axi_araddr  (s_axi_araddr),
+        .m_axi_arlen   (s_axi_arlen),
+        .m_axi_arsize  (s_axi_arsize),
+        .m_axi_arburst (s_axi_arburst),
+        .m_axi_arid    (s_axi_arid),
+        .m_axi_rvalid  (s_axi_rvalid),
+        .m_axi_rready  (s_axi_rready),
+        .m_axi_rdata   (s_axi_rdata),
+        .m_axi_rlast   (s_axi_rlast),
+        .m_axi_rid     (s_axi_rid),
+        .m_axi_rresp   (s_axi_rresp),
+        .m_axi_awvalid (s_axi_awvalid),
+        .m_axi_awready (s_axi_awready),
+        .m_axi_awaddr  (s_axi_awaddr),
+        .m_axi_awlen   (s_axi_awlen),
+        .m_axi_awsize  (s_axi_awsize),
+        .m_axi_awburst (s_axi_awburst),
+        .m_axi_awid    (s_axi_awid),
+        .m_axi_wvalid  (s_axi_wvalid),
+        .m_axi_wready  (s_axi_wready),
+        .m_axi_wdata   (s_axi_wdata),
+        .m_axi_wstrb   (s_axi_wstrb),
+        .m_axi_wlast   (s_axi_wlast),
+        .m_axi_bvalid  (s_axi_bvalid),
+        .m_axi_bready  (s_axi_bready),
+        .m_axi_bid     (s_axi_bid),
+        .m_axi_bresp   (s_axi_bresp)
+    );
+
 
 
 `ifdef verilator

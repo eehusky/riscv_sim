@@ -6,13 +6,14 @@ TARGET      = proj0
 C_SOURCES    += main.c
 C_SOURCES    += syscalls.c
 C_SOURCES    += vector_table.c
+C_SOURCES    += mm2s_ringbuffer.c
 S_SOURCES    += start.s
 #S_SOURCES    += vector.s
 
 #SOURCES  = $(wildcard src/*.c)
 
 # Includes are located in the Include directory
-INCLUDES    = -Isrc/include -I../
+INCLUDES    = -Isrc/include -I../ -I../../ringbuffer
 
 # Path to the root of your ARM toolchain
 TOOL        = /opt/riscv/
@@ -33,12 +34,15 @@ VERBOSE     = #1
 
 # Flag Definitions
 ###############################################################################
-CFLAGS     += -Os
+CFLAGS     += -O3
 CFLAGS     += -ffunction-sections
 CFLAGS     += -fdata-sections
-CFLAGS     += -march=rv32im_zicsr
+CFLAGS     += -march=rv32im_zicsr_zifencei_zbb
 CFLAGS     += -mabi=ilp32
 CFLAGS     += -MD
+CFLAGS     += -mcmodel=medany
+#CFLAGS     += -mshorten-memrefs
+CFLAGS     += -mstrict-align
 #CFLAGS     += -std=c99
 #CFLAGS     += -Wall
 #CFLAGS     += -pedantic
@@ -51,7 +55,7 @@ LIBS        += /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libm_nano.a
 
 LDFLAGS    += -T $(LD_SCRIPT)
 LDFLAGS    += --entry _start
-LDFLAGS    += --gc-sections
+#LDFLAGS    += --gc-sections
 LDFLAGS    += -Map .build/$(TARGET).map
 LDFLAGS    += --cref
 #LDFLAGS    += -nostdlib
