@@ -3,11 +3,11 @@
 
 #include <stdint.h>
 
-#define csr_read(reg)                                \
-    ({                                               \
-        uint32_t __tmp;                              \
-        asm volatile("csrr %0, " #reg : "=r"(__tmp));\
-        __tmp;                                       \
+#define csr_read(reg)                                                                                                  \
+    ({                                                                                                                 \
+        uint32_t __tmp;                                                                                                \
+        asm volatile("csrr %0, " #reg : "=r"(__tmp));                                                                  \
+        __tmp;                                                                                                         \
     })
 
 #define csr_write(reg, val) ({ asm volatile("csrw " #reg ", %0" ::"rK"(val)); })
