@@ -1,8 +1,9 @@
-#ifndef MM2S_RINGBUFFER_H
-#define MM2S_RINGBUFFER_H
+#ifndef __MM2S_RINGBUFFER_H__
+#define __MM2S_RINGBUFFER_H__
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 struct mm2s_ringbuffer;
 
@@ -23,6 +24,9 @@ bool mm2s_ringbuffer_is_empty(struct mm2s_ringbuffer *dev);
 bool mm2s_ringbuffer_is_full(struct mm2s_ringbuffer *dev);
 int mm2s_ringbuffer_free(struct mm2s_ringbuffer *dev);
 
+void mm2s_ringbuffer_write_intr_enable(struct mm2s_ringbuffer *dev, uint32_t mask);
+uint32_t mm2s_ringbuffer_read_intr_enable(struct mm2s_ringbuffer *dev);
+uint32_t mm2s_ringbuffer_read_intr_active(struct mm2s_ringbuffer *dev);
+void mm2s_ringbuffer_clear_intr(struct mm2s_ringbuffer *dev, uint32_t mask);
 
-
-#endif /* MM2S_RINGBUFFER_H */
+#endif /* __MM2S_RINGBUFFER_H__ */

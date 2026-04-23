@@ -445,12 +445,13 @@ module tb_biriscv_idcache_top (
     ringbuffer_axis_if #(.TDATA_WIDTH(S00_AXIS_TDATA_WIDTH)) s00_axis ();
     ringbuffer_axis_if #(.TDATA_WIDTH(S01_AXIS_TDATA_WIDTH)) s01_axis ();
 
-    initial begin
-        m00_axis.tready = 1;
-        m01_axis.tready = 1;
-        s00_axis.tvalid = 0;
-        s01_axis.tvalid = 0;
-    end
+    assign s00_axis.tdata =  m00_axis.tdata;
+    assign m00_axis.tready = s00_axis.tready;
+    assign s00_axis.tvalid = m00_axis.tvalid;
+
+    assign s01_axis.tdata = m01_axis.tdata;
+    assign m01_axis.tready = s01_axis.tready;
+    assign s01_axis.tvalid = m01_axis.tvalid;
 
     ringbuffer_axil #(
         .M00_AXIS_TDATA_WIDTH(M00_AXIS_TDATA_WIDTH),

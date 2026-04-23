@@ -312,3 +312,38 @@ int mm2s_ringbuffer_put2(struct mm2s_ringbuffer *dev, void *buffer, size_t buffe
 
     return count;
 }
+
+
+
+
+
+void mm2s_ringbuffer_write_intr_enable(struct mm2s_ringbuffer *dev, uint32_t mask)
+{
+    if (dev == NULL) {
+        return;
+    }
+    dev->regs->INTR_ENABLE = mask;
+}
+uint32_t mm2s_ringbuffer_read_intr_enable(struct mm2s_ringbuffer *dev)
+{
+    if (dev == NULL) {
+        return false;
+    }
+
+    return (dev->regs->INTR_ENABLE);
+}
+uint32_t mm2s_ringbuffer_read_intr_active(struct mm2s_ringbuffer *dev)
+{
+    if (dev == NULL) {
+        return false;
+    }
+
+    return (dev->regs->INTR_ACTIVE);
+}
+void mm2s_ringbuffer_clear_intr(struct mm2s_ringbuffer *dev, uint32_t mask)
+{
+    if (dev == NULL) {
+        return;
+    }
+    dev->regs->INTR_ACTIVE = mask;
+}

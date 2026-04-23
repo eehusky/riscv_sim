@@ -148,7 +148,7 @@ extern "C" {
 #define S2MM_RINGBUFFERX__SCRATCH__SCRATCH_reset 0x0
 
 // Regfile - s2mm_ringbuffer[]
-typedef struct __attribute__ ((__packed__)) {
+typedef struct __attribute__ ((__packed__)) __attribute__ ((aligned(4))) {
     uint32_t CSR;
     uint32_t BASEADDRESS_LO;
     uint32_t BASEADDRESS_HI;

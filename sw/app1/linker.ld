@@ -2,7 +2,7 @@ _stack_size = 4K;
 
 MEMORY
 {
-    SRAM (rwx) : ORIGIN = 0x80000000, LENGTH = 32K
+    SRAM (rwx) : ORIGIN = 0x80000000, LENGTH = 64K
 }
 
 SECTIONS
@@ -21,6 +21,7 @@ SECTIONS
     {
         _data = .;
         *(.data*)
+        *(.sdata*)
         _edata = .;
     } > SRAM
 
@@ -32,6 +33,12 @@ SECTIONS
         _ebss = .;
     } > SRAM
 
+    .sbss : AT(ADDR(.bss) + SIZEOF(.bss))
+    {
+        _sbss = .;
+        *(.sbss*)
+        _esbss = .;
+    } > SRAM
 
     _heap_bottom = .;
     _heap_top = ORIGIN(SRAM) + LENGTH(SRAM) - _stack_size;

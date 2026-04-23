@@ -43,6 +43,15 @@ static inline void biriscv_dcache_invalidate(uint32_t addr)
     asm volatile("csrw pmpcfg2, %0" : : "r"(addr)); // 0x3a2
 }
 
+static inline void biriscv_dcache_invalidate_range(uint32_t addr, uint32_t count)
+{
+    for (int i = (addr & 0xFFFFFFF8); i < (((addr + count) & 0xFFFFFFF8) + 8); i += 8) {
+        biriscv_dcache_invalidate(i);
+    }
+}
+
+
+
 #define CSR_SIM_CTRL_EXIT (0 << 24)
 #define CSR_SIM_CTRL_PUTC (1 << 24)
 
@@ -60,10 +69,10 @@ static inline void biriscv_sim_putc(int ch)
 
 static inline void biriscv_putstring(char *s)
 {
-    char *p = s;
-    while (*p) {
-        biriscv_sim_putc(*p++);
-    }
+    //char *p = s;
+    //while (*p) {
+    //    biriscv_sim_putc(*p++);
+    //}
 }
 
 #endif

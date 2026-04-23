@@ -1,3 +1,11 @@
+## Errata
+
+ * biriscv
+   * AXI interfaces are only 32 bit
+   * Vector Interrupts dont work
+   * wfi doesnt wait for anything
+   * mtime is csr based instead of mm and isnt 64 bits
+
 ## FreeRTOS notes
 
 

@@ -19,11 +19,13 @@ set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld)
 
 add_executable(${TARGET}.elf
     main.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ringbuffer/mm2s_ringbuffer.c
     ${BIRISCV}/start.s
     ${BIRISCV}/entry.c
     ${BIRISCV}/syscalls.c
     ${RISCV}/mtvec.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../ringbuffer/mm2s_ringbuffer.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../ringbuffer/s2mm_ringbuffer.c
+    #${CMAKE_CURRENT_SOURCE_DIR}/../ringbuffer/test_mm2s_ringbuffer.c
 
 )
 target_include_directories(${TARGET}.elf
@@ -44,7 +46,7 @@ set(PROJECT_C_FLAGS
     -fno-exceptions
     -ffunction-sections
     -fdata-sections
-    -march=rv32im_zicsr_zifencei_zbb
+    -march=rv32im_zicsr_zifencei
     -mabi=ilp32
     -MD
     -mcmodel=medany

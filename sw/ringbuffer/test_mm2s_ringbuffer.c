@@ -6,52 +6,36 @@
 #include <string.h>
 
 #include "mm2s_ringbuffer.h"
+#include "s2mm_ringbuffer.h"
+#include "test_mm2s_ringbuffer.h"
 
-int main(int argc, char const *argv[])
-{
-    struct mm2s_ringbuffer *dev;
-    void *buffer = malloc(4096);
 
-    dev = mm2s_ringbuffer_init(0);
-    if (dev == NULL) {
-        printf("MM2S Init Failed\n");
-        return -1;
-    }
-    mm2s_ringbuffer_set_buffer(dev, buffer, 4096);
-    mm2s_ringbuffer_start(dev);
+void __attribute__((weak)) ringbuffer_puts(char *s){}
+void __attribute__((weak)) ringbuffer_cache_writeback(uint32_t addr, uint32_t count){}
 
-    char *teststring = "Hello World";
-    mm2s_ringbuffer_put(dev, teststring, strlen(teststring));
-    mm2s_ringbuffer_commit(dev);
+#define PUTS(s)                      (ringbuffer_puts((s)))
+#define CACHE_WRITEBACK(addr, count) (ringbuffer_cache_writeback((addr), (count)))
 
-    return 0;
-}
+#define BUFFER_SIZE 4096
+unsigned char buffers[4][BUFFER_SIZE] __attribute__((aligned(4096)));
 
-#define PUTS(s) (biriscv_putstring((s)))
-#define CACHE_WRITEBACK(addr, count) (biriscv_dcache_writeback_range((addr), (count)))
-
-unsigned char buffers[4][4096] __attribute__((aligned(4096)));
-
-void test_ringbuffer(void)
+void test_ringbuffer_mm2s_helloworld(void *dev_address)
 {
     PUTS("ringbuffer_stuff\n");
 
     int rc;
     struct mm2s_ringbuffer *dev;
-    void *buffer = malloc(4096);
-
-    ringbuffer_t *inst = ((ringbuffer_t *)0xa0000000UL);
 
     PUTS("mm2s_ringbuffer_init\n");
 
-    dev = mm2s_ringbuffer_init((mm2s_ringbufferx_t *)(&(inst->mm2s_ringbuffer[0])));
+    dev = mm2s_ringbuffer_init(dev_address);
     if (dev == NULL) {
         PUTS("mm2s_ringbuffer_init failed\n");
         return;
     }
 
     PUTS("mm2s_ringbuffer_set_buffer\n");
-    rc = mm2s_ringbuffer_set_buffer(dev, buffers[0], 4096);
+    rc = mm2s_ringbuffer_set_buffer(dev, buffers[0], BUFFER_SIZE);
     if (rc) {
         PUTS("mm2s_ringbuffer_set_buffer failed\n");
         return;
@@ -79,6 +63,54 @@ void test_ringbuffer(void)
     rc = mm2s_ringbuffer_commit(dev);
     if (rc) {
         PUTS("mm2s_ringbuffer_commit failed\n");
+        return;
+    }
+}
+
+
+
+void test_ringbuffer_s2mm_helloworld(void *dev_address)
+{
+    PUTS("ringbuffer_stuff\n");
+
+    int rc;
+    struct s2mm_ringbuffer *dev;
+
+    PUTS("s2mm_ringbuffer_init\n");
+
+    dev = s2mm_ringbuffer_init(dev_address);
+    if (dev == NULL) {
+        PUTS("s2mm_ringbuffer_init failed\n");
+        return;
+    }
+
+    PUTS("s2mm_ringbuffer_set_buffer\n");
+    rc = s2mm_ringbuffer_set_buffer(dev, buffers[1], BUFFER_SIZE);
+    if (rc) {
+        PUTS("s2mm_ringbuffer_set_buffer failed\n");
+        return;
+    }
+
+    PUTS("s2mm_ringbuffer_start\n");
+    rc = s2mm_ringbuffer_start(dev);
+    if (rc) {
+        PUTS("s2mm_ringbuffer_start failed\n");
+        return;
+    }
+
+    uint8_t readbuf[16];
+
+    PUTS("s2mm_ringbuffer_get\n");
+    rc = s2mm_ringbuffer_get(dev, readbuf, 16);
+    if (rc < 0) {
+        PUTS("s2mm_ringbuffer_get failed\n");
+        return;
+    }
+
+    PUTS("s2mm_ringbuffer_commit\n");
+    rc = s2mm_ringbuffer_commit(dev);
+    if (rc) {
+        PUTS("s2mm_ringbuffer_commit failed\n");
         return;
     }
 }
