@@ -82,7 +82,7 @@ static inline void mm2s_ringbuffer_isr(struct mm2s_ringbuffer *dev)
             // biriscv_dcache_flush();
             mm2s_ringbuffer_commit(mm2s_0);
 
-            if(mm2s_n_bytes>4096){
+            if (mm2s_n_bytes > 4096) {
                 mm2s_ringbuffer_write_intr_enable(dev, 0);
             }
 
@@ -117,16 +117,16 @@ static inline void s2mm_ringbuffer_isr(struct s2mm_ringbuffer *dev)
         }
         if (pending & S2MM_RINGBUFFERX__INTR_ACTIVE__LEVEL_bm) {
             biriscv_putstring("    s2mm_ringbuffer_isr_level\n");
-            s2mm_n_bytes+=s2mm_ringbuffer_level(dev);
+            s2mm_n_bytes += s2mm_ringbuffer_level(dev);
             s2mm_ringbuffer_flush(dev);
-            //int rv;
-            //do {
-            //    rv = s2mm_ringbuffer_get(dev, getbuffer, 256);
-            //    if (rv > 0) {
-            //        s2mm_n_bytes += rv;
-            //    }
-            //    s2mm_ringbuffer_commit(dev);
-            //} while (rv > 0);
+            // int rv;
+            // do {
+            //     rv = s2mm_ringbuffer_get(dev, getbuffer, 256);
+            //     if (rv > 0) {
+            //         s2mm_n_bytes += rv;
+            //     }
+            //     s2mm_ringbuffer_commit(dev);
+            // } while (rv > 0);
             s2mm_ringbuffer_clear_intr(dev, S2MM_RINGBUFFERX__INTR_ACTIVE__LEVEL_bm);
         }
         enabled = s2mm_ringbuffer_read_intr_enable(dev);
@@ -230,11 +230,10 @@ int main(void)
     mm2s_0 = configure_mm2s((void *)&(inst->mm2s_ringbuffer[0]), buffers[0], BUFFER_SIZE, 0);
     s2mm_0 = configure_s2mm((void *)&(inst->s2mm_ringbuffer[0]), buffers[1], BUFFER_SIZE, 0);
 
-    //mm2s_ringbuffer_set_threshold(mm2s_0, 1);
-    //mm2s_ringbuffer_write_intr_enable(mm2s_0, MM2S_RINGBUFFERX__INTR_ENABLE__LEVEL_bm);
+    // mm2s_ringbuffer_set_threshold(mm2s_0, 1);
+    // mm2s_ringbuffer_write_intr_enable(mm2s_0, MM2S_RINGBUFFERX__INTR_ENABLE__LEVEL_bm);
 
-    for (int i = 0; i < 256; ++i)
-    {
+    for (int i = 0; i < 256; ++i) {
         putbuffer[i] = i;
     }
 
@@ -249,7 +248,6 @@ int main(void)
     for (int i = 0; i < 1000; ++i) {
         asm volatile("nop");
     }
-
 
     printf("s2mm_n_bytes=%d\n", s2mm_n_bytes);
     printf("mm2s_n_bytes=%d\n", mm2s_n_bytes);

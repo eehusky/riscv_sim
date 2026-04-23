@@ -1,8 +1,8 @@
 #ifndef __S2MM_RINGBUFFER_H__
 #define __S2MM_RINGBUFFER_H__
 
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 struct s2mm_ringbuffer;
@@ -32,11 +32,9 @@ void s2mm_ringbuffer_overrun_interrupt_disable(struct s2mm_ringbuffer *dev);
 void s2mm_ringbuffer_error_interrupt_enable(struct s2mm_ringbuffer *dev);
 void s2mm_ringbuffer_error_interrupt_disable(struct s2mm_ringbuffer *dev);
 
-
 void s2mm_ringbuffer_write_intr_enable(struct s2mm_ringbuffer *dev, uint32_t mask);
 uint32_t s2mm_ringbuffer_read_intr_enable(struct s2mm_ringbuffer *dev);
 uint32_t s2mm_ringbuffer_read_intr_active(struct s2mm_ringbuffer *dev);
 void s2mm_ringbuffer_clear_intr(struct s2mm_ringbuffer *dev, uint32_t mask);
-
 
 #endif /* __S2MM_RINGBUFFER_H__ */

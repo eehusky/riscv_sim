@@ -1,8 +1,8 @@
 #ifndef __MM2S_RINGBUFFER_H__
 #define __MM2S_RINGBUFFER_H__
 
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 struct mm2s_ringbuffer;
