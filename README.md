@@ -1,10 +1,13 @@
 ## Errata
 
- * biriscv
-   * AXI interfaces are only 32 bit
-   * Vector Interrupts dont work
-   * wfi doesnt wait for anything
-   * mtime is csr based instead of mm and isnt 64 bits
+* biriscv
+    * AXI interfaces are only 32 bit
+    * Vector Interrupts dont work
+    * wfi doesnt wait for anything
+    * mtime is csr based instead of mm and isnt 64 bits
+* rsd
+    * integration with external modules is sort of a hot mess.  spent an afternoon trying to sort out how to do memory accesses outside of RAM and gave up on this one.
+
 
 ## FreeRTOS notes
 
