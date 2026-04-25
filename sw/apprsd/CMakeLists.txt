@@ -1,0 +1,99 @@
+cmake_minimum_required(VERSION 3.10)
+
+set(RISCV   ${CMAKE_CURRENT_SOURCE_DIR}/../riscv/)
+set(RSD     ${CMAKE_CURRENT_SOURCE_DIR}/../rsd/)
+
+list(APPEND CMAKE_MODULE_PATH ${RISCV})
+include(riscv)
+
+project(apprsd)
+enable_language(ASM)
+set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
+
+
+set(STACK_SIZE    0xf00 )
+set(TARGET        apprsd )
+set(LINKER_SCRIPT ${RSD}/linker.ld)
+
+
+
+add_executable(${TARGET}.elf
+    main.c
+    ${RSD}/crt0.S
+    ${RSD}/load.c
+    #${RSD}/syscalls.c
+    ${RISCV}/mtvec.c
+)
+target_include_directories(${TARGET}.elf
+    PRIVATE
+        #${CMAKE_CURRENT_SOURCE_DIR}/../ringbuffer
+        ${RISCV}/
+        ${RSD}/
+)
+target_link_libraries(${TARGET}.elf
+    PRIVATE
+        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libc_nano.a
+        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libm_nano.a
+)
+
+set(PROJECT_C_FLAGS
+    -Os
+    -nostartfiles
+    -fno-exceptions
+    -ffunction-sections
+    -fdata-sections
+    -march=rv32imf_zicsr_zifencei
+    -mabi=ilp32
+    -MD
+    -mcmodel=medany
+    -mstrict-align
+)
+set(PROJECT_LINKER_FLAGS
+    --entry _start
+    -nostdlib
+    -T${LINKER_SCRIPT}
+    -Wl,-Map=${TARGET}.map
+    -Wl,--gc-sections
+    -Wl,--defsym=__stack_size=${STACK_SIZE}
+    -Wl,-Arv32im
+    -Wl,-belf32-littleriscv
+)
+
+
+## ----------------------------------------------------------------------------
+## ----------------------------------------------------------------------------
+## ----------------------------------------------------------------------------
+
+set_target_properties(${TARGET}.elf
+    PROPERTIES
+        LINK_DEPENDS "${LINKER_SCRIPT}"
+)
+list(JOIN PROJECT_C_FLAGS      " " _PROJECT_C_FLAGS)
+list(JOIN PROJECT_LINKER_FLAGS " " _PROJECT_LINKER_FLAGS)
+set(CMAKE_EXE_LINKER_FLAGS  ${_PROJECT_LINKER_FLAGS})
+set(CMAKE_CXX_FLAGS         ${_PROJECT_C_FLAGS})
+set(CMAKE_ASM_FLAGS         ${_PROJECT_C_FLAGS})
+set(CMAKE_C_FLAGS           ${_PROJECT_C_FLAGS})
+
+# Post processing command to create a disassembly file
+add_custom_command(
+    TARGET ${TARGET}.elf
+    POST_BUILD
+    COMMAND ${CMAKE_OBJDUMP} -S  ${TARGET}.elf > ${TARGET}.disasm
+    COMMENT "Invoking: Disassemble"
+)
+
+# Post processing command to create a hex file
+add_custom_command(
+    TARGET ${TARGET}.elf
+    POST_BUILD
+    COMMAND ${CMAKE_OBJCOPY} -O ihex  ${TARGET}.elf  ${TARGET}.hex
+    COMMENT "Invoking: Hexdump"
+)
+
+add_custom_command(
+    TARGET ${TARGET}.elf
+    POST_BUILD
+    COMMAND ${CMAKE_SIZE} ${TARGET}.elf
+    COMMENT "Invoking: Size"
+)

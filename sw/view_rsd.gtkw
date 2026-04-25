@@ -1,0 +1,215 @@
+[*]
+[*] GTKWave Analyzer v4.0.0-prealpha (36638f9) (w)1999-2022 BSI
+[*] Fri Apr 24 17:17:21 2026
+[*]
+[dumpfile] "/home/rbriggin/github/eehusky/riscv_sim/tb/rsd/rsd_top/dump.fst"
+[dumpfile_mtime] "Fri Apr 24 15:51:41 2026"
+[dumpfile_size] 265263
+[savefile] "/home/rbriggin/github/eehusky/riscv_sim/sw/view_rsd.gtkw"
+[timestart] 100403
+[size] 1920 2088
+[pos] -1 -1
+*-7.232608 100666 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+[markername] AA
+[markername] BB
+[markername] CC
+[markername] DD
+[markername] EE
+[markername] FF
+[markername] GG
+[markername] HH
+[markername] II
+[markername] JJ
+[markername] KK
+[markername] LL
+[markername] MM
+[markername] NN
+[markername] OO
+[markername] PP
+[markername] QQ
+[markername] RR
+[markername] SS
+[markername] TT
+[markername] UU
+[markername] VV
+[markername] WW
+[markername] XX
+[markername] YY
+[markername] ZZ
+[treeopen] TOP.
+[treeopen] TOP.tb_rsd_top.
+[treeopen] TOP.tb_rsd_top.i_rsd_soc_mem.
+[treeopen] TOP.tb_rsd_top.i_rsd_wrapper.
+[treeopen] TOP.tb_rsd_top.i_rsd_wrapper.core.csrUnit.
+[treeopen] TOP.tb_rsd_top.i_rsd_wrapper.core.registerFile.phyReg.genblk1.body.
+[sst_width] 239
+[signals_width] 519
+[sst_expanded] 1
+[sst_vpaned_height] 669
+@28
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_ACLK
+@200
+-
+@28
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_ARREADY
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_ARVALID
+@22
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_ARADDR[31:0]
+@28
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_ARBURST[1:0]
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_ARID[1:0]
+@22
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_ARLEN[7:0]
+@28
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_RREADY
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_RVALID
+@22
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_RDATA[63:0]
+@28
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_RID[1:0]
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_RLAST
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_RRESP[1:0]
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_RUSER[0]
+@200
+-
+@22
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_AWADDR[31:0]
+@28
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_AWBURST[1:0]
+@22
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_AWCACHE[3:0]
+@28
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_AWID[0]
+@22
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_AWLEN[7:0]
+@28
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_AWLOCK
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_AWPROT[2:0]
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_AWQOS[1:0]
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_AWSIZE[2:0]
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_AWUSER[0]
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_BID[0]
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_BRESP[1:0]
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_BUSER[0]
+@22
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_WDATA[63:0]
+@28
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_WLAST
+@22
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_WSTRB[7:0]
+@28
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_WUSER[0]
+@200
+-
+@28
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_AWREADY
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_BREADY
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_WREADY
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_AWVALID
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_BVALID
+TOP.tb_rsd_top.axi4MemoryIF.M_AXI_WVALID
+@200
+-
+@28
+TOP.tb_rsd_top.i_rsd_wrapper.core.clk
+@22
+TOP.tb_rsd_top.i_rsd_wrapper.core.debugRegister[2929:0]
+TOP.tb_rsd_top.i_rsd_wrapper.core.externalInterruptCode[4:0]
+TOP.tb_rsd_top.i_rsd_wrapper.core.lastCommittedPC[18:0]
+TOP.tb_rsd_top.i_rsd_wrapper.core.memAccessAddr[21:0]
+@28
+TOP.tb_rsd_top.i_rsd_wrapper.core.memAccessRE
+TOP.tb_rsd_top.i_rsd_wrapper.core.memAccessReadBusy
+TOP.tb_rsd_top.i_rsd_wrapper.core.memAccessResponse[1:0]
+TOP.tb_rsd_top.i_rsd_wrapper.core.memAccessWE
+TOP.tb_rsd_top.i_rsd_wrapper.core.memAccessWriteBusy
+@22
+TOP.tb_rsd_top.i_rsd_wrapper.core.memAccessWriteData[63:0]
+@28
+TOP.tb_rsd_top.i_rsd_wrapper.core.memReadDataReady
+@22
+TOP.tb_rsd_top.i_rsd_wrapper.core.memReadData[63:0]
+@28
+TOP.tb_rsd_top.i_rsd_wrapper.core.memReadSerial[1:0]
+TOP.tb_rsd_top.i_rsd_wrapper.core.nextMemReadSerial[1:0]
+TOP.tb_rsd_top.i_rsd_wrapper.core.nextMemWriteSerial[0]
+TOP.tb_rsd_top.i_rsd_wrapper.core.reqExternalInterrupt
+TOP.tb_rsd_top.i_rsd_wrapper.core.rst
+TOP.tb_rsd_top.i_rsd_wrapper.core.rstStart
+TOP.tb_rsd_top.i_rsd_wrapper.core.serialWE
+@22
+TOP.tb_rsd_top.i_rsd_wrapper.core.serialWriteData[31:0]
+@200
+-
+@23
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_araddr[31:0]
+@28
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_arburst[1:0]
+@22
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_arcache[3:0]
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_arid[4:0]
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_arlen[7:0]
+@28
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_arlock
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_arprot[2:0]
+@22
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_arqos[3:0]
+@28
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_arready
+@22
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_arregion[3:0]
+@28
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_arsize[2:0]
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_aruser[0]
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_arvalid
+@22
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_rdata[63:0]
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_rid[4:0]
+@28
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_rlast
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_rready
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_rresp[1:0]
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_ruser[0]
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_rvalid
+@200
+-
+@22
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_awaddr[31:0]
+@28
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_awburst[1:0]
+@22
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_awcache[3:0]
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_awid[4:0]
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_awlen[7:0]
+@28
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_awlock
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_awprot[2:0]
+@22
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_awqos[3:0]
+@28
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_awready
+@22
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_awregion[3:0]
+@28
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_awsize[2:0]
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_awuser[0]
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_awvalid
+@22
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_bid[4:0]
+@28
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_bready
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_bresp[1:0]
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_buser[0]
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_bvalid
+@22
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_wdata[63:0]
+@28
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_wlast
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_wready
+@22
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_wstrb[7:0]
+@28
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_wuser[0]
+TOP.tb_rsd_top.i_rsd_soc_mem.m00_to_ram_axi_wvalid
+[pattern_trace] 1
+[pattern_trace] 0
