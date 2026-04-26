@@ -67,12 +67,12 @@ static inline void biriscv_sim_putc(int ch)
     asm volatile("csrw dscratch,%0" : : "r"(arg));
 }
 
-static inline void biriscv_putstring(char *s)
+static inline void biriscv_putstring(const char *s)
 {
-    //char *p = s;
-    //while (*p) {
-    //    biriscv_sim_putc(*p++);
-    //}
+    char *p = (char *)s;
+    while (*p) {
+        biriscv_sim_putc(*p++);
+    }
 }
 
 #endif
