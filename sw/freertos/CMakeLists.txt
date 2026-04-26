@@ -1,0 +1,133 @@
+cmake_minimum_required(VERSION 3.10)
+
+set(RISCV           ${CMAKE_CURRENT_SOURCE_DIR}/../riscv/)
+set(BIRISCV         ${CMAKE_CURRENT_SOURCE_DIR}/../biriscv/)
+set(FREERTOS        $ENV{HOME}/github/FreeRTOS/FreeRTOS/)
+set(RTOS_SOURCE_DIR ${FREERTOS}/FreeRTOS/Source)
+set(DEMO_SOURCE_DIR ${FREERTOS}/FreeRTOS/Demo)
+
+list(APPEND CMAKE_MODULE_PATH ${RISCV})
+include(riscv)
+
+project(freertos-biriscv)
+enable_language(ASM)
+set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
+
+
+set(STACK_SIZE    0xf00 )
+set(TARGET        biriscv_freertos )
+set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld)
+
+
+
+add_executable(${TARGET}.elf
+    main.c
+    main_blinky.c
+    #riscv-virt.c
+    #ns16550.c
+    #${DEMO_SOURCE_DIR}/Common/Minimal/EventGroupsDemo.c
+    #${DEMO_SOURCE_DIR}/Common/Minimal/TaskNotify.c
+    #${DEMO_SOURCE_DIR}/Common/Minimal/TimerDemo.c
+    #${DEMO_SOURCE_DIR}/Common/Minimal/blocktim.c
+    #${DEMO_SOURCE_DIR}/Common/Minimal/dynamic.c
+    #${DEMO_SOURCE_DIR}/Common/Minimal/recmutex.c
+    #
+    ${RTOS_SOURCE_DIR}/event_groups.c
+    ${RTOS_SOURCE_DIR}/list.c
+    ${RTOS_SOURCE_DIR}/queue.c
+    ${RTOS_SOURCE_DIR}/stream_buffer.c
+    ${RTOS_SOURCE_DIR}/tasks.c
+    #${RTOS_SOURCE_DIR}/timers.c
+    #
+    ${RTOS_SOURCE_DIR}/portable/MemMang/heap_4.c
+    #
+    ${CMAKE_CURRENT_SOURCE_DIR}/RISC-V_biriscv/port.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/RISC-V_biriscv/portASM.S
+
+    #start.S
+    #vector.S
+    ${BIRISCV}/start.s
+    ${BIRISCV}/syscalls.c
+)
+target_include_directories(${TARGET}.elf
+    PRIVATE
+        #${CMAKE_CURRENT_SOURCE_DIR}/../ringbuffer
+        ${RISCV}/
+        #${RSD}/
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${BIRISCV}/
+        ${DEMO_SOURCE_DIR}/Common/include
+        ${RTOS_SOURCE_DIR}/include
+        #
+        ${CMAKE_CURRENT_SOURCE_DIR}/RISC-V_biriscv
+        ${CMAKE_CURRENT_SOURCE_DIR}/RISC-V_biriscv/chip_specific_extensions/RISCV_no_extensions
+)
+target_link_libraries(${TARGET}.elf
+    PRIVATE
+        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libc_nano.a
+        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libm_nano.a
+)
+
+set(PROJECT_C_FLAGS
+    -Os
+    -nostartfiles
+    -fno-exceptions
+    -ffunction-sections
+    -fdata-sections
+    -march=rv32im_zicsr_zifencei
+    -mabi=ilp32
+    -MD
+    -mcmodel=medany
+    -mstrict-align
+    #-D__riscv_float_abi_soft
+    -DportasmHANDLE_INTERRUPT=handle_trap
+)
+set(PROJECT_LINKER_FLAGS
+    #--entry _start
+    -nostdlib
+    -T${LINKER_SCRIPT}
+    -Wl,-Map=${TARGET}.map
+    -Wl,--gc-sections
+    -Wl,--defsym=__stack_size=${STACK_SIZE}
+    -Wl,-Arv32im
+    -Wl,-belf32-littleriscv
+)
+
+
+## ----------------------------------------------------------------------------
+## ----------------------------------------------------------------------------
+## ----------------------------------------------------------------------------
+
+set_target_properties(${TARGET}.elf
+    PROPERTIES
+        LINK_DEPENDS "${LINKER_SCRIPT}"
+)
+list(JOIN PROJECT_C_FLAGS      " " _PROJECT_C_FLAGS)
+list(JOIN PROJECT_LINKER_FLAGS " " _PROJECT_LINKER_FLAGS)
+set(CMAKE_EXE_LINKER_FLAGS  ${_PROJECT_LINKER_FLAGS})
+set(CMAKE_CXX_FLAGS         ${_PROJECT_C_FLAGS})
+set(CMAKE_ASM_FLAGS         ${_PROJECT_C_FLAGS})
+set(CMAKE_C_FLAGS           ${_PROJECT_C_FLAGS})
+
+# Post processing command to create a disassembly file
+add_custom_command(
+    TARGET ${TARGET}.elf
+    POST_BUILD
+    COMMAND ${CMAKE_OBJDUMP} -S  ${TARGET}.elf > ${TARGET}.disasm
+    COMMENT "Invoking: Disassemble"
+)
+
+# Post processing command to create a hex file
+add_custom_command(
+    TARGET ${TARGET}.elf
+    POST_BUILD
+    COMMAND ${CMAKE_OBJCOPY} -O ihex  ${TARGET}.elf  ${TARGET}.hex
+    COMMENT "Invoking: Hexdump"
+)
+
+add_custom_command(
+    TARGET ${TARGET}.elf
+    POST_BUILD
+    COMMAND ${CMAKE_SIZE} ${TARGET}.elf
+    COMMENT "Invoking: Size"
+)
