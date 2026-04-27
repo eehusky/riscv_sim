@@ -9,7 +9,7 @@
 #include "s2mm_ringbuffer.h"
 
 struct s2mm_ringbuffer {
-    s2mm_ringbufferx_t *regs;
+    ringbuffer_s2mmx_t *regs;
     uint8_t *buffer;
     size_t buffer_size;
 
@@ -67,7 +67,7 @@ bool s2mm_ringbuffer_is_active(struct s2mm_ringbuffer *dev)
         return false;
     }
 
-    return (dev->regs->CSR & S2MM_RINGBUFFERX__CSR__ACTIVE_bm) != 0;
+    return (dev->regs->CSR & RINGBUFFER_S2MMX__CSR__ACTIVE_bm) != 0;
 }
 int s2mm_ringbuffer_start(struct s2mm_ringbuffer *dev)
 {
@@ -75,7 +75,7 @@ int s2mm_ringbuffer_start(struct s2mm_ringbuffer *dev)
         return -1;
     }
 
-    dev->regs->CSR = S2MM_RINGBUFFERX__CSR__START_bm;
+    dev->regs->CSR = RINGBUFFER_S2MMX__CSR__START_bm;
 
     return 0;
 }
@@ -85,7 +85,7 @@ int s2mm_ringbuffer_stop(struct s2mm_ringbuffer *dev)
         return -1;
     }
 
-    dev->regs->CSR = S2MM_RINGBUFFERX__CSR__STOP_bm;
+    dev->regs->CSR = RINGBUFFER_S2MMX__CSR__STOP_bm;
 
     return 0;
 }
@@ -95,7 +95,7 @@ int s2mm_ringbuffer_pause(struct s2mm_ringbuffer *dev)
         return -1;
     }
 
-    dev->regs->CSR = S2MM_RINGBUFFERX__CSR__PAUSE_bm;
+    dev->regs->CSR = RINGBUFFER_S2MMX__CSR__PAUSE_bm;
 
     return 0;
 }
@@ -210,12 +210,12 @@ struct s2mm_ringbuffer *s2mm_ringbuffer_init(void *dev_address)
     dev->regs = dev_address;
 
     // check id and versions registers
-    if (dev->regs->ID != S2MM_RINGBUFFERX__ID__ID_reset) {
+    if (dev->regs->ID != RINGBUFFER_S2MMX__ID__ID_reset) {
         free(dev);
         return NULL;
     }
 
-    if (dev->regs->VERSION != S2MM_RINGBUFFERX__VERSION__VERSION_reset) {
+    if (dev->regs->VERSION != RINGBUFFER_S2MMX__VERSION__VERSION_reset) {
         free(dev);
         return NULL;
     }
@@ -230,9 +230,9 @@ struct s2mm_ringbuffer *s2mm_ringbuffer_init(void *dev_address)
 
     // load up initial values
     dev->ptr_width =
-        (dev->regs->WIDTH & S2MM_RINGBUFFERX__WIDTH__PTR_WIDTH_bm) >> S2MM_RINGBUFFERX__WIDTH__PTR_WIDTH_bp;
-    dev->width = (dev->regs->WIDTH & S2MM_RINGBUFFERX__WIDTH__S_AXIS_TDATA_WIDTH_bm) >>
-                 S2MM_RINGBUFFERX__WIDTH__S_AXIS_TDATA_WIDTH_bp;
+        (dev->regs->WIDTH & RINGBUFFER_S2MMX__WIDTH__PTR_WIDTH_bm) >> RINGBUFFER_S2MMX__WIDTH__PTR_WIDTH_bp;
+    dev->width = (dev->regs->WIDTH & RINGBUFFER_S2MMX__WIDTH__S_AXIS_TDATA_WIDTH_bm) >>
+                 RINGBUFFER_S2MMX__WIDTH__S_AXIS_TDATA_WIDTH_bp;
     dev->headptr = dev->regs->HEADPTR;
     dev->tailptr = dev->regs->TAILPTR;
 

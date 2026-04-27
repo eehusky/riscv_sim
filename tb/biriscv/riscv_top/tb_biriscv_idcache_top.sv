@@ -22,7 +22,7 @@ module tb_biriscv_idcache_top (
     localparam int MEM_ADDR_MIN = RAM_BASE_ADDRESS;
     localparam int MEM_ADDR_MAX = RAM_BASE_ADDRESS + ((1 << RAM_ADDR_WIDTH) - 1);
     localparam int MEM_CACHE_ADDR_MIN = RAM_BASE_ADDRESS;
-    localparam int MEM_CACHE_ADDR_MAX = RAM_BASE_ADDRESS + ((1 << (RAM_ADDR_WIDTH - 1)) - 1);
+    localparam int MEM_CACHE_ADDR_MAX = RAM_BASE_ADDRESS + ((1 << (RAM_ADDR_WIDTH)) - 1);
     localparam int RESET_VECTOR = RAM_BASE_ADDRESS;
 
     logic                       i_intr;

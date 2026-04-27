@@ -8,7 +8,7 @@
 #include "ringbuffer_explode.h"
 
 struct mm2s_ringbuffer {
-    mm2s_ringbufferx_t *regs;
+    ringbuffer_mm2sx_t *regs;
     uint8_t *buffer;
     size_t buffer_size;
 
@@ -75,12 +75,12 @@ struct mm2s_ringbuffer *mm2s_ringbuffer_init(void *dev_address)
     dev->regs = dev_address;
 
     // check id and versions registers
-    if (dev->regs->ID != MM2S_RINGBUFFERX__ID__ID_reset) {
+    if (dev->regs->ID != RINGBUFFER_MM2SX__ID__ID_reset) {
         free(dev);
         return NULL;
     }
 
-    if (dev->regs->VERSION != MM2S_RINGBUFFERX__VERSION__VERSION_reset) {
+    if (dev->regs->VERSION != RINGBUFFER_MM2SX__VERSION__VERSION_reset) {
         free(dev);
         return NULL;
     }
@@ -95,9 +95,9 @@ struct mm2s_ringbuffer *mm2s_ringbuffer_init(void *dev_address)
 
     // load up initial values
     dev->ptr_width =
-        (dev->regs->WIDTH & MM2S_RINGBUFFERX__WIDTH__PTR_WIDTH_bm) >> MM2S_RINGBUFFERX__WIDTH__PTR_WIDTH_bp;
-    dev->width = (dev->regs->WIDTH & MM2S_RINGBUFFERX__WIDTH__M_AXIS_TDATA_WIDTH_bm) >>
-                 MM2S_RINGBUFFERX__WIDTH__M_AXIS_TDATA_WIDTH_bp;
+        (dev->regs->WIDTH & RINGBUFFER_MM2SX__WIDTH__PTR_WIDTH_bm) >> RINGBUFFER_MM2SX__WIDTH__PTR_WIDTH_bp;
+    dev->width = (dev->regs->WIDTH & RINGBUFFER_MM2SX__WIDTH__M_AXIS_TDATA_WIDTH_bm) >>
+                 RINGBUFFER_MM2SX__WIDTH__M_AXIS_TDATA_WIDTH_bp;
     dev->headptr = dev->regs->HEADPTR;
     dev->tailptr = dev->regs->TAILPTR;
 
@@ -137,7 +137,7 @@ bool mm2s_ringbuffer_is_active(struct mm2s_ringbuffer *dev)
         return false;
     }
 
-    return (dev->regs->CSR & MM2S_RINGBUFFERX__CSR__ACTIVE_bm) != 0;
+    return (dev->regs->CSR & RINGBUFFER_MM2SX__CSR__ACTIVE_bm) != 0;
 }
 int mm2s_ringbuffer_start(struct mm2s_ringbuffer *dev)
 {
@@ -145,7 +145,7 @@ int mm2s_ringbuffer_start(struct mm2s_ringbuffer *dev)
         return -1;
     }
 
-    dev->regs->CSR = MM2S_RINGBUFFERX__CSR__START_bm;
+    dev->regs->CSR = RINGBUFFER_MM2SX__CSR__START_bm;
 
     return 0;
 }
@@ -155,7 +155,7 @@ int mm2s_ringbuffer_stop(struct mm2s_ringbuffer *dev)
         return -1;
     }
 
-    dev->regs->CSR = MM2S_RINGBUFFERX__CSR__STOP_bm;
+    dev->regs->CSR = RINGBUFFER_MM2SX__CSR__STOP_bm;
 
     return 0;
 }
@@ -165,7 +165,7 @@ int mm2s_ringbuffer_pause(struct mm2s_ringbuffer *dev)
         return -1;
     }
 
-    dev->regs->CSR = MM2S_RINGBUFFERX__CSR__PAUSE_bm;
+    dev->regs->CSR = RINGBUFFER_MM2SX__CSR__PAUSE_bm;
 
     return 0;
 }
@@ -194,7 +194,7 @@ int mm2s_ringbuffer_width(struct mm2s_ringbuffer *dev)
     }
     return dev->width;
 }
-int mm2s_ringbuffer_put(struct mm2s_ringbuffer *dev, void *buffer, size_t buffer_size)
+int mm2s_ringbuffer_put2(struct mm2s_ringbuffer *dev, void *buffer, size_t buffer_size)
 {
     if (dev == NULL) {
         return -1;
@@ -268,7 +268,7 @@ int mm2s_ringbuffer_free(struct mm2s_ringbuffer *dev)
     return mm2s_ringbuffer_capacity(dev) - mm2s_ringbuffer_level(dev);
 }
 
-int mm2s_ringbuffer_put2(struct mm2s_ringbuffer *dev, void *buffer, size_t buffer_size)
+int mm2s_ringbuffer_put(struct mm2s_ringbuffer *dev, void *buffer, size_t buffer_size)
 {
     if (dev == NULL) {
         return -1;
@@ -297,18 +297,18 @@ int mm2s_ringbuffer_put2(struct mm2s_ringbuffer *dev, void *buffer, size_t buffe
 
     _advance_head(dev);
 
-    h2e = _head_to_end(dev);
+    h2e = dev->capacity - dev->headptr;
     h2e = h2e < count ? h2e : count;
     memcpy(dev->buffer + dev->headptr, buffer + 0, h2e);
     c += h2e;
     dev->headptr += h2e;
     dev->headptr = dev->headptr == dev->capacity ? 0 : dev->headptr;
 
-    h2e = _head_to_end(dev);
-    h2e = h2e < count ? h2e : count;
-    memcpy(dev->buffer + dev->headptr, buffer + c, h2e);
-    dev->headptr += h2e;
-    dev->headptr = dev->headptr == dev->capacity ? 0 : dev->headptr;
+    //h2e = dev->headptr- dev->tailptr;
+    //h2e = h2e < count ? h2e : count;
+    //memcpy(dev->buffer + dev->headptr, buffer + c, h2e);
+    //dev->headptr += h2e;
+    //dev->headptr = dev->headptr == dev->capacity ? 0 : dev->headptr;
 
     return count;
 }

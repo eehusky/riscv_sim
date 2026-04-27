@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v4.0.0-prealpha (36638f9) (w)1999-2022 BSI
-[*] Thu Apr 23 17:27:18 2026
+[*] Mon Apr 27 19:00:52 2026
 [*]
-[dumpfile] "/home/rbriggin/github/eehusky/riscv_sim/sw/build/dump.fst"
-[dumpfile_mtime] "Thu Apr 23 17:21:08 2026"
-[dumpfile_size] 2298059
+[dumpfile] "/home/rbriggin/github/eehusky/riscv_sim/sw/dump.fst"
+[dumpfile_mtime] "Mon Apr 27 19:00:23 2026"
+[dumpfile_size] 25922355
 [savefile] "/home/rbriggin/github/eehusky/riscv_sim/sw/view_ringbuffer.gtkw"
-[timestart] 0
+[timestart] 493227
 [size] 1920 2088
 [pos] -1 -1
-*-14.854583 117600 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-7.637078 493457 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -43,8 +43,6 @@
 [treeopen] TOP.tb_biriscv_idcache_top.i_ringbuffer_axil.hwif_out.s2mm_ringbuffer[0].TAILPTR.
 [treeopen] TOP.tb_biriscv_idcache_top.i_ringbuffer_axil.i_ringbuffer_addrmap.field_combo.mm2s_ringbuffer[0].INTR_ACTIVE.
 [treeopen] TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.
-[treeopen] TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.
-[treeopen] TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.
 [sst_width] 334
 [signals_width] 288
 [sst_expanded] 1
@@ -53,7 +51,7 @@
 TOP.tb_biriscv_idcache_top.i_soc_mem.clk
 @200
 -
-@c00200
+@800200
 -AXI_DATA
 @22
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_araddr[31:0]
@@ -73,6 +71,11 @@ TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_rid[3:0]
 @28
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_rlast
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_rresp[1:0]
+@200
+-
+@28
+TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_awready
+TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_awvalid
 @22
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_awaddr[31:0]
 @28
@@ -81,28 +84,26 @@ TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_awburst[1:0]
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_awid[3:0]
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_awlen[7:0]
 @28
-TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_awready
-TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_awvalid
-@22
-TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_bid[3:0]
-@28
-TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_bready
-TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_bresp[1:0]
-TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_bvalid
+TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_wready
+TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_wvalid
 @22
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_wdata[31:0]
 @28
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_wlast
-TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_wready
 @22
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_wstrb[3:0]
 @28
-TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_wvalid
-@1401200
+TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_bready
+TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_bvalid
+@22
+TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_bid[3:0]
+@29
+TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.s_data_axi_bresp[1:0]
+@1000200
 -AXI_DATA
 @200
 -
-@800200
+@c00200
 -MAXIL
 @22
 TOP.tb_biriscv_idcache_top.i_soc_mem.m_axil_awaddr[31:0]
@@ -133,7 +134,7 @@ TOP.tb_biriscv_idcache_top.i_soc_mem.m_axil_rdata[31:0]
 TOP.tb_biriscv_idcache_top.i_soc_mem.m_axil_rready
 TOP.tb_biriscv_idcache_top.i_soc_mem.m_axil_rresp[1:0]
 TOP.tb_biriscv_idcache_top.i_soc_mem.m_axil_rvalid
-@1000200
+@1401200
 -MAXIL
 @200
 -
@@ -185,7 +186,6 @@ TOP.tb_biriscv_idcache_top.i_soc_mem.s_axi_bresp[1:0]
 @1401200
 -SAXI
 @200
--
 -
 @c00200
 -RBMAXI
@@ -260,7 +260,6 @@ TOP.tb_biriscv_idcache_top.i_ringbuffer_axil.m_axi_bvalid
 @1401200
 -RBMAXI
 @200
--
 -
 @c00200
 -RB
@@ -351,7 +350,6 @@ TOP.tb_biriscv_idcache_top.s00_axis.tready
 TOP.tb_biriscv_idcache_top.s00_axis.tvalid
 @200
 -
--
 @800200
 -PIPE0
 @820
@@ -377,6 +375,9 @@ TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_issue.u_
 -PIPE0
 @800200
 -PIPE1
+@820
+[color] 3
+TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_issue.u_pipe0_dec1_verif.dbg_inst_str[79:0]
 @22
 [color] 3
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_issue.u_pipe0_dec1_verif.dbg_inst_imm[31:0]
@@ -389,8 +390,6 @@ TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_issue.u_
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_issue.u_pipe0_dec1_verif.dbg_inst_rb[79:0]
 [color] 3
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_issue.u_pipe0_dec1_verif.dbg_inst_rd[79:0]
-[color] 3
-TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_issue.u_pipe0_dec1_verif.dbg_inst_str[79:0]
 @28
 [color] 3
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_issue.u_pipe0_dec1_verif.valid_i
@@ -400,13 +399,85 @@ TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_issue.u_
 -
 @800200
 -MTVEC
-@22
+@c00022
 [color] 2
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+@28
+[color] 2
+(0)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(1)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(2)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(3)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(4)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(5)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(6)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(7)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(8)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(9)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(10)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(11)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(12)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(13)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(14)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(15)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(16)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(17)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(18)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(19)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(20)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(21)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(22)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(23)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(24)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(25)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(26)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(27)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(28)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(29)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(30)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+[color] 2
+(31)TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcause_q[31:0]
+@1401200
+-group_end
+@22
 [color] 2
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcycle_h_q[31:0]
+@24
 [color] 2
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mcycle_q[31:0]
+[color] 2
+TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mtimecmp_q[31:0]
+@22
 [color] 2
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_medeleg_q[31:0]
 [color] 2
@@ -415,8 +486,6 @@ TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_cs
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mideleg_q[31:0]
 [color] 2
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mie_q[31:0]
-[color] 2
-TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mip_next_q[31:0]
 [color] 2
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mip_q[31:0]
 @28
@@ -431,8 +500,6 @@ TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_cs
 [color] 2
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mtime_ie_q
 @22
-[color] 2
-TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mtimecmp_q[31:0]
 [color] 2
 TOP.tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr.u_csrfile.csr_mtval_q[31:0]
 [color] 2

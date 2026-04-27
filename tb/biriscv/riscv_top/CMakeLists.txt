@@ -135,38 +135,38 @@ verilate(tb_biriscv_idcache_top
         ${REPO_DIR}/rtl/soc_mem.sv
         ##
         ## Ringbuffer
-        ${REPO_DIR}/rtl/ringbuffer/mm2s_fetch_if.sv
-        ${REPO_DIR}/rtl/ringbuffer/mm2s_regblock_if.sv
-        ${REPO_DIR}/rtl/ringbuffer/mm2s_ringbuffer_arbiter.sv
-        ${REPO_DIR}/rtl/ringbuffer/mm2s_ringbuffer_addr_pipelined.sv
-        ${REPO_DIR}/rtl/ringbuffer/mm2s_ringbuffer_addr_stage.sv
-        ${REPO_DIR}/rtl/ringbuffer/mm2s_ringbuffer_channel.sv
-        ${REPO_DIR}/rtl/ringbuffer/mm2s_ringbuffer_beatbox.sv
-        ${REPO_DIR}/rtl/ringbuffer/mm2s_ringbuffer_handshake.sv
-        ${REPO_DIR}/rtl/ringbuffer/mm2s_ringbuffer_gearbox.sv
-        ${REPO_DIR}/rtl/ringbuffer/mm2s_ringbuffer.vlt
-        ${REPO_DIR}/rtl/ringbuffer/mm2s_ringbuffer.sv
-        ${REPO_DIR}/rtl/ringbuffer/s2mm_req_if.sv
-        ${REPO_DIR}/rtl/ringbuffer/s2mm_regblock_if.sv
-        ${REPO_DIR}/rtl/ringbuffer/s2mm_ringbuffer_arbiter.sv
-        ${REPO_DIR}/rtl/ringbuffer/s2mm_ringbuffer_channel.sv
-        ${REPO_DIR}/rtl/ringbuffer/s2mm_ringbuffer_collapse.sv
-        ${REPO_DIR}/rtl/ringbuffer/s2mm_ringbuffer_addr.sv
-        ${REPO_DIR}/rtl/ringbuffer/s2mm_ringbuffer_handshake.sv
-        ${REPO_DIR}/rtl/ringbuffer/s2mm_ringbuffer.vlt
-        ${REPO_DIR}/rtl/ringbuffer/s2mm_ringbuffer.sv
+        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_mm2s_fetch_if.sv
+        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_mm2s_arbiter.sv
+        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_mm2s_addr_pipelined.sv
+        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_mm2s_addr_stage.sv
+        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_mm2s_channel.sv
+        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_mm2s_beatbox.sv
+        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_mm2s_handshake.sv
+        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_mm2s_gearbox.sv
+        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_mm2s.vlt
+        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_mm2s.sv
+        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_s2mm_req_if.sv
+        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_s2mm_arbiter.sv
+        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_s2mm_channel.sv
+        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_s2mm_collapse.sv
+        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_s2mm_addr.sv
+        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_s2mm_handshake.sv
+        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_s2mm.vlt
+        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_s2mm.sv
+        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_csr_if.sv
         ${REPO_DIR}/rtl/ringbuffer/ringbuffer_axis_if.sv
         ${REPO_DIR}/rtl/ringbuffer/ringbuffer_level.sv
         ${REPO_DIR}/rtl/ringbuffer/ringbuffer_fsm.sv
         ${REPO_DIR}/rtl/ringbuffer/ringbuffer_arbiter.v
         ${REPO_DIR}/rtl/ringbuffer/ringbuffer_priority_encoder.v
-        ${REPO_DIR}/rtl/ringbuffer/sfifo.v
+        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_sfifo.v
         ${REPO_DIR}/rtl/ringbuffer/ringbuffer_addrmap.sv
         ${REPO_DIR}/rtl/ringbuffer/ringbuffer_addrmap.vlt
         ${REPO_DIR}/rtl/ringbuffer/ringbuffer_addrmap_pkg.sv
         ${REPO_DIR}/rtl/ringbuffer/ringbuffer_addrmap_pkg.vlt
         ${REPO_DIR}/rtl/ringbuffer/ringbuffer_axil.sv
         ${REPO_DIR}/rtl/ringbuffer/ringbuffer_axil.vlt
+
 
         ##
         tb_biriscv_idcache_top.sv

@@ -36,6 +36,7 @@ add_executable(${TARGET}.elf
     ${BIRISCV}/freertos/RISC-V_biriscv/port.c
     ${BIRISCV}/freertos/RISC-V_biriscv/portASM.S
     ${BIRISCV}/freertos/crt0.S
+    ${BIRISCV}/memcpy.c
 
     ${BIRISCV}/syscalls.c
 )
