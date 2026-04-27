@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(RISCV           ${CMAKE_CURRENT_SOURCE_DIR}/../riscv/)
-set(BIRISCV         ${CMAKE_CURRENT_SOURCE_DIR}/../biriscv/)
-set(FREERTOS        $ENV{HOME}/github/FreeRTOS/FreeRTOS/)
-set(RTOS_SOURCE_DIR ${FREERTOS}/FreeRTOS/Source)
+set(RISCV            ${CMAKE_CURRENT_SOURCE_DIR}/../../../riscv/)
+set(BIRISCV          ${CMAKE_CURRENT_SOURCE_DIR}/../../../biriscv/)
+set(FREERTOS         $ENV{HOME}/github/FreeRTOS/FreeRTOS/)
+set(RTOS_SOURCE_DIR  ${FREERTOS}/FreeRTOS/Source)
 
 list(APPEND CMAKE_MODULE_PATH ${RISCV})
 include(riscv)
@@ -14,38 +14,35 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 
 set(STACK_SIZE    0xf00 )
-set(TARGET        biriscv_freertos )
-set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld)
-
+set(TARGET        freertos_demo )
+set(LINKER_SCRIPT ${BIRISCV}/freertos/linker.ld)
 
 
 add_executable(${TARGET}.elf
     main.c
     #
-    #${RTOS_SOURCE_DIR}/croutine.c
-    #${RTOS_SOURCE_DIR}/event_groups.c
+    ${RTOS_SOURCE_DIR}/croutine.c
+    ${RTOS_SOURCE_DIR}/event_groups.c
     ${RTOS_SOURCE_DIR}/list.c
     ${RTOS_SOURCE_DIR}/queue.c
-    #${RTOS_SOURCE_DIR}/stream_buffer.c
+    ${RTOS_SOURCE_DIR}/stream_buffer.c
     ${RTOS_SOURCE_DIR}/tasks.c
-    #${RTOS_SOURCE_DIR}/timers.c
-    #
+    ${RTOS_SOURCE_DIR}/timers.c
     ${RTOS_SOURCE_DIR}/portable/MemMang/heap_4.c
     #
-    ${CMAKE_CURRENT_SOURCE_DIR}/RISC-V_biriscv/port.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/RISC-V_biriscv/portASM.S
+    ${BIRISCV}/freertos/RISC-V_biriscv/port.c
+    ${BIRISCV}/freertos/RISC-V_biriscv/portASM.S
+    ${BIRISCV}/freertos/crt0.S
 
-    ${CMAKE_CURRENT_SOURCE_DIR}/crt0.S
     ${BIRISCV}/syscalls.c
 )
 target_include_directories(${TARGET}.elf
     PRIVATE
-        #${RISCV}/
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${BIRISCV}/
+        ${BIRISCV}
+        ${BIRISCV}/freertos
+        ${BIRISCV}/freertos/RISC-V_biriscv
         ${RTOS_SOURCE_DIR}/include
-        #
-        ${CMAKE_CURRENT_SOURCE_DIR}/RISC-V_biriscv
 )
 target_link_libraries(${TARGET}.elf
     PRIVATE
@@ -65,7 +62,6 @@ set(PROJECT_C_FLAGS
     -mcmodel=medany
     -mstrict-align
     -D__riscv_float_abi_soft
-    -DportasmHANDLE_INTERRUPT=handle_trap
 )
 set(PROJECT_LINKER_FLAGS
     -nostdlib

@@ -75,18 +75,13 @@ void vAssertCalled( void );
 #define configMAX_CO_ROUTINE_PRIORITIES ( 2 )
 
 /* Software timer definitions. */
-#define configUSE_TIMERS				0
+#define configUSE_TIMERS				1
 #define configTIMER_TASK_PRIORITY		( configMAX_PRIORITIES - 1 )
 #define configTIMER_QUEUE_LENGTH		6
 #define configTIMER_TASK_STACK_DEPTH	( 110 )
 
 /* RISC-V definitions. */
 #define configISR_STACK_SIZE_WORDS		2048
-
-/* Task priorities.  Allow these to be overridden. */
-#ifndef uartPRIMARY_PRIORITY
-	#define uartPRIMARY_PRIORITY		( configMAX_PRIORITIES - 3 )
-#endif
 
 /* Set the following definitions to 1 to include the API function, or zero
 to exclude the API function. */
