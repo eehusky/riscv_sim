@@ -81,8 +81,6 @@ void vApplicationTickHook(void) {}
 
 void vAssertCalled(void)
 {
-    volatile uint32_t ulSetTo1ToExitFunction = 0;
-
     biriscv_putstring("vAssertCalled\n");
     biriscv_sim_exit(0);
 }
