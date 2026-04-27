@@ -16,6 +16,11 @@ freertos:
 	make -C build/
 	../tb/biriscv/riscv_top/build/tb_biriscv_idcache_top -f build/freertos_demo.elf
 
+ringbuffer:
+	mkdir -p build
+	cmake -S biriscv/apps/ringbuffer_demo -B build
+	make -C build/
+	../tb/biriscv/riscv_top/build/tb_biriscv_idcache_top -f build/ringbuffer_demo.elf
 
 apprsd:
 	mkdir -p build
@@ -28,5 +33,5 @@ clean:
 	rm -rf ./.cache
 
 
-.PHONY: sim clean app1 apprsd freertos
+.PHONY: sim clean app1 apprsd freertos ringbuffer
 FORCE:
