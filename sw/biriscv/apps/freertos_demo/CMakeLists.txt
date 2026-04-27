@@ -97,7 +97,8 @@ set(CMAKE_C_FLAGS           ${_PROJECT_C_FLAGS})
 add_custom_command(
     TARGET ${TARGET}.elf
     POST_BUILD
-    COMMAND ${CMAKE_OBJDUMP} -S  ${TARGET}.elf > ${TARGET}.disasm
+    COMMAND ${CMAKE_OBJDUMP} -S ${TARGET}.elf > ${TARGET}.S
+    COMMAND ${CMAKE_OBJDUMP} -t -S --visualize-jumps ${TARGET}.elf > ${TARGET}.disasm
     COMMENT "Invoking: Disassemble"
 )
 
