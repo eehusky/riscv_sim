@@ -177,11 +177,11 @@ pxPortInitialiseStack:
     addi a0, a0, -portWORD_SIZE         /* Space for critical nesting count. */
     store_x x0, 0(a0)                   /* Critical nesting count starts at 0 for every task. */
 
-#ifdef __riscv_32e
-    addi a0, a0, -(6 * portWORD_SIZE)   /* Space for registers x10-x15. */
-#else
-    addi a0, a0, -(22 * portWORD_SIZE)  /* Space for registers x10-x31. */
-#endif
+    #ifdef __riscv_32e
+        addi a0, a0, -(6 * portWORD_SIZE)   /* Space for registers x10-x15. */
+    #else
+        addi a0, a0, -(22 * portWORD_SIZE)  /* Space for registers x10-x31. */
+    #endif
     store_x a2, 0(a0)                   /* Task parameters (pvParameters parameter) goes into register x10/a0 on the stack. */
 
     addi a0, a0, -(6 * portWORD_SIZE)   /* Space for registers x5-x9 + taskReturnAddress (register x1). */
@@ -194,21 +194,21 @@ pxPortInitialiseStack:
     slli t1, t1, 4
     or t0, t0, t1                       /* Set MPIE and MPP bits in mstatus value. */
 
-#if( configENABLE_FPU == 1 )
-    /* Mark the FPU as clean in the mstatus value. */
-    li t1, ~MSTATUS_FS_MASK
-    and t0, t0, t1
-    li t1, MSTATUS_FS_CLEAN
-    or t0, t0, t1
-#endif
+    #if( configENABLE_FPU == 1 )
+        /* Mark the FPU as clean in the mstatus value. */
+        li t1, ~MSTATUS_FS_MASK
+        and t0, t0, t1
+        li t1, MSTATUS_FS_CLEAN
+        or t0, t0, t1
+    #endif
 
-#if( configENABLE_VPU == 1 )
-    /* Mark the VPU as clean in the mstatus value. */
-    li t1, ~MSTATUS_VS_MASK
-    and t0, t0, t1
-    li t1, MSTATUS_VS_CLEAN
-    or t0, t0, t1
-#endif
+    #if( configENABLE_VPU == 1 )
+        /* Mark the VPU as clean in the mstatus value. */
+        li t1, ~MSTATUS_VS_MASK
+        and t0, t0, t1
+        li t1, MSTATUS_VS_CLEAN
+        or t0, t0, t1
+    #endif
 
     addi a0, a0, -portWORD_SIZE
     store_x t0, 0(a0)                   /* mstatus onto the stack. */
@@ -248,24 +248,24 @@ xPortStartFirstTask:
     load_x  x13, 11 * portWORD_SIZE( sp )   /* a3 */
     load_x  x14, 12 * portWORD_SIZE( sp )   /* a4 */
     load_x  x15, 13 * portWORD_SIZE( sp )   /* a5 */
-#ifndef __riscv_32e
-    load_x  x16, 14 * portWORD_SIZE( sp )   /* a6 */
-    load_x  x17, 15 * portWORD_SIZE( sp )   /* a7 */
-    load_x  x18, 16 * portWORD_SIZE( sp )   /* s2 */
-    load_x  x19, 17 * portWORD_SIZE( sp )   /* s3 */
-    load_x  x20, 18 * portWORD_SIZE( sp )   /* s4 */
-    load_x  x21, 19 * portWORD_SIZE( sp )   /* s5 */
-    load_x  x22, 20 * portWORD_SIZE( sp )   /* s6 */
-    load_x  x23, 21 * portWORD_SIZE( sp )   /* s7 */
-    load_x  x24, 22 * portWORD_SIZE( sp )   /* s8 */
-    load_x  x25, 23 * portWORD_SIZE( sp )   /* s9 */
-    load_x  x26, 24 * portWORD_SIZE( sp )   /* s10 */
-    load_x  x27, 25 * portWORD_SIZE( sp )   /* s11 */
-    load_x  x28, 26 * portWORD_SIZE( sp )   /* t3 */
-    load_x  x29, 27 * portWORD_SIZE( sp )   /* t4 */
-    load_x  x30, 28 * portWORD_SIZE( sp )   /* t5 */
-    load_x  x31, 29 * portWORD_SIZE( sp )   /* t6 */
-#endif
+    #ifndef __riscv_32e
+        load_x  x16, 14 * portWORD_SIZE( sp )   /* a6 */
+        load_x  x17, 15 * portWORD_SIZE( sp )   /* a7 */
+        load_x  x18, 16 * portWORD_SIZE( sp )   /* s2 */
+        load_x  x19, 17 * portWORD_SIZE( sp )   /* s3 */
+        load_x  x20, 18 * portWORD_SIZE( sp )   /* s4 */
+        load_x  x21, 19 * portWORD_SIZE( sp )   /* s5 */
+        load_x  x22, 20 * portWORD_SIZE( sp )   /* s6 */
+        load_x  x23, 21 * portWORD_SIZE( sp )   /* s7 */
+        load_x  x24, 22 * portWORD_SIZE( sp )   /* s8 */
+        load_x  x25, 23 * portWORD_SIZE( sp )   /* s9 */
+        load_x  x26, 24 * portWORD_SIZE( sp )   /* s10 */
+        load_x  x27, 25 * portWORD_SIZE( sp )   /* s11 */
+        load_x  x28, 26 * portWORD_SIZE( sp )   /* t3 */
+        load_x  x29, 27 * portWORD_SIZE( sp )   /* t4 */
+        load_x  x30, 28 * portWORD_SIZE( sp )   /* t5 */
+        load_x  x31, 29 * portWORD_SIZE( sp )   /* t6 */
+    #endif
 
     load_x  x5, portCRITICAL_NESTING_OFFSET * portWORD_SIZE( sp )    /* Obtain xCriticalNesting value for this task from task's stack. */
     load_x  x6, pxCriticalNesting           /* Load the address of xCriticalNesting into x6. */
@@ -325,7 +325,7 @@ exit_without_context_switch:
 /*-----------------------------------------------------------*/
 
 .section .text.freertos_risc_v_trap_handler
-.align 8
+.balign 128, 0
 freertos_risc_v_trap_handler:
     portcontextSAVE_CONTEXT_INTERNAL
 

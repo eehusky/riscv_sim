@@ -4,7 +4,6 @@ set(RISCV           ${CMAKE_CURRENT_SOURCE_DIR}/../riscv/)
 set(BIRISCV         ${CMAKE_CURRENT_SOURCE_DIR}/../biriscv/)
 set(FREERTOS        $ENV{HOME}/github/FreeRTOS/FreeRTOS/)
 set(RTOS_SOURCE_DIR ${FREERTOS}/FreeRTOS/Source)
-set(DEMO_SOURCE_DIR ${FREERTOS}/FreeRTOS/Demo)
 
 list(APPEND CMAKE_MODULE_PATH ${RISCV})
 include(riscv)
@@ -22,20 +21,12 @@ set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld)
 
 add_executable(${TARGET}.elf
     main.c
-    main_blinky.c
-    #riscv-virt.c
-    #ns16550.c
-    #${DEMO_SOURCE_DIR}/Common/Minimal/EventGroupsDemo.c
-    #${DEMO_SOURCE_DIR}/Common/Minimal/TaskNotify.c
-    #${DEMO_SOURCE_DIR}/Common/Minimal/TimerDemo.c
-    #${DEMO_SOURCE_DIR}/Common/Minimal/blocktim.c
-    #${DEMO_SOURCE_DIR}/Common/Minimal/dynamic.c
-    #${DEMO_SOURCE_DIR}/Common/Minimal/recmutex.c
     #
-    ${RTOS_SOURCE_DIR}/event_groups.c
+    #${RTOS_SOURCE_DIR}/croutine.c
+    #${RTOS_SOURCE_DIR}/event_groups.c
     ${RTOS_SOURCE_DIR}/list.c
     ${RTOS_SOURCE_DIR}/queue.c
-    ${RTOS_SOURCE_DIR}/stream_buffer.c
+    #${RTOS_SOURCE_DIR}/stream_buffer.c
     ${RTOS_SOURCE_DIR}/tasks.c
     #${RTOS_SOURCE_DIR}/timers.c
     #
@@ -44,23 +35,17 @@ add_executable(${TARGET}.elf
     ${CMAKE_CURRENT_SOURCE_DIR}/RISC-V_biriscv/port.c
     ${CMAKE_CURRENT_SOURCE_DIR}/RISC-V_biriscv/portASM.S
 
-    #start.S
-    #vector.S
-    ${BIRISCV}/start.s
+    ${CMAKE_CURRENT_SOURCE_DIR}/crt0.S
     ${BIRISCV}/syscalls.c
 )
 target_include_directories(${TARGET}.elf
     PRIVATE
-        #${CMAKE_CURRENT_SOURCE_DIR}/../ringbuffer
-        ${RISCV}/
-        #${RSD}/
+        #${RISCV}/
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${BIRISCV}/
-        ${DEMO_SOURCE_DIR}/Common/include
         ${RTOS_SOURCE_DIR}/include
         #
         ${CMAKE_CURRENT_SOURCE_DIR}/RISC-V_biriscv
-        ${CMAKE_CURRENT_SOURCE_DIR}/RISC-V_biriscv/chip_specific_extensions/RISCV_no_extensions
 )
 target_link_libraries(${TARGET}.elf
     PRIVATE
@@ -79,11 +64,10 @@ set(PROJECT_C_FLAGS
     -MD
     -mcmodel=medany
     -mstrict-align
-    #-D__riscv_float_abi_soft
+    -D__riscv_float_abi_soft
     -DportasmHANDLE_INTERRUPT=handle_trap
 )
 set(PROJECT_LINKER_FLAGS
-    #--entry _start
     -nostdlib
     -T${LINKER_SCRIPT}
     -Wl,-Map=${TARGET}.map

@@ -27,8 +27,6 @@
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
-#include "riscv-virt.h"
-
 /*-----------------------------------------------------------
  * Application specific definitions.
  *
@@ -40,10 +38,6 @@
  *
  * See http://www.freertos.org/a00110.html.
  *----------------------------------------------------------*/
-
-/* See https://www.freertos.org/Using-FreeRTOS-on-RISC-V.html */
-#define configMTIME_BASE_ADDRESS		( 0 )
-#define configMTIMECMP_BASE_ADDRESS		( 0 )
 
 #ifdef PICOLIBC_TLS
 #define configUSE_PICOLIBC_TLS			1

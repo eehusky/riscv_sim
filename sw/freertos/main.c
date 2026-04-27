@@ -25,47 +25,18 @@
  */
 
 /* FreeRTOS kernel includes. */
+#include <stdio.h>
+
 #include <FreeRTOS.h>
+#include <queue.h>
 #include <task.h>
 
 #include "biriscv_extensions.h"
 
-/* Run a simple demo just prints 'Blink' */
-#define DEMO_BLINKY               1
-#define mainVECTOR_MODE_DIRECT    1
-
-extern void freertos_risc_v_trap_handler( void );
-
-void vApplicationMallocFailedHook( void );
-void vApplicationIdleHook( void );
-void vApplicationStackOverflowHook( TaskHandle_t pxTask, char * pcTaskName );
-void vApplicationTickHook( void );
-
-int main_blinky( void );
-int main( void );
 
 /*-----------------------------------------------------------*/
 
-void biriscv_entry(void)
-{
-    main();
-}
-
-int main( void )
-{
-    int ret;
-
-    asm volatile ( "csrw mtvec, %0" : : "r" ( freertos_risc_v_trap_handler ) );
-
-
-    ret = main_blinky();
-
-    return ret;
-}
-
-/*-----------------------------------------------------------*/
-
-void vApplicationMallocFailedHook( void )
+void vApplicationMallocFailedHook(void)
 {
     /* vApplicationMallocFailedHook() will only be called if
      * configUSE_MALLOC_FAILED_HOOK is set to 1 in FreeRTOSConfig.h.  It is a hook
@@ -81,9 +52,7 @@ void vApplicationMallocFailedHook( void )
     biriscv_sim_exit(0);
 }
 
-/*-----------------------------------------------------------*/
-
-void vApplicationIdleHook( void )
+void vApplicationIdleHook(void)
 {
     /* vApplicationIdleHook() will only be called if configUSE_IDLE_HOOK is set
      * to 1 in FreeRTOSConfig.h.  It will be called on each iteration of the idle
@@ -94,33 +63,150 @@ void vApplicationIdleHook( void )
      * important that vApplicationIdleHook() is permitted to return to its calling
      * function, because it is the responsibility of the idle task to clean up
      * memory allocated by the kernel to any task that has since been deleted. */
-    asm volatile( "wfi" ); // Enter low power mode
+    asm volatile("wfi"); // Enter low power mode
 }
 
-/*-----------------------------------------------------------*/
-
-void vApplicationStackOverflowHook( TaskHandle_t pxTask,
-                                    char * pcTaskName )
+void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskName)
 {
-    ( void ) pcTaskName;
-    ( void ) pxTask;
+    (void)pcTaskName;
+    (void)pxTask;
 
     biriscv_putstring("vApplicationStackOverflowHook\n");
     biriscv_sim_exit(0);
 }
-/*-----------------------------------------------------------*/
 
-void vApplicationTickHook( void )
-{
-}
-
+void vApplicationTickHook(void) {}
 
 /*-----------------------------------------------------------*/
 
-void vAssertCalled( void )
+void vAssertCalled(void)
 {
     volatile uint32_t ulSetTo1ToExitFunction = 0;
 
     biriscv_putstring("vAssertCalled\n");
     biriscv_sim_exit(0);
+}
+
+/* Priorities used by the tasks. */
+#define mainQUEUE_RECEIVE_TASK_PRIORITY (tskIDLE_PRIORITY + 2)
+#define mainQUEUE_SEND_TASK_PRIORITY (tskIDLE_PRIORITY + 1)
+
+/* The rate at which data is sent to the queue.  The 200ms value is converted
+ * to ticks using the pdMS_TO_TICKS() macro. */
+#define mainQUEUE_SEND_FREQUENCY_MS pdMS_TO_TICKS(1)
+
+/* The maximum number items the queue can hold.  The priority of the receiving
+ * task is above the priority of the sending task, so the receiving task will
+ * preempt the sending task and remove the queue items each time the sending task
+ * writes to the queue.  Therefore the queue will never have more than one item in
+ * it at any time, and even with a queue length of 1, the sending task will never
+ * find the queue full. */
+#define mainQUEUE_LENGTH (1)
+
+/*-----------------------------------------------------------*/
+
+/* The queue used by both tasks. */
+static QueueHandle_t xQueue = NULL;
+
+/*-----------------------------------------------------------*/
+
+int xGetCoreID(void)
+{
+    int id;
+
+    asm volatile("csrr %0, mhartid" : "=r"(id));
+
+    return id;
+}
+
+static void prvQueueSendTask(void *pvParameters)
+{
+    TickType_t xNextWakeTime;
+    const unsigned long ulValueToSend = 100UL;
+    const char *const pcMessage1 = "Transfer1";
+    const char *const pcMessage2 = "Transfer2";
+    int f = 1;
+
+    /* Remove compiler warning about unused parameter. */
+    (void)pvParameters;
+
+    /* Initialise xNextWakeTime - this only needs to be done once. */
+    xNextWakeTime = xTaskGetTickCount();
+
+    for (;;) {
+        char buf[40];
+
+        sprintf(buf, "%d: %s: %s", xGetCoreID(), pcTaskGetName(xTaskGetCurrentTaskHandle()),
+                (f) ? pcMessage1 : pcMessage2);
+        // vSendString( buf );
+        printf("%d: %s\n", biriscv_timer_get_mtime(), buf);
+        f = !f;
+
+        /* Place this task in the blocked state until it is time to run again. */
+        vTaskDelayUntil(&xNextWakeTime, mainQUEUE_SEND_FREQUENCY_MS);
+
+        /* Send to the queue - causing the queue receive task to unblock and
+         * toggle the LED.  0 is used as the block time so the sending operation
+         * will not block - it shouldn't need to block as the queue should always
+         * be empty at this point in the code. */
+        xQueueSend(xQueue, &ulValueToSend, 0U);
+    }
+}
+
+/*-----------------------------------------------------------*/
+
+static void prvQueueReceiveTask(void *pvParameters)
+{
+    unsigned long ulReceivedValue;
+    const unsigned long ulExpectedValue = 100UL;
+    const char *const pcMessage1 = "Blink1";
+    const char *const pcMessage2 = "Blink2";
+    const char *const pcFailMessage = "Unexpected value received\r\n";
+    int f = 1;
+
+    /* Remove compiler warning about unused parameter. */
+    (void)pvParameters;
+
+    for (;;) {
+        char buf[40];
+
+        /* Wait until something arrives in the queue - this task will block
+         * indefinitely provided INCLUDE_vTaskSuspend is set to 1 in
+         * FreeRTOSConfig.h. */
+        xQueueReceive(xQueue, &ulReceivedValue, portMAX_DELAY);
+
+        /*  To get here something must have been received from the queue, but
+         * is it the expected value?  If it is, toggle the LED. */
+        if (ulReceivedValue == ulExpectedValue) {
+            sprintf(buf, "%d: %s: %s", xGetCoreID(), pcTaskGetName(xTaskGetCurrentTaskHandle()),
+                    (f) ? pcMessage1 : pcMessage2);
+
+            printf("%d: %s\n", biriscv_timer_get_mtime(), buf);
+            // vSendString( buf );
+            f = !f;
+
+            ulReceivedValue = 0U;
+        } else {
+            printf("%d: %s\n", biriscv_timer_get_mtime(), pcFailMessage);
+        }
+    }
+}
+
+/*-----------------------------------------------------------*/
+
+int main(void)
+{
+    printf("%d: %s\n", biriscv_timer_get_mtime(), "Hello FreeRTOS!");
+
+    /* Create the queue. */
+    xQueue = xQueueCreate(mainQUEUE_LENGTH, sizeof(uint32_t));
+
+    if (xQueue != NULL) {
+        xTaskCreate(prvQueueReceiveTask, "Rx", configMINIMAL_STACK_SIZE * 2U, NULL, mainQUEUE_RECEIVE_TASK_PRIORITY, NULL);
+        xTaskCreate(prvQueueSendTask, "Tx", configMINIMAL_STACK_SIZE * 2U, NULL, mainQUEUE_SEND_TASK_PRIORITY, NULL);
+    }
+
+    vTaskStartScheduler();
+
+    return 0;
 }
