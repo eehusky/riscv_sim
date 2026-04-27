@@ -1,0 +1,331 @@
+/*
+ * FreeRTOS V202212.00
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * https://www.FreeRTOS.org
+ * https://github.com/FreeRTOS
+ *
+ */
+
+/* FreeRTOS kernel includes. */
+#include <stdio.h>
+
+#include <FreeRTOS.h>
+#include <queue.h>
+#include <semphr.h>
+#include <task.h>
+
+#include "biriscv_extensions.h"
+
+#include "ringbuffer_addrmap.h"
+
+#include "mm2s_ringbuffer.h"
+#include "ringbuffer_explode.h"
+#include "risvc_io.h"
+#include "s2mm_ringbuffer.h"
+#include "test_mm2s_ringbuffer.h"
+
+/*-----------------------------------------------------------*/
+/*-- FreeRTOS Hooks------------------------------------------*/
+/*-----------------------------------------------------------*/
+
+void vApplicationMallocFailedHook(void)
+{
+    /* vApplicationMallocFailedHook() will only be called if
+     * configUSE_MALLOC_FAILED_HOOK is set to 1 in FreeRTOSConfig.h.  It is a hook
+     * function that will get called if a call to pvPortMalloc() fails.
+     * pvPortMalloc() is called internally by the kernel whenever a task, queue,
+     * timer or semaphore is created.  It is also called by various parts of the
+     * demo application.  If heap_1.c or heap_2.c are used, then the size of the
+     * heap available to pvPortMalloc() is defined by configTOTAL_HEAP_SIZE in
+     * FreeRTOSConfig.h, and the xPortGetFreeHeapSize() API function can be used
+     * to query the size of free heap space that remains (although it does not
+     * provide information on how the remaining heap might be fragmented). */
+    biriscv_putstring("vApplicationMallocFailedHook\n");
+    biriscv_sim_exit(0);
+}
+
+void vApplicationIdleHook(void)
+{
+    /* vApplicationIdleHook() will only be called if configUSE_IDLE_HOOK is set
+     * to 1 in FreeRTOSConfig.h.  It will be called on each iteration of the idle
+     * task.  It is essential that code added to this hook function never attempts
+     * to block in any way (for example, call xQueueReceive() with a block time
+     * specified, or call vTaskDelay()).  If the application makes use of the
+     * vTaskDelete() API function (as this demo application does) then it is also
+     * important that vApplicationIdleHook() is permitted to return to its calling
+     * function, because it is the responsibility of the idle task to clean up
+     * memory allocated by the kernel to any task that has since been deleted. */
+    asm volatile("wfi"); // Enter low power mode
+}
+
+void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskName)
+{
+    (void)pcTaskName;
+    (void)pxTask;
+
+    biriscv_putstring("vApplicationStackOverflowHook\n");
+    biriscv_sim_exit(0);
+}
+
+void vApplicationTickHook(void) {}
+
+void vAssertCalled(void)
+{
+    biriscv_putstring("vAssertCalled\n");
+    biriscv_sim_exit(0);
+}
+
+/*-----------------------------------------------------------*/
+
+SemaphoreHandle_t sem_mm2s = NULL;
+SemaphoreHandle_t sem_s2mm = NULL;
+struct mm2s_ringbuffer *mm2s_0 = NULL;
+struct s2mm_ringbuffer *s2mm_0 = NULL;
+
+void freertos_risc_v_application_interrupt_handler(void)
+{
+    uint32_t enabled;
+    uint32_t active;
+    uint32_t pending;
+    BaseType_t xHigherPriorityTaskWoken;
+    BaseType_t xHigherPriorityTaskWoken2;
+
+    biriscv_putstring("riscv_mtvec_mei\n");
+
+    enabled = read32(0xa0000000);
+    active = read32(0xa0000004);
+    pending = active & enabled;
+
+    // while (pending) {
+    if (pending & RINGBUFFER__INTR_ACTIVE__S2MM_0_bm) {
+        xSemaphoreGiveFromISR(sem_s2mm,&xHigherPriorityTaskWoken);
+    }
+    if (pending & RINGBUFFER__INTR_ACTIVE__MM2S_0_bm) {
+        xSemaphoreGiveFromISR(sem_mm2s,&xHigherPriorityTaskWoken2);
+    }
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken || xHigherPriorityTaskWoken2);
+    // enabled = read32(0xa0000000);
+    // active = read32(0xa0000004);
+    // pending = active & enabled;
+    //}
+}
+
+struct mm2s_ringbuffer *configure_mm2s(void *dev_address, void *buffer, size_t buffer_size, int32_t instance)
+{
+    int rc;
+    struct mm2s_ringbuffer *dev;
+
+    biriscv_putstring("configure_mm2s\n");
+
+    dev = mm2s_ringbuffer_init(dev_address);
+    if (dev == NULL) {
+        biriscv_putstring("mm2s_ringbuffer_init failed\n");
+        return NULL;
+    }
+
+    rc = mm2s_ringbuffer_set_buffer(dev, buffer, buffer_size);
+    if (rc) {
+        biriscv_putstring("mm2s_ringbuffer_set_buffer failed\n");
+        return NULL;
+    }
+
+    rc = mm2s_ringbuffer_start(dev);
+    if (rc) {
+        biriscv_putstring("mm2s_ringbuffer_start failed\n");
+        return NULL;
+    }
+
+    return dev;
+}
+
+struct s2mm_ringbuffer *configure_s2mm(void *dev_address, void *buffer, size_t buffer_size, int32_t instance)
+{
+    int rc;
+    struct s2mm_ringbuffer *dev;
+
+    biriscv_putstring("configure_s2mm\n");
+
+    dev = s2mm_ringbuffer_init(dev_address);
+    if (dev == NULL) {
+        biriscv_putstring("s2mm_ringbuffer_init failed\n");
+        return NULL;
+    }
+
+    rc = s2mm_ringbuffer_set_buffer(dev, buffer, buffer_size);
+    if (rc) {
+        biriscv_putstring("s2mm_ringbuffer_set_buffer failed\n");
+        return NULL;
+    }
+
+    rc = s2mm_ringbuffer_start(dev);
+    if (rc) {
+        biriscv_putstring("s2mm_ringbuffer_start failed\n");
+        return NULL;
+    }
+
+    s2mm_ringbuffer_set_threshold(dev, 255);
+    s2mm_ringbuffer_write_intr_enable(dev, S2MM_RINGBUFFERX__INTR_ENABLE__LEVEL_bm);
+
+    return dev;
+}
+
+#define BUFFER_SIZE 4096
+unsigned char buffers[4][BUFFER_SIZE] __attribute__((aligned(4096)));
+char putbuffer[256];
+char getbuffer[256];
+
+static void mm2s_ringbuffer_task(void *pvParameters)
+{
+    SemaphoreHandle_t sem = sem_mm2s;
+    struct mm2s_ringbuffer *dev = mm2s_0;
+    uint32_t enabled;
+    uint32_t active;
+    uint32_t pending;
+
+    for (;;) {
+        xSemaphoreTake(sem, -1);
+
+        biriscv_putstring("  mm2s_ringbuffer_isr\n");
+
+        enabled = mm2s_ringbuffer_read_intr_enable(dev);
+        active = mm2s_ringbuffer_read_intr_active(dev);
+        pending = active & enabled;
+
+        while (pending) {
+
+            if (pending & MM2S_RINGBUFFERX__INTR_ACTIVE__ERROR_bm) {
+                biriscv_putstring("    mm2s_ringbuffer_isr_error\n");
+                mm2s_ringbuffer_clear_intr(dev, MM2S_RINGBUFFERX__INTR_ACTIVE__ERROR_bm);
+            }
+            if (pending & MM2S_RINGBUFFERX__INTR_ACTIVE__LEVEL_bm) {
+                biriscv_putstring("    mm2s_ringbuffer_isr_level\n");
+
+                int rv;
+                rv = mm2s_ringbuffer_put(mm2s_0, putbuffer, 256);
+                // if (rv > 0) {
+                //     mm2s_n_bytes += rv;
+                // }
+                //  biriscv_dcache_flush();
+                mm2s_ringbuffer_commit(mm2s_0);
+
+                // if (mm2s_n_bytes > 4096) {
+                //     mm2s_ringbuffer_write_intr_enable(dev, 0);
+                // }
+
+                mm2s_ringbuffer_clear_intr(dev, MM2S_RINGBUFFERX__INTR_ACTIVE__LEVEL_bm);
+            }
+            enabled = mm2s_ringbuffer_read_intr_enable(dev);
+            active = mm2s_ringbuffer_read_intr_active(dev);
+            pending = active & enabled;
+        }
+    }
+}
+
+static void s2mm_ringbuffer_task(void *pvParameters)
+{
+    SemaphoreHandle_t sem = sem_s2mm;
+    struct s2mm_ringbuffer *dev = s2mm_0;
+    uint32_t enabled;
+    uint32_t active;
+    uint32_t pending;
+
+    for (;;) {
+        xSemaphoreTake(sem, -1);
+
+        biriscv_putstring("  s2mm_ringbuffer_isr\n");
+
+        enabled = s2mm_ringbuffer_read_intr_enable(dev);
+        active = s2mm_ringbuffer_read_intr_active(dev);
+        pending = active & enabled;
+
+        while (pending) {
+            if (pending & S2MM_RINGBUFFERX__INTR_ACTIVE__OVERRUN_bm) {
+                biriscv_putstring("    s2mm_ringbuffer_isr_overrun\n");
+                s2mm_ringbuffer_clear_intr(dev, S2MM_RINGBUFFERX__INTR_ACTIVE__OVERRUN_bm);
+            }
+            if (pending & S2MM_RINGBUFFERX__INTR_ACTIVE__ERROR_bm) {
+                biriscv_putstring("    s2mm_ringbuffer_isr_error\n");
+                s2mm_ringbuffer_clear_intr(dev, S2MM_RINGBUFFERX__INTR_ACTIVE__ERROR_bm);
+            }
+            if (pending & S2MM_RINGBUFFERX__INTR_ACTIVE__LEVEL_bm) {
+                biriscv_putstring("    s2mm_ringbuffer_isr_level\n");
+                // s2mm_n_bytes += s2mm_ringbuffer_level(dev);
+                s2mm_ringbuffer_flush(dev);
+                // int rv;
+                // do {
+                //     rv = s2mm_ringbuffer_get(dev, getbuffer, 256);
+                //     if (rv > 0) {
+                //         s2mm_n_bytes += rv;
+                //     }
+                //     s2mm_ringbuffer_commit(dev);
+                // } while (rv > 0);
+                s2mm_ringbuffer_clear_intr(dev, S2MM_RINGBUFFERX__INTR_ACTIVE__LEVEL_bm);
+            }
+            enabled = s2mm_ringbuffer_read_intr_enable(dev);
+            active = s2mm_ringbuffer_read_intr_active(dev);
+            pending = active & enabled;
+        }
+    }
+}
+
+int main(void)
+{
+    printf("%d: %s\n", biriscv_timer_get_mtime(), "Hello FreeRTOS!");
+
+    sem_mm2s = xSemaphoreCreateBinary();
+    sem_s2mm = xSemaphoreCreateBinary();
+
+    ringbuffer_t *inst = ((ringbuffer_t *)0xa0000000UL);
+
+    write32(0xa0000000, RINGBUFFER__INTR_ENABLE__S2MM_0_bm | RINGBUFFER__INTR_ENABLE__MM2S_0_bm);
+
+    mm2s_0 = configure_mm2s((void *)&(inst->mm2s_ringbuffer[0]), buffers[0], BUFFER_SIZE, 0);
+    s2mm_0 = configure_s2mm((void *)&(inst->s2mm_ringbuffer[0]), buffers[1], BUFFER_SIZE, 0);
+
+    xTaskCreate(s2mm_ringbuffer_task, "s2mm", configMINIMAL_STACK_SIZE * 2U, NULL, tskIDLE_PRIORITY + 2, NULL);
+    xTaskCreate(mm2s_ringbuffer_task, "mm2s", configMINIMAL_STACK_SIZE * 2U, NULL, tskIDLE_PRIORITY + 1, NULL);
+
+    mm2s_ringbuffer_set_threshold(mm2s_0, 1);
+    mm2s_ringbuffer_write_intr_enable(mm2s_0, MM2S_RINGBUFFERX__INTR_ENABLE__LEVEL_bm);
+
+    // for (int i = 0; i < 256; ++i) {
+    //     putbuffer[i] = i;
+    // }
+    // int rv;
+    // rv = mm2s_ringbuffer_put(mm2s_0, putbuffer, 256);
+    // if (rv > 0) {
+    //     mm2s_n_bytes += rv;
+    // }
+    // biriscv_dcache_flush();
+    // mm2s_ringbuffer_commit(mm2s_0);
+
+    // for (int i = 0; i < 1000; ++i) {
+    //     asm volatile("nop");
+    // }
+
+    // printf("s2mm_n_bytes=%d\n", s2mm_n_bytes);
+    // printf("mm2s_n_bytes=%d\n", mm2s_n_bytes);
+
+    biriscv_putstring("vTaskStartScheduler\n");
+    vTaskStartScheduler();
+
+    return 0;
+}
