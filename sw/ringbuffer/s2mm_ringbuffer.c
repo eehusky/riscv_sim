@@ -263,9 +263,6 @@ int s2mm_ringbuffer_get(struct s2mm_ringbuffer *dev, void *buffer, size_t buffer
     uint32_t level = s2mm_ringbuffer_level(dev);
     uint32_t count = level < buffer_size ? level : buffer_size;
     uint32_t tail2end = dev->buffer_size - dev->tailptr;
-    // uint32_t start2head = dev->headptr;
-    // uint32_t tailptr = dev->tailptr;
-    // uint32_t headptr = dev->headptr;
 
     // if(count > tail2end){
     //     biriscv_dcache_invalidate_range(
@@ -282,21 +279,10 @@ int s2mm_ringbuffer_get(struct s2mm_ringbuffer *dev, void *buffer, size_t buffer
     //         count
     //     );
     // }
-    // if (tailptr > headptr) {
-    // } else {
-    //     biriscv_dcache_invalidate_range(
-    //         (uint32_t)(dev->buffer+dev->tailptr),
-    //         count
-    //     );
-    // }
-
-    // biriscv_dcache_invalidate_range(
-    //     (uint32_t)(dev->buffer),
-    //     dev->buffer_size
-    //);
+    // biriscv_dcache_invalidate_range((uint32_t)dev->buffer, dev->buffer_size);
+    biriscv_dcache_flush();
 
     int i;
-
     for (i = 0; i < count; i++) {
         _advance_tail(dev);
         ((uint8_t *)buffer)[i] = dev->buffer[dev->tailptr];

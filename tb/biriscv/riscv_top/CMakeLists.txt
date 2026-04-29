@@ -25,16 +25,24 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS   "ON")
 set(CXX_WARNING                     "-Wall -Wno-sign-compare -Wno-unused-variable -Wno-bool-operation")
 set(CMAKE_CXX_FLAGS                 "-Og -fstrict-aliasing -march=native ${CXX_WARNING}")
 set(CMAKE_C_FLAGS                   "-Og -fstrict-aliasing -march=native ${CXX_WARNING}")
+#set(LD_FLAGS                        "")
+#-O3 -flto
+#-O3 -flto
+#set(LD_FLAGS                        "-fwhole-program")
 
 string(STRIP ${CMAKE_CXX_FLAGS} CMAKE_CXX_FLAGS)
 string(STRIP ${CMAKE_C_FLAGS}   CMAKE_C_FLAGS)
-
+#string(STRIP ${LD_FLAGS}        LD_FLAGS)
+#set(CMAKE_MODULE_LINKER_FLAGS   ${LD_FLAGS})
+#set(CMAKE_SHARED_LINKER_FLAGS   ${LD_FLAGS})
+#set(CMAKE_STATIC_LINKER_FLAGS   ${LD_FLAGS})
+#set(CMAKE_EXE_LINKER_FLAGS      ${LD_FLAGS})
 
 set(MY_VERILATOR_ARGS
     -O3
     --timescale-override 1ns/1ns
-    #--x-assign fast
-    #--x-initial fast
+    --x-assign fast
+    --x-initial fast
     #--noassert
     #--decorations none
     -Wno-context
@@ -44,7 +52,7 @@ set(MY_VERILATOR_ARGS
     --trace-fst
     --unroll-count 512
     -CFLAGS "${CMAKE_CXX_FLAGS}"
-    -LDFLAGS "-lelf -lbfd"
+    -LDFLAGS "-lelf -lbfd ${LD_FLAGS}"
 
     #--json-only-output tree_temp.json
     #--json-only-meta-output meta_temp.json
@@ -170,6 +178,7 @@ verilate(tb_biriscv_idcache_top
 
         ##
         tb_biriscv_idcache_top.sv
+        tb_biriscv_idcache_top.vlt
         #
     VERILATOR_ARGS
         ${MY_VERILATOR_ARGS}

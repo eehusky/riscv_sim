@@ -236,6 +236,7 @@ module tb_biriscv_idcache_top (
     biriscv_idcache_top #(
         .ICACHE_AXI_ID     (0),
         .DCACHE_AXI_ID     (1),
+        .GSHARE_ENABLE     (1),
         .MEM_CACHE_ADDR_MIN(MEM_CACHE_ADDR_MIN),
         .MEM_CACHE_ADDR_MAX(MEM_CACHE_ADDR_MAX)
     ) i_riscv_top_wrapper (
@@ -444,6 +445,31 @@ module tb_biriscv_idcache_top (
     ringbuffer_axis_if #(.TDATA_WIDTH(M01_AXIS_TDATA_WIDTH)) m01_axis ();
     ringbuffer_axis_if #(.TDATA_WIDTH(S00_AXIS_TDATA_WIDTH)) s00_axis ();
     ringbuffer_axis_if #(.TDATA_WIDTH(S01_AXIS_TDATA_WIDTH)) s01_axis ();
+
+    logic [M00_AXIS_TDATA_WIDTH-1:0] x00_counter;
+    always_ff @(posedge i_clk) begin : proc_
+        if(i_rst) begin
+             x00_counter <= 0;
+        end else begin
+            if(m00_axis.tready & m00_axis.tvalid) begin
+                assert(m00_axis.tdata == x00_counter);
+                x00_counter <= x00_counter + 1;
+            end
+        end
+    end
+
+    logic [M01_AXIS_TDATA_WIDTH-1:0] x01_counter;
+    always_ff @(posedge i_clk) begin : proc_
+        if(i_rst) begin
+             x01_counter <= 0;
+        end else begin
+            if(m01_axis.tready & m01_axis.tvalid) begin
+                assert(m01_axis.tdata == x01_counter);
+                x01_counter <= x01_counter + 1;
+            end
+        end
+    end
+
 
     assign s00_axis.tdata =  m00_axis.tdata;
     assign m00_axis.tready = s00_axis.tready;

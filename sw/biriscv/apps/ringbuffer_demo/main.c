@@ -107,56 +107,13 @@ struct mm2s_ringbuffer *mm2s_0 = NULL;
 struct s2mm_ringbuffer *s2mm_0 = NULL;
 uint32_t n_s2mm_bytes = 0;
 uint32_t n_mm2s_bytes = 0;
+uint32_t s2mm_pat = 0;
+uint32_t mm2s_pat = 0;
 
-void freertos_risc_v_application_interrupt_handler2(void)
-{
-    uint32_t enabled;
-    uint32_t active;
-    uint32_t pending;
-    biriscv_putstring("isr\n");
-    BaseType_t xHigherPriorityTaskWoken;
-    xSemaphoreGiveFromISR(sem_isr, &xHigherPriorityTaskWoken);
-    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-    // enabled = read32(0xa0000000);
-    // active = read32(0xa0000004);
-    // pending = active & enabled;
-    // write32(0xa0000004, 0xFFFFFFFF);
-    // csr_clr_bits_mip(0x800);
-    // portDISABLE_INTERRUPTS();
-}
-
-static void isr_task(void *pvParameters)
-{
-    uint32_t enabled;
-    uint32_t active;
-    uint32_t pending;
-    biriscv_putstring("isr_task\n");
-    while (1) {
-
-        xSemaphoreTake(sem_isr, -1);
-
-        biriscv_putstring("riscv_mtvec_mei\n");
-
-        enabled = read32(0xa0000000);
-        active = read32(0xa0000004);
-        pending = active & enabled;
-
-        while (pending) {
-            if (pending & RINGBUFFER__INTR_ACTIVE__S2MM_0_bm) {
-                xSemaphoreGive(sem_s2mm);
-            }
-            if (pending & RINGBUFFER__INTR_ACTIVE__MM2S_0_bm) {
-                xSemaphoreGive(sem_mm2s);
-            }
-            write32(0xa0000004, pending);
-            enabled = read32(0xa0000000);
-            active = read32(0xa0000004);
-            pending = active & enabled;
-        }
-        csr_clr_bits_mip(0x800);
-        portENABLE_INTERRUPTS();
-    }
-}
+#define BUFFER_SIZE 1024
+unsigned char buffers[4][BUFFER_SIZE] __attribute__((aligned(4096)));
+char putbuffer[256];
+char getbuffer[256];
 
 void freertos_risc_v_application_interrupt_handler(void)
 {
@@ -195,7 +152,7 @@ struct mm2s_ringbuffer *configure_mm2s(void *dev_address, void *buffer, size_t b
     int rc;
     struct mm2s_ringbuffer *dev;
 
-    biriscv_putstring("configure_mm2s\n");
+    PUTS("configure_mm2s\n");
 
     dev = mm2s_ringbuffer_init(dev_address);
     if (dev == NULL) {
@@ -223,7 +180,7 @@ struct s2mm_ringbuffer *configure_s2mm(void *dev_address, void *buffer, size_t b
     int rc;
     struct s2mm_ringbuffer *dev;
 
-    biriscv_putstring("configure_s2mm\n");
+    PUTS("configure_s2mm\n");
 
     dev = s2mm_ringbuffer_init(dev_address);
     if (dev == NULL) {
@@ -243,16 +200,11 @@ struct s2mm_ringbuffer *configure_s2mm(void *dev_address, void *buffer, size_t b
         return NULL;
     }
 
-    s2mm_ringbuffer_set_threshold(dev, 255);
+    s2mm_ringbuffer_set_threshold(dev, 99);
     s2mm_ringbuffer_write_intr_enable(dev, RINGBUFFER_S2MMX__INTR_ENABLE__LEVEL_bm);
 
     return dev;
 }
-
-#define BUFFER_SIZE 4096
-unsigned char buffers[4][BUFFER_SIZE] __attribute__((aligned(4096)));
-char putbuffer[256];
-char getbuffer[256];
 
 static void mm2s_ringbuffer_task(void *pvParameters)
 {
@@ -311,6 +263,7 @@ static void s2mm_ringbuffer_task(void *pvParameters)
     uint32_t enabled;
     uint32_t active;
     uint32_t pending;
+    int i;
     PUTS("s2mm_ringbuffer_task started\n");
 
     ringbuffer_t *inst = ((ringbuffer_t *)0xa0000000UL);
@@ -337,15 +290,20 @@ static void s2mm_ringbuffer_task(void *pvParameters)
             if (pending & RINGBUFFER_S2MMX__INTR_ACTIVE__LEVEL_bm) {
                 PUTS("    s2mm_ringbuffer_isr_level\n");
                 n_s2mm_bytes += s2mm_ringbuffer_level(s2mm_0);
-                s2mm_ringbuffer_flush(s2mm_0);
-                // int rv;
-                // do {
-                //     rv = s2mm_ringbuffer_get(dev, getbuffer, 256);
-                //     if (rv > 0) {
-                //         s2mm_n_bytes += rv;
-                //     }
-                //     s2mm_ringbuffer_commit(dev);
-                // } while (rv > 0);
+                // s2mm_ringbuffer_flush(s2mm_0);
+                int rv;
+                do {
+                    rv = s2mm_ringbuffer_get(s2mm_0, getbuffer, 256);
+                    s2mm_ringbuffer_commit(s2mm_0);
+                    for (i = 0; i < rv; i++) {
+                        if (getbuffer[i] != (s2mm_pat & 0xFF)) {
+                            printf("buffer mismatch %02X != %02X\n", (s2mm_pat & 0xFF), getbuffer[i]);
+                            biriscv_sim_exit(0);
+                        }
+                        s2mm_pat++;
+                    }
+
+                } while (rv > 0);
                 s2mm_ringbuffer_clear_intr(s2mm_0, RINGBUFFER_S2MMX__INTR_ACTIVE__LEVEL_bm);
             }
             enabled = s2mm_ringbuffer_read_intr_enable(s2mm_0);
@@ -358,9 +316,34 @@ static void s2mm_ringbuffer_task(void *pvParameters)
 static void stats_task(void *pvParameters)
 {
     PUTS("stats_task started\n");
+    int done = 0;
+    int n_bytes = 100;
+    int i = 0;
+    int rv;
+
     while (1) {
         vTaskDelay(1);
         printf("n_s2mm_bytes=%d, n_mm2s_bytes=%d\n", n_s2mm_bytes, n_mm2s_bytes);
+
+        if (n_mm2s_bytes < 2048) {
+            for (i = 0; i < n_bytes; i++) {
+                putbuffer[i] = (mm2s_pat & 0xFF);
+                mm2s_pat++;
+            }
+
+            rv = mm2s_ringbuffer_put(mm2s_0, putbuffer, n_bytes);
+            if (rv > 0) {
+                n_mm2s_bytes += rv;
+            }
+
+            mm2s_ringbuffer_commit(mm2s_0);
+        } else {
+            done = 1;
+        }
+
+        if (done) {
+            biriscv_sim_exit(0);
+        }
     }
 }
 
@@ -377,7 +360,13 @@ int main(void)
     xTaskCreate(mm2s_ringbuffer_task, "mm2s", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, NULL);
     xTaskCreate(stats_task, "stats", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 4, NULL);
 
-    write32(0xa0000000, RINGBUFFER__INTR_ENABLE__S2MM_0_bm | RINGBUFFER__INTR_ENABLE__MM2S_0_bm);
+    int i;
+    for (i = 0; i < 256; i++) {
+        putbuffer[i] = i;
+    }
+
+    // write32(0xa0000000, RINGBUFFER__INTR_ENABLE__S2MM_0_bm | RINGBUFFER__INTR_ENABLE__MM2S_0_bm);
+    write32(0xa0000000, RINGBUFFER__INTR_ENABLE__S2MM_0_bm);
 
     biriscv_putstring("vTaskStartScheduler\n");
     vTaskStartScheduler();

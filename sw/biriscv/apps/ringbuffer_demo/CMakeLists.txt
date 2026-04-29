@@ -58,6 +58,8 @@ target_link_libraries(${TARGET}.elf
 
 set(PROJECT_C_FLAGS
     -Os
+    -Wall
+    -Wno-format
     -nostartfiles
     -fno-exceptions
     -ffunction-sections

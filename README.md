@@ -54,6 +54,10 @@ Memory: 0x80004150 - 0x8000a3e7 (Size=24KB) [.bss]
     * Vector Interrupts dont work
     * wfi doesnt wait for anything
     * mtime is csr based instead of mm and isnt 64 bits
+    * the dcache invalidate extension doesnt seem to work correctly
+        * ```asm volatile("csrw pmpcfg2, %0" : : "r"(addr));```
+        * this means when something is DMA'd into a cacheable region of ram you need to do a full dcache flush inorder to retrieve the contents instead of just invalidating the region of interest.
+
 * rsd
     * integration with external modules is sort of a hot mess.  spent an afternoon trying to do memory accesses outside of RAM and gave up on this one.
 
