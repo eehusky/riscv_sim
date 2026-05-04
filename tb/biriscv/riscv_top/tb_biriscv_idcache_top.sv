@@ -447,7 +447,7 @@ module tb_biriscv_idcache_top (
     ringbuffer_axis_if #(.TDATA_WIDTH(S01_AXIS_TDATA_WIDTH)) s01_axis ();
 
     logic [M00_AXIS_TDATA_WIDTH-1:0] x00_counter;
-    always_ff @(posedge i_clk) begin : proc_
+    always_ff @(posedge i_clk) begin : proc_x00
         if(i_rst) begin
              x00_counter <= 0;
         end else begin
@@ -459,7 +459,7 @@ module tb_biriscv_idcache_top (
     end
 
     logic [M01_AXIS_TDATA_WIDTH-1:0] x01_counter;
-    always_ff @(posedge i_clk) begin : proc_
+    always_ff @(posedge i_clk) begin : proc_x01
         if(i_rst) begin
              x01_counter <= 0;
         end else begin

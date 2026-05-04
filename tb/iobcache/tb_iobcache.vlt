@@ -1,0 +1,6 @@
+`verilator_config
+public_flat_rw -module "tb_iobcache" -var "*"
+
+lint_off -rule WIDTHEXPAND -file "*iob_cache_write_channel_axi.v"
+lint_off -rule WIDTHEXPAND -file "*iob_cache_control.v"
+lint_off -rule WIDTHEXPAND -file "*iob_cache_axi.v"

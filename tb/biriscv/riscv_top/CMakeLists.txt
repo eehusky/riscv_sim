@@ -174,8 +174,6 @@ verilate(tb_biriscv_idcache_top
         ${REPO_DIR}/rtl/ringbuffer/ringbuffer_addrmap_pkg.vlt
         ${REPO_DIR}/rtl/ringbuffer/ringbuffer_axil.sv
         ${REPO_DIR}/rtl/ringbuffer/ringbuffer_axil.vlt
-
-
         ##
         tb_biriscv_idcache_top.sv
         tb_biriscv_idcache_top.vlt
