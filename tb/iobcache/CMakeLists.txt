@@ -70,8 +70,10 @@ verilate(Vtop
         ${IOBCACHE}/hardware/src/iob_universal_converter_iob_iob.v
         #
         ${REPO_DIR}/cores/ringbuffer/ringbuffer_sfifo.v
-        tb_iobcache.sv
         tb_iobcache.vlt
+        mem2iob_glue.sv
+        mem2axi_glue.sv
+        tb_iobcache.sv
         #
         ${COCOTB_SHARE}/lib/verilator/verilator.cpp
     VERILATOR_ARGS
