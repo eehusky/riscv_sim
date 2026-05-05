@@ -19,7 +19,7 @@ from cocotb.clock import Clock
 from cocotb.queue import Queue
 from cocotb.handle import HierarchyObject
 from cocotb.triggers import ClockCycles, Combine, RisingEdge, ValueChange
-from cocotbext.axi import AxiBus, AxiLiteBus, AxiResp, AxiSlave, AxiMaster, AxiLiteSlave, MemoryRegion, Pool
+from cocotbext.axi import AddressSpace, AxiBus, AxiLiteBus, AxiResp, AxiSlave, AxiMaster, AxiLiteSlave, MemoryRegion, Pool, Region, Window
 from rich import get_console
 from rich.text import Text
 from rich.tree import Tree
@@ -29,7 +29,7 @@ print = get_console().print
 
 
 CLK_PERIOD = 10
-ADDR_RANGE = 1<<16
+ADDR_RANGE = 1<<17
 
 def walk_dut(dut: HierarchyObject, tree: Tree | None = None) -> Tree:
     colormap = {
@@ -105,29 +105,44 @@ class TB:
         #self.axi_logger.setLevel(logging.WARNING)
         logging.getLogger("cocotb.tb").setLevel(tb_loglevel)
 
-        self.pool = Pool(parent=None, base=0, size=ADDR_RANGE)
-        self.region = self.pool.alloc_region(ADDR_RANGE)
+        self.addrspace = AddressSpace()
+        self.cached_region = MemoryRegion(ADDR_RANGE)
+        self.uncached_region = MemoryRegion(ADDR_RANGE)
+        self.axil_region = MemoryRegion(ADDR_RANGE)
+        self.addrspace.register_region(self.cached_region,0x9000_0000,ADDR_RANGE)
+        self.addrspace.register_region(self.uncached_region,0xA000_0000,ADDR_RANGE)
+        self.addrspace.register_region(self.axil_region,0xB000_0000,ADDR_RANGE)
+
+        #self.pool = Pool(parent=None, base=0, size=ADDR_RANGE)
+        ##self.region:MemoryRegion = self.pool.alloc_region(ADDR_RANGE)
+        #self.apool = Pool(parent=None, base=0x9000_0000, size=ADDR_RANGE)
+        #self.aregion = self.apool.alloc_region(ADDR_RANGE)
+        #self.bpool = Pool(parent=None, base=0xA000_0000, size=ADDR_RANGE)
+        #self.bregion = self.bpool.alloc_region(ADDR_RANGE)
+        #self.window = Window(self.aregion,0x9000_0000,ADDR_RANGE,0x9000_0000)
+
+
         self.ref = bytearray(0 for _ in range(ADDR_RANGE))
         self.axi_cached = AxiSlave(
             bus=AxiBus.from_prefix(dut, "m_axi_cached"),
             clock=self.clk,
             reset=self.reset,
             reset_active_level=True,
-            target = self.pool
+            target = self.addrspace
         )
         self.axi_uncached = AxiSlave(
             bus=AxiBus.from_prefix(dut, "m_axi_uncached"),
             clock=self.clk,
             reset=self.reset,
             reset_active_level=True,
-            target = self.pool
+            target = self.addrspace
         )
         self.axil = AxiLiteSlave(
             bus=AxiLiteBus.from_prefix(dut, "m_axil"),
             clock=self.clk,
             reset=self.reset,
             reset_active_level=True,
-            target = self.pool
+            target = self.addrspace
         )
         #p = 1
         #for i in range(0,1024):
@@ -152,9 +167,9 @@ class TB:
         await self.clkcycle(10)
         #self.axi_logger.setLevel(logging.INFO)
 
-        logging.getLogger("cocotb.tb_dport.m_axi_cached").setLevel(logging.INFO)
-        logging.getLogger("cocotb.tb_dport.m_axi_uncached").setLevel(logging.INFO)
-        logging.getLogger("cocotb.tb_dport.m_axil").setLevel(logging.INFO)
+        logging.getLogger("cocotb.tb_dport.m_axi_cached").setLevel(logging.DEBUG)
+        logging.getLogger("cocotb.tb_dport.m_axi_uncached").setLevel(logging.DEBUG)
+        logging.getLogger("cocotb.tb_dport.m_axil").setLevel(logging.DEBUG)
 
     async def read_csr(self, addr):
         self.dut.iob_valid_i.value = 1
@@ -222,11 +237,13 @@ class TB:
                 rd_i.value = 0
                 req = None
 
-    def write_pool(self,addr:int,data:int):
-        self.region.mem[addr:addr+4] = data.to_bytes(4,byteorder="little")
+    async  def write_pool(self,addr:int,data:int):
+        await self.addrspace.write(addr,data.to_bytes(4,byteorder="little"))
+        ##self.cached_region.mem[addr:addr+4] = data.to_bytes(4,byteorder="little")
 
-    def read_pool(self,addr:int):
-        return int.from_bytes(self.region.mem[addr:addr+4],byteorder="little")
+    async def read_pool(self,addr:int):
+        return int.from_bytes(await self.addrspace.read(addr,addr+4),byteorder="little")
+        #return int.from_bytes(self.cached_region.mem[addr:addr+4],byteorder="little")
 
     def write_ref(self,addr:int,data:int):
         self.ref[addr:addr+4] = data.to_bytes(4)
@@ -288,21 +305,37 @@ async def test_decode(dut):
     dut.mem_rd_i.value = 0
     await tb.clkcycle(10)
 
-    for _ in range(0,ADDR_RANGE,4):
-        v = random_int()
-        tb.write_ref(_,v)
-        tb.write_pool(_,v)
-
-
+    #for _ in range(0,ADDR_RANGE,4):
+    #    v = random_int()
+    #    tb.write_ref(_,v)
+    #    await tb.write_pool(_,v)
 
     async def set_addr(addr):
+        error = False
+        ack = False
+        decode = 0
         dut.mem_addr_i.value = addr
         dut.mem_rd_i.value = 1
         await tb.clkcycle(1)
         decode = dut.i_mem_dport_axi.i_mem_dport_mux.o_decode.value
         dut.mem_rd_i.value = 0
-        await tb.clkcycle(1)
-        return decode
+        for _ in range(10):
+            if dut.mem_ack_o.value:
+                ack = True
+                if dut.mem_error_o.value:
+                    error = True
+                break
+            await tb.clkcycle(1)
+        return decode, ack, error
+
+    async def check_addr(addr:int,r:Range,expect_error:bool):
+        decode, ack, error = await set_addr(addr)
+        assert ack, f"{r.name}: {addr=:08X}, {decode=:b}, {ack=}, {error=}"
+        assert error == expect_error, f"{r.name}: {addr=:08X}, {decode=:b}, {ack=}, {error=}"
+        if expect_error:
+            assert decode != r.decode, f"{r.name}: {addr=:08X}, {decode=:b}, {ack=}, {error=}"
+        else:
+            assert decode == r.decode, f"{r.name}: {addr=:08X}, {decode=:b}, {ack=}, {error=}"
 
     ranges = [
         Range("local",    0b000001, 0x0000_0000, 64*1024),
@@ -317,12 +350,19 @@ async def test_decode(dut):
     #await set_addr(0x10000000)
 
     for r in ranges:
-        if r.low >0:
-            assert await set_addr(r.low-1) != r.decode
-        assert await set_addr(r.low) == r.decode
-        assert await set_addr(r.high) == r.decode
-        assert await set_addr(r.high+1) != r.decode
-        await tb.clkcycle(10)
+        if r.low >=4:
+            await check_addr(r.low+4,r,False)
+        await check_addr(r.low,r,False)
+        await check_addr(r.high,r,False)
+        await check_addr(r.high+4,r,True)
+
+    #for r in ranges:
+    #    if r.low >0:
+    #        assert await set_addr(r.low-4) != r.decode
+    #    assert await set_addr(r.low) == r.decode
+    #    assert await set_addr(r.high) == r.decode
+    #    assert await set_addr(r.high+4) != r.decode
+    #    await tb.clkcycle(10)
 
 
     #assert await set_addr(0x0000_0000) == 0b000001

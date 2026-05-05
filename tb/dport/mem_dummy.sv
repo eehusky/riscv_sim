@@ -1,25 +1,20 @@
 
 module mem_dummy #(
-    parameter int ADDR_WIDTH      = 32,
-    parameter int AXIL_DATA_WIDTH = 32,
-    parameter int AXIL_STRB_WIDTH = 8
+    parameter int ADDR_WIDTH      = 16
 ) (
     input  logic        clk_i,
     input  logic        rst_i,
     //
     output logic        mem_accept_o,
     output logic        mem_ack_o,
-    input  logic [31:0] mem_addr_i,
+    input  logic [ADDR_WIDTH-1:0] mem_addr_i,
     output logic [31:0] mem_data_rd_o,
     input  logic [31:0] mem_data_wr_i,
     output logic        mem_error_o,
     input  logic        mem_rd_i,
     input  logic [ 3:0] mem_wr_i
 );
-
-    logic [31:0] mem['hFFFF];
-
-
+    logic [31:0] mem[1<<ADDR_WIDTH];
     always_ff @(posedge clk_i) begin : proc_
         if (rst_i) begin
             mem_data_rd_o <= 0;
@@ -39,9 +34,4 @@ module mem_dummy #(
             end
         end
     end
-
-
-
-
-
 endmodule : mem_dummy

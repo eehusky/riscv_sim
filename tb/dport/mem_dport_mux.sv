@@ -59,6 +59,14 @@ module mem_dport_mux #(
     output logic [ 3:0] axil_wr_o
 );
 
+    logic        dummy_accept;
+    logic        dummy_ack;
+    logic [31:0] dummy_addr;
+    logic [31:0] dummy_data_rd;
+    logic [31:0] dummy_data_wr;
+    logic        dummy_error;
+    logic        dummy_rd;
+    logic [ 3:0] dummy_wr;
 
     typedef struct packed {
         logic [31:0] data_wr;
@@ -133,6 +141,10 @@ module mem_dport_mux #(
         axil_data_wr_o     = 0;
         axil_rd_o          = 0;
         axil_wr_o          = 0;
+        dummy_addr = 0;
+        dummy_data_wr = 0;
+        dummy_rd = 0;
+        dummy_wr = 0;
         decode_stall       = 0;
         case (o_decode)
             6'b000001: begin
@@ -170,6 +182,13 @@ module mem_dport_mux #(
                 axil_wr_o      = decode_data.wr;
                 decode_stall   = axil_accept_i;
             end
+            6'b100000: begin
+                dummy_addr    = decode_addr;
+                dummy_data_wr = decode_data.data_wr;
+                dummy_rd      = decode_data.rd;
+                dummy_wr      = decode_data.wr;
+                decode_stall  = dummy_accept;
+            end
             default: begin
                 periph_addr_o      = 0;
                 periph_data_wr_o   = 0;
@@ -191,39 +210,59 @@ module mem_dport_mux #(
                 axil_data_wr_o     = 0;
                 axil_rd_o          = 0;
                 axil_wr_o          = 0;
+                dummy_addr = 0;
+                dummy_data_wr = 0;
+                dummy_rd = 0;
+                dummy_wr = 0;
                 decode_stall       = 0;
             end
         endcase
     end
 
+    always_ff @(posedge i_clk) begin : proc_
+        dummy_accept <= 1;
+        dummy_error <= 1;
+        dummy_data_rd <= 0;
+        if(dummy_rd|| |dummy_wr)begin
+            dummy_ack <= 1;
+        end else begin
+            dummy_ack <= 0;
+        end
+    end
+
     always_comb begin : proc_ack
         case ({
-            axil_ack_i, uncached_ack_i, cached_ack_i, dtcm_ack_i, periph_ack_i
+            dummy_ack, axil_ack_i, uncached_ack_i, cached_ack_i, dtcm_ack_i, periph_ack_i
         })
-            5'b00001: begin
+            6'b000001: begin
                 mem_data_rd_o = periph_data_rd_i;
                 mem_ack_o     = periph_ack_i;
                 mem_error_o   = periph_error_i;
             end
-            5'b00010: begin
+            6'b000010: begin
                 mem_data_rd_o = dtcm_data_rd_i;
                 mem_ack_o     = dtcm_ack_i;
                 mem_error_o   = dtcm_error_i;
             end
-            5'b00100: begin
+            6'b000100: begin
                 mem_data_rd_o = cached_data_rd_i;
                 mem_ack_o     = cached_ack_i;
                 mem_error_o   = cached_error_i;
             end
-            5'b01000: begin
+            6'b001000: begin
                 mem_data_rd_o = uncached_data_rd_i;
                 mem_ack_o     = uncached_ack_i;
                 mem_error_o   = uncached_error_i;
             end
-            5'b10000: begin
+            6'b010000: begin
                 mem_data_rd_o = axil_data_rd_i;
                 mem_ack_o     = axil_ack_i;
                 mem_error_o   = axil_error_i;
+            end
+            6'b100000: begin
+                mem_data_rd_o = dummy_data_rd;
+                mem_ack_o     = dummy_ack;
+                mem_error_o   = dummy_error;
             end
             default: begin
                 mem_data_rd_o = 0;

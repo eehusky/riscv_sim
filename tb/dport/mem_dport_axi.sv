@@ -5,7 +5,9 @@ module mem_dport_axi #(
     parameter int AXI_LEN_W       = 8,
     parameter int ADDR_WIDTH      = 32,
     parameter int AXIL_DATA_WIDTH = 32,
-    parameter int AXIL_STRB_WIDTH = 4
+    parameter int AXIL_STRB_WIDTH = 4,
+    parameter int DTCM_ADDR_W = 17,
+    parameter int PERIPH_ADDR_W = 16
 ) (
     input  logic                       rst_i,
     input  logic                       clk_i,
@@ -197,7 +199,6 @@ module mem_dport_axi #(
     logic        axil_rd;
     logic [ 3:0] axil_wr;
 
-
     mem_dport_mux i_mem_dport_mux (
         .i_reset           (rst_i),
         .i_clk             (clk_i),
@@ -256,7 +257,7 @@ module mem_dport_axi #(
         .rst_i(rst_i),
         .mem_accept_o(periph_accept),
         .mem_ack_o(periph_ack),
-        .mem_addr_i(periph_addr),
+        .mem_addr_i(periph_addr[PERIPH_ADDR_W-1:0]),
         .mem_data_rd_o(periph_data_rd),
         .mem_data_wr_i(periph_data_wr),
         .mem_error_o(periph_error),
@@ -264,7 +265,7 @@ module mem_dport_axi #(
         .mem_wr_i(periph_wr)
     );
 
-    parameter DTCM_ADDR_W = 17;
+
     dtcm #(
         .DATA_WIDTH(32),
         .ADDR_WIDTH(DTCM_ADDR_W),
