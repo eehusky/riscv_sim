@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import enum
+import mmap
 from typing import NamedTuple
 import warnings
 from collections import deque
@@ -17,7 +18,7 @@ import random
 import cocotb
 from cocotb.clock import Clock
 from cocotb.queue import Queue
-from cocotb.handle import HierarchyObject
+from cocotb.handle import HierarchyObject, Immediate
 from cocotb.triggers import ClockCycles, Combine, RisingEdge, ValueChange
 from cocotbext.axi import AddressSpace, AxiBus, AxiLiteBus, AxiResp, AxiSlave, AxiMaster, AxiLiteSlave, MemoryInterface, MemoryRegion, Pool, Region, Window
 from rich import get_console
@@ -73,6 +74,11 @@ def walk_dut(dut: HierarchyObject, tree: Tree | None = None) -> Tree:
 
     return tree
 
+class ReferenceMemoryRegion(MemoryRegion):
+    def __init__(self, size=4096, mem=None, **kwargs):
+        super().__init__(size, **kwargs)
+        self.ref = mmap.mmap(-1, size)
+
 class VPIRegion(MemoryInterface):
     def __init__(self, size, vpiobj, **kwargs):
         super().__init__(size, **kwargs)
@@ -89,7 +95,7 @@ class VPIRegion(MemoryInterface):
         mask = 0xFF << ((addr%4)*8)
         word &= ~mask
         word |= (data& 0xFF) << ((addr%4)*8)
-        mem[addr//4].value = word
+        mem[addr//4].value = Immediate(word)
 
     async def _read(self, address, length, **kwargs):
         rv = bytes([self._read_local(address+_) for _ in range(length)])
@@ -97,10 +103,15 @@ class VPIRegion(MemoryInterface):
         return rv
 
     async def _write(self, address, data, **kwargs):
-        print(f"write {address=}, {data=}")
+        #print(f"write {address=}, {data=}")
         for ndx,_ in enumerate(data):
             self._write_local(address+ndx, _)
-        #self.mem[address:address+len(data)] = data
+
+class ReferenceVPIRegion(VPIRegion):
+    def __init__(self, size, vpiobj, **kwargs):
+        super().__init__(size, vpiobj, **kwargs)
+        self.ref = mmap.mmap(-1, size)
+
 
 class Request(NamedTuple):
     addr:int
@@ -136,15 +147,17 @@ class TB:
         self.dtcm_mem = self.dut.i_mem_dport_axi.i_dtcm.mem
 
         self.addrspace = AddressSpace()
-        self.cached_region = MemoryRegion(ADDR_RANGE)
-        self.uncached_region = MemoryRegion(ADDR_RANGE)
-        self.axil_region = MemoryRegion(ADDR_RANGE)
-        self.local_region = VPIRegion(ADDR_RANGE, self.local_mem)
-        self.dtcm_region = VPIRegion(ADDR_RANGE, self.dtcm_mem)
+
+        self.cached_region = ReferenceMemoryRegion(ADDR_RANGE)
+        self.uncached_region = ReferenceMemoryRegion(ADDR_RANGE)
+        self.axil_region = ReferenceMemoryRegion(ADDR_RANGE)
+        self.local_region = ReferenceVPIRegion(ADDR_RANGE, self.local_mem)
+        self.dtcm_region = ReferenceVPIRegion(ADDR_RANGE, self.dtcm_mem)
+        self.addrspace.register_region(self.local_region,0x0000_0000,1<<16)
+        self.addrspace.register_region(self.dtcm_region,0x8002_0000,1<<17)
         self.addrspace.register_region(self.cached_region,0x9000_0000,ADDR_RANGE)
         self.addrspace.register_region(self.uncached_region,0xA000_0000,ADDR_RANGE)
         self.addrspace.register_region(self.axil_region,0xB000_0000,ADDR_RANGE)
-        self.addrspace.register_region(self.local_region,0x0000_0000,1<<16)
 
 
         self.ref = bytearray(0 for _ in range(ADDR_RANGE))
@@ -190,28 +203,14 @@ class TB:
         logging.getLogger("cocotb.tb_dport.m_axi_uncached").setLevel(logging.INFO)
         logging.getLogger("cocotb.tb_dport.m_axil").setLevel(logging.INFO)
 
-    async def read_csr(self, addr):
-        self.dut.iob_valid_i.value = 1
-        self.dut.iob_addr_i.value = addr
-        while True:
-            await self.clkcycle()
-            if self.dut.iob_rvalid_o.value and self.dut.iob_valid_i.value and self.dut.iob_ready_o.value:
-                break
-
-        rv = self.dut.iob_rdata_o.value.to_unsigned()
-        self.dut.iob_valid_i.value = 0
-        self.dut.iob_addr_i.value = 0
-        await self.clkcycle()
-        return rv
-
     async def proc_check(self):
         while True:
             rsp:Response = await self.rsp_queue.get()
             req = rsp.req
             if not req.wstrb:
+                ref = await self.read_ref(req.addr)
                 #print(f"{req.addr:04X}: {rsp.rdata:08X} == {self.read_ref(req.addr):08X}")
-                assert rsp.rdata == self.read_ref(req.addr), f"{req.addr:04X}: {rsp.rdata:08X} == {self.read_ref(req.addr):08X}"
-
+                assert rsp.rdata == ref, f"{req.addr:04X}: {rsp.rdata:08X} == {ref:08X}"
 
     async def proc_rsp(self):
         data_wr_i = self.dut.mem_data_wr_i
@@ -226,7 +225,7 @@ class TB:
                 req = self.pend_queue.get_nowait()
                 self.rsp_queue.put_nowait(Response(data_rd_o.value.to_unsigned(),req))
                 if req.is_write:
-                    self.write_ref(req.addr,req.wdata)
+                    await self.write_ref(req.addr,req.wdata)
             await self.clkcycle()
 
     async def proc_req(self):
@@ -261,14 +260,19 @@ class TB:
         ##self.cached_region.mem[addr:addr+4] = data.to_bytes(4,byteorder="little")
 
     async def read_pool(self,addr:int):
-        return int.from_bytes(await self.addrspace.read(addr,addr+4),byteorder="little")
+        return int.from_bytes(await self.addrspace.read(addr,4),byteorder="little")
         #return int.from_bytes(self.cached_region.mem[addr:addr+4],byteorder="little")
 
-    def write_ref(self,addr:int,data:int):
-        self.ref[addr:addr+4] = data.to_bytes(4)
+    async def write_ref(self,addr:int,data:int):
+        base, size, translate, region = self.addrspace.find_regions(addr)[0]
 
-    def read_ref(self,addr:int):
-        return int.from_bytes(self.ref[addr:addr+4])
+        assert isinstance(region, ReferenceVPIRegion|ReferenceMemoryRegion)
+        region.ref[addr:addr+4] = data.to_bytes(4)
+
+    async def read_ref(self,addr:int):
+        base, size, translate, region = self.addrspace.find_regions(addr)[0]
+        assert isinstance(region, ReferenceVPIRegion|ReferenceMemoryRegion)
+        return int.from_bytes(region.ref[addr:addr+4])
 
     def read(self,addr:int):
         self.req_queue.put_nowait((Request(addr,0,0)))
@@ -276,37 +280,34 @@ class TB:
     def write(self,addr:int,data:int):
         self.req_queue.put_nowait((Request(addr,data,0xF)))
 
-    def _read_local(self,addr:int):
-        mem = self.dut.i_mem_dport_axi.i_mem_dummy.mem
-        word = mem[addr//4].value.to_unsigned()
-        value = word >> ((addr%4)*8) & 0xFF
-        return value
-    def _write_local(self,addr:int, data:int):
-        mem = self.dut.i_mem_dport_axi.i_mem_dummy.mem
-        word = mem[addr//4].value.to_unsigned()
-        mask = 0xFF << ((addr%4)*8)
-        word &= ~mask
-        word |= (data& 0xFF) << ((addr%4)*8)
-        mem[addr//4].value = word
 
-    def write_local_word(self,addr:int, data:int):
-        self.local_mem[addr//4].value = data
-
-    def read_local_word(self,addr:int):
-        return self.local_mem[addr//4].value.to_unsigned()
-
-    def write_dtcm_word(self,addr:int, data:int):
-        self.dtcm_mem[addr//4].value = data
-
-    def read_dtcm_word(self,addr:int):
-        return self.dtcm_mem[addr//4].value.to_unsigned()
+    #def _read_local(self,addr:int):
+    #    mem = self.dut.i_mem_dport_axi.i_mem_dummy.mem
+    #    word = mem[addr//4].value.to_unsigned()
+    #    value = word >> ((addr%4)*8) & 0xFF
+    #    return value
+    #def _write_local(self,addr:int, data:int):
+    #    mem = self.dut.i_mem_dport_axi.i_mem_dummy.mem
+    #    word = mem[addr//4].value.to_unsigned()
+    #    mask = 0xFF << ((addr%4)*8)
+    #    word &= ~mask
+    #    word |= (data& 0xFF) << ((addr%4)*8)
+    #    mem[addr//4].value = word
+    #def write_local_word(self,addr:int, data:int):
+    #    self.local_mem[addr//4].value = data
+    #def read_local_word(self,addr:int):
+    #    return self.local_mem[addr//4].value.to_unsigned()
+    #def write_dtcm_word(self,addr:int, data:int):
+    #    self.dtcm_mem[addr//4].value = data
+    #def read_dtcm_word(self,addr:int):
+    #    return self.dtcm_mem[addr//4].value.to_unsigned()
 
 ## ----------------------------------------------------------------------------
 ## ----------------------------------------------------------------------------
 ## ----------------------------------------------------------------------------
 
 def random_addr():
-    return random.randint(0,ADDR_RANGE-1) & 0xFFFFFFFC
+    return random.randint(0,(1<<16)-4) & 0xFFFFFFFC
 def random_int():
     return random.randint(0,0xFFFFFFFF)
 
@@ -384,7 +385,6 @@ async def test_decode(dut):
     #tb.write_local_word(0x0000,0xDEADBEEF)
     #tb.write_dtcm_word(0x0000,0xDEADBEEF)
     await tb.addrspace.write(0x0000,0xDEADBEEF.to_bytes(4))
-    await tb.clkcycle(1)
     await tb.addrspace.read(0x0000,4)
 
     ranges = [
@@ -411,10 +411,14 @@ async def test_decode(dut):
     await tb.clkcycle(100)
 
 
-@cocotb.test(timeout_time=10, timeout_unit="ms", skip=True)
-async def test_dummy(dut):
+
+@cocotb.test(timeout_time=10, timeout_unit="ms", skip=False)
+async def test_iob_random(dut):
 
     tb = TB(dut)
+    cocotb.start_soon(tb.proc_req())
+    cocotb.start_soon(tb.proc_rsp())
+    cocotb.start_soon(tb.proc_check())
     await tb.cycle_reset()
     dut.mem_data_wr_i.value = 0
     dut.mem_wr_i.value = 0
@@ -422,13 +426,29 @@ async def test_dummy(dut):
     dut.mem_rd_i.value = 0
     await tb.clkcycle(10)
 
+    # fill in memory and ref block with random data
+    for _ in range(0,(1<<16)-4,4):
+        v = random_int()
+        await tb.write_ref(_,v)
+        await tb.write_pool(_,v)
 
-    tb.read_local(0x0000)
-    await tb.clkcycle(10)
 
-    tb.write_local_word(0x0000,0xDEADBEEF)
-    await tb.clkcycle(10)
-    print(tb.read_local_word(0x0000))
-    print(tb.read_local_word(0x0001))
-    print(tb.read_local_word(0x0002))
-    print(tb.read_local_word(0x0003))
+    for _ in range((1<<16)//1):
+        if random.choice([True,False]):
+            tb.write(random_addr(),random_int())
+        else:
+            tb.read(random_addr())
+
+    # issue reads for entire memory range to do a final check
+    for _ in range(0,(1<<16)-4,4):
+        tb.read(_)
+
+    while not tb.rsp_queue.empty() or not tb.req_queue.empty() or not tb.pend_queue.empty():
+        await tb.clkcycle(10)
+
+    for _ in range(0,(1<<16)-4,4):
+        ref= await tb.read_ref(_)
+        pool = await tb.read_pool(_)
+        assert ref == pool, f"{_:04X}: {ref:08X} == {pool:08x}"
+
+    await tb.clkcycle(1000)
