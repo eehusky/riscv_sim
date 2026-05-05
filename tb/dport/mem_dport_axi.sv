@@ -264,59 +264,6 @@ module mem_dport_axi #(
         .mem_wr_i(periph_wr)
     );
 
-    mem2axi_glue #(
-        .AXI_ID_W  (AXI_ID_W),
-        .AXI_LEN_W (AXI_LEN_W),
-        .AXI_ADDR_W(AXI_ADDR_W),
-        .AXI_DATA_W(AXI_DATA_W)
-    ) i_mem2axi_glue_cached (
-        .clk_i        (clk_i),
-        .rst_i        (rst_i),
-        .mem_addr_i   (cached_addr),
-        .mem_data_wr_i(cached_data_wr),
-        .mem_rd_i     (cached_rd),
-        .mem_wr_i     (cached_wr),
-        .mem_data_rd_o(cached_data_rd),
-        .mem_accept_o (cached_accept),
-        .mem_error_o  (cached_error),
-        .mem_ack_o    (cached_ack),
-        .axi_arready_i(m_axi_cached_arready),
-        .axi_arvalid_o(m_axi_cached_arvalid),
-        .axi_araddr_o (m_axi_cached_araddr),
-        .axi_arid_o   (m_axi_cached_arid),
-        .axi_arlen_o  (m_axi_cached_arlen),
-        .axi_arsize_o (m_axi_cached_arsize),
-        .axi_arburst_o(m_axi_cached_arburst),
-        .axi_arlock_o (m_axi_cached_arlock),
-        .axi_arcache_o(m_axi_cached_arcache),
-        .axi_arqos_o  (m_axi_cached_arqos),
-        .axi_rready_o (m_axi_cached_rready),
-        .axi_rvalid_i (m_axi_cached_rvalid),
-        .axi_rdata_i  (m_axi_cached_rdata),
-        .axi_rresp_i  (m_axi_cached_rresp),
-        .axi_rid_i    (m_axi_cached_rid),
-        .axi_rlast_i  (m_axi_cached_rlast),
-        .axi_awready_i(m_axi_cached_awready),
-        .axi_awvalid_o(m_axi_cached_awvalid),
-        .axi_awaddr_o (m_axi_cached_awaddr),
-        .axi_awid_o   (m_axi_cached_awid),
-        .axi_awlen_o  (m_axi_cached_awlen),
-        .axi_awsize_o (m_axi_cached_awsize),
-        .axi_awburst_o(m_axi_cached_awburst),
-        .axi_awlock_o (m_axi_cached_awlock),
-        .axi_awcache_o(m_axi_cached_awcache),
-        .axi_awqos_o  (m_axi_cached_awqos),
-        .axi_wready_i (m_axi_cached_wready),
-        .axi_wdata_o  (m_axi_cached_wdata),
-        .axi_wstrb_o  (m_axi_cached_wstrb),
-        .axi_wvalid_o (m_axi_cached_wvalid),
-        .axi_wlast_o  (m_axi_cached_wlast),
-        .axi_bready_o (m_axi_cached_bready),
-        .axi_bresp_i  (m_axi_cached_bresp),
-        .axi_bvalid_i (m_axi_cached_bvalid),
-        .axi_bid_i    (m_axi_cached_bid)
-    );
-
     parameter DTCM_ADDR_W = 17;
     dtcm #(
         .DATA_WIDTH(32),
@@ -378,6 +325,58 @@ module mem_dport_axi #(
         .s_axi_b_rready         (s_axi_dtcm_rready)
     );
 
+    mem2axi_glue #(
+        .AXI_ID_W  (AXI_ID_W),
+        .AXI_LEN_W (AXI_LEN_W),
+        .AXI_ADDR_W(AXI_ADDR_W),
+        .AXI_DATA_W(AXI_DATA_W)
+    ) i_mem2axi_glue_cached (
+        .clk_i        (clk_i),
+        .rst_i        (rst_i),
+        .mem_addr_i   (cached_addr),
+        .mem_data_wr_i(cached_data_wr),
+        .mem_rd_i     (cached_rd),
+        .mem_wr_i     (cached_wr),
+        .mem_data_rd_o(cached_data_rd),
+        .mem_accept_o (cached_accept),
+        .mem_error_o  (cached_error),
+        .mem_ack_o    (cached_ack),
+        .axi_arready_i(m_axi_cached_arready),
+        .axi_arvalid_o(m_axi_cached_arvalid),
+        .axi_araddr_o (m_axi_cached_araddr),
+        .axi_arid_o   (m_axi_cached_arid),
+        .axi_arlen_o  (m_axi_cached_arlen),
+        .axi_arsize_o (m_axi_cached_arsize),
+        .axi_arburst_o(m_axi_cached_arburst),
+        .axi_arlock_o (m_axi_cached_arlock),
+        .axi_arcache_o(m_axi_cached_arcache),
+        .axi_arqos_o  (m_axi_cached_arqos),
+        .axi_rready_o (m_axi_cached_rready),
+        .axi_rvalid_i (m_axi_cached_rvalid),
+        .axi_rdata_i  (m_axi_cached_rdata),
+        .axi_rresp_i  (m_axi_cached_rresp),
+        .axi_rid_i    (m_axi_cached_rid),
+        .axi_rlast_i  (m_axi_cached_rlast),
+        .axi_awready_i(m_axi_cached_awready),
+        .axi_awvalid_o(m_axi_cached_awvalid),
+        .axi_awaddr_o (m_axi_cached_awaddr),
+        .axi_awid_o   (m_axi_cached_awid),
+        .axi_awlen_o  (m_axi_cached_awlen),
+        .axi_awsize_o (m_axi_cached_awsize),
+        .axi_awburst_o(m_axi_cached_awburst),
+        .axi_awlock_o (m_axi_cached_awlock),
+        .axi_awcache_o(m_axi_cached_awcache),
+        .axi_awqos_o  (m_axi_cached_awqos),
+        .axi_wready_i (m_axi_cached_wready),
+        .axi_wdata_o  (m_axi_cached_wdata),
+        .axi_wstrb_o  (m_axi_cached_wstrb),
+        .axi_wvalid_o (m_axi_cached_wvalid),
+        .axi_wlast_o  (m_axi_cached_wlast),
+        .axi_bready_o (m_axi_cached_bready),
+        .axi_bresp_i  (m_axi_cached_bresp),
+        .axi_bvalid_i (m_axi_cached_bvalid),
+        .axi_bid_i    (m_axi_cached_bid)
+    );
 
     mem2axi_glue #(
         .AXI_ID_W  (AXI_ID_W),
