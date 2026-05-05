@@ -13,6 +13,7 @@ module mem2axi_glue #(
     input  logic                    mem_rd_i,
     input  logic [             3:0] mem_wr_i,
     output logic [            31:0] mem_data_rd_o,
+    output logic                    mem_error_o,
     output logic                    mem_accept_o,
     output logic                    mem_ack_o,
     input  logic                    axi_arready_i,
@@ -192,6 +193,7 @@ module mem2axi_glue #(
     assign mem_data_rd_o = (r_ack && mem_rsp_data_out.rd) ? axi_rdata_i : 0;
     assign mem_accept_o  = ~mem_req_full;
     assign mem_ack_o     = mem_rsp_pop;
+    assign mem_error_o   = mem_rsp_pop && (axi_rresp_i[1] || axi_bresp_i[1]);
 
     // constants
     assign axi_arid_o    = 0;
