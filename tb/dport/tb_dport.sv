@@ -16,6 +16,12 @@ module tb_dport ();
     logic                       mem_error_o;
     logic                       mem_rd_i;
     logic [                3:0] mem_wr_i;
+    logic [               10:0] mem_req_tag_i;
+    logic [               10:0] mem_resp_tag_o;
+    logic                       mem_cacheable_i;
+    logic                       mem_invalidate_i;
+    logic                       mem_writeback_i;
+    logic                       mem_flush_i;
     logic                       periph_accept_i;
     logic                       periph_ack_i;
     logic [               31:0] periph_data_rd_i;
@@ -161,6 +167,12 @@ module tb_dport ();
         .mem_error_o           (mem_error_o),
         .mem_rd_i              (mem_rd_i),
         .mem_wr_i              (mem_wr_i),
+        .mem_req_tag_i         (mem_req_tag_i),
+        .mem_resp_tag_o        (mem_resp_tag_o),
+        .mem_cacheable_i       (mem_cacheable_i),
+        .mem_invalidate_i      (mem_invalidate_i),
+        .mem_writeback_i       (mem_writeback_i),
+        .mem_flush_i           (mem_flush_i),
         .periph_accept_i       (periph_accept_i),
         .periph_ack_i          (periph_ack_i),
         .periph_data_rd_i      (periph_data_rd_i),

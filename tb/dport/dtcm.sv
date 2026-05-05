@@ -232,8 +232,10 @@ module dtcm #(
     // (* RAM_STYLE="BLOCK" *)
     reg [DATA_WIDTH-1:0] mem[(2**VALID_ADDR_WIDTH)-1:0];
 
-    wire [VALID_ADDR_WIDTH-1:0] addr_a_valid = ram_a_cmd_addr[ADDR_WIDTH-1:ADDR_WIDTH - VALID_ADDR_WIDTH];// >> (ADDR_WIDTH - VALID_ADDR_WIDTH);
-    wire [VALID_ADDR_WIDTH-1:0] addr_b_valid = ram_b_cmd_addr[ADDR_WIDTH-1:ADDR_WIDTH - VALID_ADDR_WIDTH];// >> (ADDR_WIDTH - VALID_ADDR_WIDTH);
+    wire [VALID_ADDR_WIDTH-1:0] addr_a_valid;
+    assign addr_a_valid = ram_a_cmd_addr[ADDR_WIDTH-1:ADDR_WIDTH - VALID_ADDR_WIDTH];
+    wire [VALID_ADDR_WIDTH-1:0] addr_b_valid;
+    assign addr_b_valid = ram_b_cmd_addr[ADDR_WIDTH-1:ADDR_WIDTH - VALID_ADDR_WIDTH];
 
     integer i, j;
 

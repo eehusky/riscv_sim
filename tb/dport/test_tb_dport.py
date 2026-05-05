@@ -19,7 +19,7 @@ from cocotb.clock import Clock
 from cocotb.queue import Queue
 from cocotb.handle import HierarchyObject
 from cocotb.triggers import ClockCycles, Combine, RisingEdge, ValueChange
-from cocotbext.axi import AddressSpace, AxiBus, AxiLiteBus, AxiResp, AxiSlave, AxiMaster, AxiLiteSlave, MemoryRegion, Pool, Region, Window
+from cocotbext.axi import AddressSpace, AxiBus, AxiLiteBus, AxiResp, AxiSlave, AxiMaster, AxiLiteSlave, MemoryInterface, MemoryRegion, Pool, Region, Window
 from rich import get_console
 from rich.text import Text
 from rich.tree import Tree
@@ -73,6 +73,34 @@ def walk_dut(dut: HierarchyObject, tree: Tree | None = None) -> Tree:
 
     return tree
 
+class VPIRegion(MemoryInterface):
+    def __init__(self, size, vpiobj, **kwargs):
+        super().__init__(size, **kwargs)
+        self._vpiobj = vpiobj
+
+    def _read_local(self,addr:int):
+        mem = self._vpiobj
+        word = mem[addr//4].value.to_unsigned()
+        value = word >> ((addr%4)*8) & 0xFF
+        return value
+    def _write_local(self,addr:int, data:int):
+        mem = self._vpiobj
+        word = mem[addr//4].value.to_unsigned()
+        mask = 0xFF << ((addr%4)*8)
+        word &= ~mask
+        word |= (data& 0xFF) << ((addr%4)*8)
+        mem[addr//4].value = word
+
+    async def _read(self, address, length, **kwargs):
+        rv = bytes([self._read_local(address+_) for _ in range(length)])
+        #print(f"read {address=}, {length=} {rv=}")
+        return rv
+
+    async def _write(self, address, data, **kwargs):
+        print(f"write {address=}, {data=}")
+        for ndx,_ in enumerate(data):
+            self._write_local(address+ndx, _)
+        #self.mem[address:address+len(data)] = data
 
 class Request(NamedTuple):
     addr:int
@@ -104,22 +132,19 @@ class TB:
         logging.getLogger("cocotb.tb_dport.m_axil").setLevel(logging.WARNING)
         #self.axi_logger.setLevel(logging.WARNING)
         logging.getLogger("cocotb.tb").setLevel(tb_loglevel)
+        self.local_mem = self.dut.i_mem_dport_axi.i_mem_dummy.mem
+        self.dtcm_mem = self.dut.i_mem_dport_axi.i_dtcm.mem
 
         self.addrspace = AddressSpace()
         self.cached_region = MemoryRegion(ADDR_RANGE)
         self.uncached_region = MemoryRegion(ADDR_RANGE)
         self.axil_region = MemoryRegion(ADDR_RANGE)
+        self.local_region = VPIRegion(ADDR_RANGE, self.local_mem)
+        self.dtcm_region = VPIRegion(ADDR_RANGE, self.dtcm_mem)
         self.addrspace.register_region(self.cached_region,0x9000_0000,ADDR_RANGE)
         self.addrspace.register_region(self.uncached_region,0xA000_0000,ADDR_RANGE)
         self.addrspace.register_region(self.axil_region,0xB000_0000,ADDR_RANGE)
-
-        #self.pool = Pool(parent=None, base=0, size=ADDR_RANGE)
-        ##self.region:MemoryRegion = self.pool.alloc_region(ADDR_RANGE)
-        #self.apool = Pool(parent=None, base=0x9000_0000, size=ADDR_RANGE)
-        #self.aregion = self.apool.alloc_region(ADDR_RANGE)
-        #self.bpool = Pool(parent=None, base=0xA000_0000, size=ADDR_RANGE)
-        #self.bregion = self.bpool.alloc_region(ADDR_RANGE)
-        #self.window = Window(self.aregion,0x9000_0000,ADDR_RANGE,0x9000_0000)
+        self.addrspace.register_region(self.local_region,0x0000_0000,1<<16)
 
 
         self.ref = bytearray(0 for _ in range(ADDR_RANGE))
@@ -144,12 +169,6 @@ class TB:
             reset_active_level=True,
             target = self.addrspace
         )
-        #p = 1
-        #for i in range(0,1024):
-        #    r.mem[i] = (i+1)%256
-            #r.mem[i+1] = i+1
-            #r.mem[i+2] = i+1
-            #r.mem[i+3] = i+1
 
         self.req_queue:Queue[Request] = Queue()
         self.rsp_queue:Queue[Response] = Queue()
@@ -257,6 +276,31 @@ class TB:
     def write(self,addr:int,data:int):
         self.req_queue.put_nowait((Request(addr,data,0xF)))
 
+    def _read_local(self,addr:int):
+        mem = self.dut.i_mem_dport_axi.i_mem_dummy.mem
+        word = mem[addr//4].value.to_unsigned()
+        value = word >> ((addr%4)*8) & 0xFF
+        return value
+    def _write_local(self,addr:int, data:int):
+        mem = self.dut.i_mem_dport_axi.i_mem_dummy.mem
+        word = mem[addr//4].value.to_unsigned()
+        mask = 0xFF << ((addr%4)*8)
+        word &= ~mask
+        word |= (data& 0xFF) << ((addr%4)*8)
+        mem[addr//4].value = word
+
+    def write_local_word(self,addr:int, data:int):
+        self.local_mem[addr//4].value = data
+
+    def read_local_word(self,addr:int):
+        return self.local_mem[addr//4].value.to_unsigned()
+
+    def write_dtcm_word(self,addr:int, data:int):
+        self.dtcm_mem[addr//4].value = data
+
+    def read_dtcm_word(self,addr:int):
+        return self.dtcm_mem[addr//4].value.to_unsigned()
+
 ## ----------------------------------------------------------------------------
 ## ----------------------------------------------------------------------------
 ## ----------------------------------------------------------------------------
@@ -337,6 +381,12 @@ async def test_decode(dut):
         else:
             assert decode == r.decode, f"{r.name}: {addr=:08X}, {decode=:b}, {ack=}, {error=}"
 
+    #tb.write_local_word(0x0000,0xDEADBEEF)
+    #tb.write_dtcm_word(0x0000,0xDEADBEEF)
+    await tb.addrspace.write(0x0000,0xDEADBEEF.to_bytes(4))
+    await tb.clkcycle(1)
+    await tb.addrspace.read(0x0000,4)
+
     ranges = [
         Range("local",    0b000001, 0x0000_0000, 64*1024),
         Range("dtcm",     0b000010, 0x8002_0000, 128*1024),
@@ -353,25 +403,32 @@ async def test_decode(dut):
         if r.low >=4:
             await check_addr(r.low-4,r,True)
         await check_addr(r.low,r,False)
+        await check_addr(r.low+4,r,False)
         await check_addr(r.high+1-4,r,False)
         await check_addr(r.high+1+4,r,True)
         await tb.clkcycle(10)
 
-    #for r in ranges:
-    #    if r.low >0:
-    #        assert await set_addr(r.low-4) != r.decode
-    #    assert await set_addr(r.low) == r.decode
-    #    assert await set_addr(r.high) == r.decode
-    #    assert await set_addr(r.high+4) != r.decode
-    #    await tb.clkcycle(10)
-
-
-    #assert await set_addr(0x0000_0000) == 0b000001
-    #assert await set_addr(0x0000_FFFF) == 0b000001
-    #assert await set_addr(0x0001_0000) == 0b100000
-    #assert await set_addr(0x8000_0000) == 0b000010
-    #assert await set_addr(0x9000_0000) == 0b000100
-    #assert await set_addr(0xA000_0000) == 0b001000
-    #assert await set_addr(0xB000_0000) == 0b010000
-
     await tb.clkcycle(100)
+
+
+@cocotb.test(timeout_time=10, timeout_unit="ms", skip=True)
+async def test_dummy(dut):
+
+    tb = TB(dut)
+    await tb.cycle_reset()
+    dut.mem_data_wr_i.value = 0
+    dut.mem_wr_i.value = 0
+    dut.mem_addr_i.value = 0
+    dut.mem_rd_i.value = 0
+    await tb.clkcycle(10)
+
+
+    tb.read_local(0x0000)
+    await tb.clkcycle(10)
+
+    tb.write_local_word(0x0000,0xDEADBEEF)
+    await tb.clkcycle(10)
+    print(tb.read_local_word(0x0000))
+    print(tb.read_local_word(0x0001))
+    print(tb.read_local_word(0x0002))
+    print(tb.read_local_word(0x0003))

@@ -1,40 +1,38 @@
 
 module mem2axil_glue #(
-    parameter int ADDR_WIDTH      = 32,
-    parameter int AXIL_DATA_WIDTH = 32,
-    parameter int AXIL_STRB_WIDTH = 4
+    parameter int ADDR_WIDTH = 32
 ) (
-    input  logic                       clk_i,
-    input  logic                       rst_i,
+    input  logic                  clk_i,
+    input  logic                  rst_i,
     //
-    input  logic [               31:0] mem_addr_i,
-    input  logic [               31:0] mem_data_wr_i,
-    input  logic                       mem_rd_i,
-    input  logic [                3:0] mem_wr_i,
-    output logic [               31:0] mem_data_rd_o,
-    output logic                       mem_accept_o,
-    output logic                       mem_error_o,
-    output logic                       mem_ack_o,
+    input  logic [          31:0] mem_addr_i,
+    input  logic [          31:0] mem_data_wr_i,
+    input  logic                  mem_rd_i,
+    input  logic [           3:0] mem_wr_i,
+    output logic [          31:0] mem_data_rd_o,
+    output logic                  mem_accept_o,
+    output logic                  mem_error_o,
+    output logic                  mem_ack_o,
     //
-    output logic [     ADDR_WIDTH-1:0] araddr,
-    output logic [                2:0] arprot,
-    input  logic                       arready,
-    output logic                       arvalid,
-    output logic [     ADDR_WIDTH-1:0] awaddr,
-    output logic [                2:0] awprot,
-    input  logic                       awready,
-    output logic                       awvalid,
-    output logic                       bready,
-    input  logic [                1:0] bresp,
-    input  logic                       bvalid,
-    input  logic [AXIL_DATA_WIDTH-1:0] rdata,
-    output logic                       rready,
-    input  logic [                1:0] rresp,
-    input  logic                       rvalid,
-    output logic [AXIL_DATA_WIDTH-1:0] wdata,
-    input  logic                       wready,
-    output logic [AXIL_STRB_WIDTH-1:0] wstrb,
-    output logic                       wvalid
+    output logic [ADDR_WIDTH-1:0] araddr,
+    output logic [           2:0] arprot,
+    input  logic                  arready,
+    output logic                  arvalid,
+    output logic [ADDR_WIDTH-1:0] awaddr,
+    output logic [           2:0] awprot,
+    input  logic                  awready,
+    output logic                  awvalid,
+    output logic                  bready,
+    input  logic [           1:0] bresp,
+    input  logic                  bvalid,
+    input  logic [          31:0] rdata,
+    output logic                  rready,
+    input  logic [           1:0] rresp,
+    input  logic                  rvalid,
+    output logic [          31:0] wdata,
+    input  logic                  wready,
+    output logic [           3:0] wstrb,
+    output logic                  wvalid
 );
 
     localparam int LGREQ = 1;
@@ -162,18 +160,17 @@ module mem2axil_glue #(
 
     // ------------------------------------------------------------------------
 
-    assign araddr  = arvalid ? mem_req_data_out.addr : 0;
-    assign arvalid = ~mem_req_empty && mem_req_data_out.rd;
-    assign rready  = mem_rsp_data_out.rd;
+    assign araddr        = arvalid ? mem_req_data_out.addr : 0;
+    assign arvalid       = ~mem_req_empty && mem_req_data_out.rd;
+    assign rready        = mem_rsp_data_out.rd;
 
-    assign awaddr  = awvalid ? mem_req_data_out.addr : 0;
-    assign awvalid = ~mem_req_empty && mem_req_data_out.wr;
+    assign awaddr        = awvalid ? mem_req_data_out.addr : 0;
+    assign awvalid       = ~mem_req_empty && mem_req_data_out.wr;
 
-    assign wvalid  = ~wdata_empty && |wdata_data_out.wr;
-    //assign wlast   = awvalid;
-    assign wdata   = wvalid ? wdata_data_out.data_wr : 0;
-    assign wstrb   = wvalid ? wdata_data_out.wr : 0;
-    assign bready  = mem_rsp_data_out.wr;
+    assign wvalid        = ~wdata_empty && |wdata_data_out.wr;
+    assign wdata         = wvalid ? wdata_data_out.data_wr : 0;
+    assign wstrb         = wvalid ? wdata_data_out.wr : 0;
+    assign bready        = mem_rsp_data_out.wr;
 
     assign mem_data_rd_o = (r_ack && mem_rsp_data_out.rd) ? rdata : 0;
     assign mem_accept_o  = ~mem_req_full;
@@ -181,23 +178,6 @@ module mem2axil_glue #(
     assign mem_error_o   = mem_rsp_pop && (rresp[1] || bresp[1]);
 
     // constants
-    assign arprot    = 0;
-    assign awprot    = 0;
-    //assign axi_arid_o    = 0;
-    //assign axi_arlen_o   = 0;
-    //assign axi_arsize_o  = 2;
-    //assign axi_arburst_o = 0;
-    //assign axi_arlock_o  = 0;
-    //assign axi_arcache_o = 0;
-    //assign axi_arqos_o   = 0;
-    //assign axi_awid_o    = 0;
-    //assign axi_awlen_o   = 0;
-    //assign axi_awsize_o  = 2;
-    //assign axi_awburst_o = 0;
-    //assign axi_awlock_o  = 0;
-    //assign axi_awcache_o = 0;
-    //assign axi_awqos_o   = 0;
-
-
-
+    assign arprot        = 0;
+    assign awprot        = 0;
 endmodule : mem2axil_glue
