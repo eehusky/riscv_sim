@@ -167,9 +167,9 @@ class TB:
         await self.clkcycle(10)
         #self.axi_logger.setLevel(logging.INFO)
 
-        logging.getLogger("cocotb.tb_dport.m_axi_cached").setLevel(logging.DEBUG)
-        logging.getLogger("cocotb.tb_dport.m_axi_uncached").setLevel(logging.DEBUG)
-        logging.getLogger("cocotb.tb_dport.m_axil").setLevel(logging.DEBUG)
+        logging.getLogger("cocotb.tb_dport.m_axi_cached").setLevel(logging.INFO)
+        logging.getLogger("cocotb.tb_dport.m_axi_uncached").setLevel(logging.INFO)
+        logging.getLogger("cocotb.tb_dport.m_axil").setLevel(logging.INFO)
 
     async def read_csr(self, addr):
         self.dut.iob_valid_i.value = 1
@@ -351,10 +351,11 @@ async def test_decode(dut):
 
     for r in ranges:
         if r.low >=4:
-            await check_addr(r.low+4,r,False)
+            await check_addr(r.low-4,r,True)
         await check_addr(r.low,r,False)
-        await check_addr(r.high,r,False)
-        await check_addr(r.high+4,r,True)
+        await check_addr(r.high+1-4,r,False)
+        await check_addr(r.high+1+4,r,True)
+        await tb.clkcycle(10)
 
     #for r in ranges:
     #    if r.low >0:
