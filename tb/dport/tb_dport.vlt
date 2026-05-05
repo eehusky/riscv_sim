@@ -1,0 +1,5 @@
+`verilator_config
+
+public_flat_rw -module "tb_dport" -var "*"
+public_flat_rw -module "tb_dport.i_mem_dport_axi" -var "*"
+public_flat_rw -module "tb_dport.i_mem_dport_axi.i_mem_dport_mux" -var "*"

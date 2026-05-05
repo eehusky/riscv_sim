@@ -1,0 +1,408 @@
+module mem_dport_axi #(
+    parameter int AXI_ADDR_W      = 32,
+    parameter int AXI_DATA_W      = 32,
+    parameter int AXI_ID_W        = 4,
+    parameter int AXI_LEN_W       = 8,
+    parameter int ADDR_WIDTH      = 32,
+    parameter int AXIL_DATA_WIDTH = 32,
+    parameter int AXIL_STRB_WIDTH = 4
+) (
+    input  logic                       rst_i,
+    input  logic                       clk_i,
+    //
+    output logic                       mem_accept_o,
+    output logic                       mem_ack_o,
+    input  logic [               31:0] mem_addr_i,
+    output logic [               31:0] mem_data_rd_o,
+    input  logic [               31:0] mem_data_wr_i,
+    output logic                       mem_error_o,
+    input  logic                       mem_rd_i,
+    input  logic [                3:0] mem_wr_i,
+    //
+    input  logic                       periph_accept_i,
+    input  logic                       periph_ack_i,
+    input  logic [               31:0] periph_data_rd_i,
+    output logic [               31:0] periph_addr_o,
+    output logic [               31:0] periph_data_wr_o,
+    input  logic                       periph_error_i,
+    output logic                       periph_rd_o,
+    output logic [                3:0] periph_wr_o,
+    //
+    input  logic [     AXI_ADDR_W-1:0] s_axi_dtcm_araddr,
+    input  logic [                1:0] s_axi_dtcm_arburst,
+    input  logic [                3:0] s_axi_dtcm_arcache,
+    input  logic [       AXI_ID_W-1:0] s_axi_dtcm_arid,
+    input  logic [      AXI_LEN_W-1:0] s_axi_dtcm_arlen,
+    input  logic                       s_axi_dtcm_arlock,
+    input  logic [                2:0] s_axi_dtcm_arprot,
+    output logic                       s_axi_dtcm_arready,
+    input  logic [                2:0] s_axi_dtcm_arsize,
+    input  logic                       s_axi_dtcm_arvalid,
+    input  logic [     AXI_ADDR_W-1:0] s_axi_dtcm_awaddr,
+    input  logic [                1:0] s_axi_dtcm_awburst,
+    input  logic [                3:0] s_axi_dtcm_awcache,
+    input  logic [       AXI_ID_W-1:0] s_axi_dtcm_awid,
+    input  logic [      AXI_LEN_W-1:0] s_axi_dtcm_awlen,
+    input  logic                       s_axi_dtcm_awlock,
+    input  logic [                2:0] s_axi_dtcm_awprot,
+    output logic                       s_axi_dtcm_awready,
+    input  logic [                2:0] s_axi_dtcm_awsize,
+    input  logic                       s_axi_dtcm_awvalid,
+    output logic [       AXI_ID_W-1:0] s_axi_dtcm_bid,
+    input  logic                       s_axi_dtcm_bready,
+    output logic [                1:0] s_axi_dtcm_bresp,
+    output logic                       s_axi_dtcm_bvalid,
+    output logic [     AXI_DATA_W-1:0] s_axi_dtcm_rdata,
+    output logic [       AXI_ID_W-1:0] s_axi_dtcm_rid,
+    output logic                       s_axi_dtcm_rlast,
+    input  logic                       s_axi_dtcm_rready,
+    output logic [                1:0] s_axi_dtcm_rresp,
+    output logic                       s_axi_dtcm_rvalid,
+    input  logic [     AXI_DATA_W-1:0] s_axi_dtcm_wdata,
+    input  logic                       s_axi_dtcm_wlast,
+    output logic                       s_axi_dtcm_wready,
+    input  logic [   AXI_DATA_W/8-1:0] s_axi_dtcm_wstrb,
+    input  logic                       s_axi_dtcm_wvalid,
+    //
+    output logic [     AXI_ADDR_W-1:0] m_axi_cached_araddr,
+    output logic [              2-1:0] m_axi_cached_arburst,
+    output logic [              4-1:0] m_axi_cached_arcache,
+    output logic [       AXI_ID_W-1:0] m_axi_cached_arid,
+    output logic [      AXI_LEN_W-1:0] m_axi_cached_arlen,
+    output logic                       m_axi_cached_arlock,
+    output logic [              4-1:0] m_axi_cached_arqos,
+    input  logic                       m_axi_cached_arready,
+    output logic [              3-1:0] m_axi_cached_arsize,
+    output logic                       m_axi_cached_arvalid,
+    output logic [     AXI_ADDR_W-1:0] m_axi_cached_awaddr,
+    output logic [              2-1:0] m_axi_cached_awburst,
+    output logic [              4-1:0] m_axi_cached_awcache,
+    output logic [       AXI_ID_W-1:0] m_axi_cached_awid,
+    output logic [      AXI_LEN_W-1:0] m_axi_cached_awlen,
+    output logic                       m_axi_cached_awlock,
+    output logic [              4-1:0] m_axi_cached_awqos,
+    input  logic                       m_axi_cached_awready,
+    output logic [              3-1:0] m_axi_cached_awsize,
+    output logic                       m_axi_cached_awvalid,
+    input  logic [       AXI_ID_W-1:0] m_axi_cached_bid,
+    output logic                       m_axi_cached_bready,
+    input  logic [              2-1:0] m_axi_cached_bresp,
+    input  logic                       m_axi_cached_bvalid,
+    input  logic [     AXI_DATA_W-1:0] m_axi_cached_rdata,
+    input  logic [       AXI_ID_W-1:0] m_axi_cached_rid,
+    input  logic                       m_axi_cached_rlast,
+    output logic                       m_axi_cached_rready,
+    input  logic [              2-1:0] m_axi_cached_rresp,
+    input  logic                       m_axi_cached_rvalid,
+    output logic [     AXI_DATA_W-1:0] m_axi_cached_wdata,
+    output logic                       m_axi_cached_wlast,
+    input  logic                       m_axi_cached_wready,
+    output logic [   AXI_DATA_W/8-1:0] m_axi_cached_wstrb,
+    output logic                       m_axi_cached_wvalid,
+    //
+    output logic [     AXI_ADDR_W-1:0] m_axi_uncached_araddr,
+    output logic [              2-1:0] m_axi_uncached_arburst,
+    output logic [              4-1:0] m_axi_uncached_arcache,
+    output logic [       AXI_ID_W-1:0] m_axi_uncached_arid,
+    output logic [      AXI_LEN_W-1:0] m_axi_uncached_arlen,
+    output logic                       m_axi_uncached_arlock,
+    output logic [              4-1:0] m_axi_uncached_arqos,
+    input  logic                       m_axi_uncached_arready,
+    output logic [              3-1:0] m_axi_uncached_arsize,
+    output logic                       m_axi_uncached_arvalid,
+    output logic [     AXI_ADDR_W-1:0] m_axi_uncached_awaddr,
+    output logic [              2-1:0] m_axi_uncached_awburst,
+    output logic [              4-1:0] m_axi_uncached_awcache,
+    output logic [       AXI_ID_W-1:0] m_axi_uncached_awid,
+    output logic [      AXI_LEN_W-1:0] m_axi_uncached_awlen,
+    output logic                       m_axi_uncached_awlock,
+    output logic [              4-1:0] m_axi_uncached_awqos,
+    input  logic                       m_axi_uncached_awready,
+    output logic [              3-1:0] m_axi_uncached_awsize,
+    output logic                       m_axi_uncached_awvalid,
+    input  logic [       AXI_ID_W-1:0] m_axi_uncached_bid,
+    output logic                       m_axi_uncached_bready,
+    input  logic [              2-1:0] m_axi_uncached_bresp,
+    input  logic                       m_axi_uncached_bvalid,
+    input  logic [     AXI_DATA_W-1:0] m_axi_uncached_rdata,
+    input  logic [       AXI_ID_W-1:0] m_axi_uncached_rid,
+    input  logic                       m_axi_uncached_rlast,
+    output logic                       m_axi_uncached_rready,
+    input  logic [              2-1:0] m_axi_uncached_rresp,
+    input  logic                       m_axi_uncached_rvalid,
+    output logic [     AXI_DATA_W-1:0] m_axi_uncached_wdata,
+    output logic                       m_axi_uncached_wlast,
+    input  logic                       m_axi_uncached_wready,
+    output logic [   AXI_DATA_W/8-1:0] m_axi_uncached_wstrb,
+    output logic                       m_axi_uncached_wvalid,
+    //
+    output logic [     ADDR_WIDTH-1:0] m_axil_araddr,
+    output logic [                2:0] m_axil_arprot,
+    input  logic                       m_axil_arready,
+    output logic                       m_axil_arvalid,
+    output logic [     ADDR_WIDTH-1:0] m_axil_awaddr,
+    output logic [                2:0] m_axil_awprot,
+    input  logic                       m_axil_awready,
+    output logic                       m_axil_awvalid,
+    output logic                       m_axil_bready,
+    input  logic [                1:0] m_axil_bresp,
+    input  logic                       m_axil_bvalid,
+    input  logic [AXIL_DATA_WIDTH-1:0] m_axil_rdata,
+    output logic                       m_axil_rready,
+    input  logic [                1:0] m_axil_rresp,
+    input  logic                       m_axil_rvalid,
+    output logic [AXIL_DATA_WIDTH-1:0] m_axil_wdata,
+    input  logic                       m_axil_wready,
+    output logic [AXIL_STRB_WIDTH-1:0] m_axil_wstrb,
+    output logic                       m_axil_wvalid
+);
+
+
+    logic        periph_accept;
+    logic        periph_ack;
+    logic [31:0] periph_addr;
+    logic [31:0] periph_data_rd;
+    logic [31:0] periph_data_wr;
+    logic        periph_error;
+    logic        periph_rd;
+    logic [ 3:0] periph_wr;
+    logic        dtcm_accept;
+    logic        dtcm_ack;
+    logic [31:0] dtcm_addr;
+    logic [31:0] dtcm_data_rd;
+    logic [31:0] dtcm_data_wr;
+    logic        dtcm_error;
+    logic        dtcm_rd;
+    logic [ 3:0] dtcm_wr;
+    logic        cached_accept;
+    logic        cached_ack;
+    logic [31:0] cached_addr;
+    logic [31:0] cached_data_rd;
+    logic [31:0] cached_data_wr;
+    logic        cached_error;
+    logic        cached_rd;
+    logic [ 3:0] cached_wr;
+    logic        uncached_accept;
+    logic        uncached_ack;
+    logic [31:0] uncached_addr;
+    logic [31:0] uncached_data_rd;
+    logic [31:0] uncached_data_wr;
+    logic        uncached_error;
+    logic        uncached_rd;
+    logic [ 3:0] uncached_wr;
+    logic        axil_accept;
+    logic        axil_ack;
+    logic [31:0] axil_addr;
+    logic [31:0] axil_data_rd;
+    logic [31:0] axil_data_wr;
+    logic        axil_error;
+    logic        axil_rd;
+    logic [ 3:0] axil_wr;
+
+
+    mem_dport_mux i_mem_dport_mux (
+        .i_reset           (rst_i),
+        .i_clk             (clk_i),
+        .mem_accept_o      (mem_accept_o),
+        .mem_ack_o         (mem_ack_o),
+        .mem_addr_i        (mem_addr_i),
+        .mem_data_rd_o     (mem_data_rd_o),
+        .mem_data_wr_i     (mem_data_wr_i),
+        .mem_error_o       (mem_error_o),
+        .mem_rd_i          (mem_rd_i),
+        .mem_wr_i          (mem_wr_i),
+        .periph_accept_i   (periph_accept),
+        .periph_ack_i      (periph_ack),
+        .periph_addr_o     (periph_addr),
+        .periph_data_rd_i  (periph_data_rd),
+        .periph_data_wr_o  (periph_data_wr),
+        .periph_error_i    (periph_error),
+        .periph_rd_o       (periph_rd),
+        .periph_wr_o       (periph_wr),
+        .dtcm_accept_i     (dtcm_accept),
+        .dtcm_ack_i        (dtcm_ack),
+        .dtcm_addr_o       (dtcm_addr),
+        .dtcm_data_rd_i    (dtcm_data_rd),
+        .dtcm_data_wr_o    (dtcm_data_wr),
+        .dtcm_error_i      (dtcm_error),
+        .dtcm_rd_o         (dtcm_rd),
+        .dtcm_wr_o         (dtcm_wr),
+        .cached_accept_i   (cached_accept),
+        .cached_ack_i      (cached_ack),
+        .cached_addr_o     (cached_addr),
+        .cached_data_rd_i  (cached_data_rd),
+        .cached_data_wr_o  (cached_data_wr),
+        .cached_error_i    (cached_error),
+        .cached_rd_o       (cached_rd),
+        .cached_wr_o       (cached_wr),
+        .uncached_accept_i (uncached_accept),
+        .uncached_ack_i    (uncached_ack),
+        .uncached_addr_o   (uncached_addr),
+        .uncached_data_rd_i(uncached_data_rd),
+        .uncached_data_wr_o(uncached_data_wr),
+        .uncached_error_i  (uncached_error),
+        .uncached_rd_o     (uncached_rd),
+        .uncached_wr_o     (uncached_wr),
+        .axil_accept_i     (axil_accept),
+        .axil_ack_i        (axil_ack),
+        .axil_addr_o       (axil_addr),
+        .axil_data_rd_i    (axil_data_rd),
+        .axil_data_wr_o    (axil_data_wr),
+        .axil_error_i      (axil_error),
+        .axil_rd_o         (axil_rd),
+        .axil_wr_o         (axil_wr)
+    );
+
+    mem_dummy i_mem_dummy (
+        .clk_i(clk_i),
+        .rst_i(rst_i),
+        .mem_accept_o(periph_accept),
+        .mem_ack_o(periph_ack),
+        .mem_addr_i(periph_addr),
+        .mem_data_rd_o(periph_data_rd),
+        .mem_data_wr_i(periph_data_wr),
+        .mem_error_o(periph_error),
+        .mem_rd_i(periph_rd),
+        .mem_wr_i(periph_wr)
+    );
+
+    mem2axi_glue #(
+        .AXI_ID_W  (AXI_ID_W),
+        .AXI_LEN_W (AXI_LEN_W),
+        .AXI_ADDR_W(AXI_ADDR_W),
+        .AXI_DATA_W(AXI_DATA_W)
+    ) i_mem2axi_glue_cached (
+        .clk_i        (clk_i),
+        .rst_i        (rst_i),
+        .mem_addr_i   (cached_addr),
+        .mem_data_wr_i(cached_data_wr),
+        .mem_rd_i     (cached_rd),
+        .mem_wr_i     (cached_wr),
+        .mem_data_rd_o(cached_data_rd),
+        .mem_accept_o (cached_accept),
+        .mem_ack_o    (cached_ack),
+        .axi_arready_i(m_axi_cached_arready),
+        .axi_arvalid_o(m_axi_cached_arvalid),
+        .axi_araddr_o (m_axi_cached_araddr),
+        .axi_arid_o   (m_axi_cached_arid),
+        .axi_arlen_o  (m_axi_cached_arlen),
+        .axi_arsize_o (m_axi_cached_arsize),
+        .axi_arburst_o(m_axi_cached_arburst),
+        .axi_arlock_o (m_axi_cached_arlock),
+        .axi_arcache_o(m_axi_cached_arcache),
+        .axi_arqos_o  (m_axi_cached_arqos),
+        .axi_rready_o (m_axi_cached_rready),
+        .axi_rvalid_i (m_axi_cached_rvalid),
+        .axi_rdata_i  (m_axi_cached_rdata),
+        .axi_rresp_i  (m_axi_cached_rresp),
+        .axi_rid_i    (m_axi_cached_rid),
+        .axi_rlast_i  (m_axi_cached_rlast),
+        .axi_awready_i(m_axi_cached_awready),
+        .axi_awvalid_o(m_axi_cached_awvalid),
+        .axi_awaddr_o (m_axi_cached_awaddr),
+        .axi_awid_o   (m_axi_cached_awid),
+        .axi_awlen_o  (m_axi_cached_awlen),
+        .axi_awsize_o (m_axi_cached_awsize),
+        .axi_awburst_o(m_axi_cached_awburst),
+        .axi_awlock_o (m_axi_cached_awlock),
+        .axi_awcache_o(m_axi_cached_awcache),
+        .axi_awqos_o  (m_axi_cached_awqos),
+        .axi_wready_i (m_axi_cached_wready),
+        .axi_wdata_o  (m_axi_cached_wdata),
+        .axi_wstrb_o  (m_axi_cached_wstrb),
+        .axi_wvalid_o (m_axi_cached_wvalid),
+        .axi_wlast_o  (m_axi_cached_wlast),
+        .axi_bready_o (m_axi_cached_bready),
+        .axi_bresp_i  (m_axi_cached_bresp),
+        .axi_bvalid_i (m_axi_cached_bvalid),
+        .axi_bid_i    (m_axi_cached_bid)
+    );
+
+
+    mem2axi_glue #(
+        .AXI_ID_W  (AXI_ID_W),
+        .AXI_LEN_W (AXI_LEN_W),
+        .AXI_ADDR_W(AXI_ADDR_W),
+        .AXI_DATA_W(AXI_DATA_W)
+    ) i_mem2axi_glue_uncached (
+        .clk_i        (clk_i),
+        .rst_i        (rst_i),
+        .mem_addr_i   (uncached_addr),
+        .mem_data_wr_i(uncached_data_wr),
+        .mem_rd_i     (uncached_rd),
+        .mem_wr_i     (uncached_wr),
+        .mem_data_rd_o(uncached_data_rd),
+        .mem_accept_o (uncached_accept),
+        .mem_ack_o    (uncached_ack),
+        .axi_arready_i(m_axi_uncached_arready),
+        .axi_arvalid_o(m_axi_uncached_arvalid),
+        .axi_araddr_o (m_axi_uncached_araddr),
+        .axi_arid_o   (m_axi_uncached_arid),
+        .axi_arlen_o  (m_axi_uncached_arlen),
+        .axi_arsize_o (m_axi_uncached_arsize),
+        .axi_arburst_o(m_axi_uncached_arburst),
+        .axi_arlock_o (m_axi_uncached_arlock),
+        .axi_arcache_o(m_axi_uncached_arcache),
+        .axi_arqos_o  (m_axi_uncached_arqos),
+        .axi_rready_o (m_axi_uncached_rready),
+        .axi_rvalid_i (m_axi_uncached_rvalid),
+        .axi_rdata_i  (m_axi_uncached_rdata),
+        .axi_rresp_i  (m_axi_uncached_rresp),
+        .axi_rid_i    (m_axi_uncached_rid),
+        .axi_rlast_i  (m_axi_uncached_rlast),
+        .axi_awready_i(m_axi_uncached_awready),
+        .axi_awvalid_o(m_axi_uncached_awvalid),
+        .axi_awaddr_o (m_axi_uncached_awaddr),
+        .axi_awid_o   (m_axi_uncached_awid),
+        .axi_awlen_o  (m_axi_uncached_awlen),
+        .axi_awsize_o (m_axi_uncached_awsize),
+        .axi_awburst_o(m_axi_uncached_awburst),
+        .axi_awlock_o (m_axi_uncached_awlock),
+        .axi_awcache_o(m_axi_uncached_awcache),
+        .axi_awqos_o  (m_axi_uncached_awqos),
+        .axi_wready_i (m_axi_uncached_wready),
+        .axi_wdata_o  (m_axi_uncached_wdata),
+        .axi_wstrb_o  (m_axi_uncached_wstrb),
+        .axi_wvalid_o (m_axi_uncached_wvalid),
+        .axi_wlast_o  (m_axi_uncached_wlast),
+        .axi_bready_o (m_axi_uncached_bready),
+        .axi_bresp_i  (m_axi_uncached_bresp),
+        .axi_bvalid_i (m_axi_uncached_bvalid),
+        .axi_bid_i    (m_axi_uncached_bid)
+    );
+
+
+    mem2axil_glue i_mem2axil_glue (
+        .clk_i        (clk_i),
+        .rst_i        (rst_i),
+        .mem_addr_i   (axil_addr),
+        .mem_data_wr_i(axil_data_wr),
+        .mem_rd_i     (axil_rd),
+        .mem_wr_i     (axil_wr),
+        .mem_data_rd_o(axil_data_rd),
+        .mem_accept_o (axil_accept),
+        .mem_ack_o    (axil_ack),
+        .araddr       (m_axil_araddr),
+        .arprot       (m_axil_arprot),
+        .arready      (m_axil_arready),
+        .arvalid      (m_axil_arvalid),
+        .awaddr       (m_axil_awaddr),
+        .awprot       (m_axil_awprot),
+        .awready      (m_axil_awready),
+        .awvalid      (m_axil_awvalid),
+        .bready       (m_axil_bready),
+        .bresp        (m_axil_bresp),
+        .bvalid       (m_axil_bvalid),
+        .rdata        (m_axil_rdata),
+        .rready       (m_axil_rready),
+        .rresp        (m_axil_rresp),
+        .rvalid       (m_axil_rvalid),
+        .wdata        (m_axil_wdata),
+        .wready       (m_axil_wready),
+        .wstrb        (m_axil_wstrb),
+        .wvalid       (m_axil_wvalid)
+    );
+
+
+
+endmodule : mem_dport_axi

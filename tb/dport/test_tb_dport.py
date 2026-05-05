@@ -42,6 +42,7 @@ def walk_dut(dut: HierarchyObject, tree: Tree | None = None) -> Tree:
         cocotb.handle.LogicArrayObject: "white",  # pyright: ignore
         cocotb.handle.LogicObject: "white",  # pyright: ignore
         cocotb.handle.ArrayObject: "white",  # pyright: ignore
+        cocotb.handle.PackedObject: "white",  # pyright: ignore
     }
     tname = f"{type(dut).__name__} | {dut._name} [{len(dut)}]"  # pyright: ignore
     text = Text(tname, colormap[type(dut)])
@@ -94,27 +95,35 @@ class TB:
         reg_loglevel = logging.FATAL
         axi_loglevel = logging.FATAL
 
-        self.reset = self.dut.i_reset
-        self.clk = self.dut.i_clk
+        self.reset = self.dut.rst_i
+        self.clk = self.dut.clk_i
         cocotb.start_soon(Clock(self.clk, CLK_PERIOD, unit="ns", impl="gpi").start())
 
-        logging.getLogger("cocotb.tb_iobcache.be_axi").setLevel(logging.WARNING)
-        logging.getLogger("cocotb.tb_iobcache.be_iob").setLevel(logging.WARNING)
+        logging.getLogger("cocotb.tb_dport.m_axi_cached").setLevel(logging.WARNING)
+        logging.getLogger("cocotb.tb_dport.m_axi_uncached").setLevel(logging.WARNING)
+        logging.getLogger("cocotb.tb_dport.m_axil").setLevel(logging.WARNING)
         #self.axi_logger.setLevel(logging.WARNING)
         logging.getLogger("cocotb.tb").setLevel(tb_loglevel)
 
         self.pool = Pool(parent=None, base=0, size=ADDR_RANGE)
         self.region = self.pool.alloc_region(ADDR_RANGE)
         self.ref = bytearray(0 for _ in range(ADDR_RANGE))
-        self.s_data_axi = AxiSlave(
-            bus=AxiBus.from_prefix(dut, "be_axi"),
+        self.axi_cached = AxiSlave(
+            bus=AxiBus.from_prefix(dut, "m_axi_cached"),
             clock=self.clk,
             reset=self.reset,
             reset_active_level=True,
             target = self.pool
         )
-        self.s_iob_axi = AxiSlave(
-            bus=AxiBus.from_prefix(dut, "be_iob"),
+        self.axi_uncached = AxiSlave(
+            bus=AxiBus.from_prefix(dut, "m_axi_uncached"),
+            clock=self.clk,
+            reset=self.reset,
+            reset_active_level=True,
+            target = self.pool
+        )
+        self.axil = AxiLiteSlave(
+            bus=AxiLiteBus.from_prefix(dut, "m_axil"),
             clock=self.clk,
             reset=self.reset,
             reset_active_level=True,
@@ -143,8 +152,9 @@ class TB:
         await self.clkcycle(10)
         #self.axi_logger.setLevel(logging.INFO)
 
-        logging.getLogger("cocotb.tb_iobcache.be_axi").setLevel(logging.WARNING)
-        logging.getLogger("cocotb.tb_iobcache.be_iob").setLevel(logging.WARNING)
+        logging.getLogger("cocotb.tb_dport.m_axi_cached").setLevel(logging.INFO)
+        logging.getLogger("cocotb.tb_dport.m_axi_uncached").setLevel(logging.INFO)
+        logging.getLogger("cocotb.tb_dport.m_axil").setLevel(logging.INFO)
 
     async def read_csr(self, addr):
         self.dut.iob_valid_i.value = 1
@@ -256,21 +266,20 @@ def testname(prefix):
 
 ## ----------------------------------------------------------------------------
 
-class IobCacheCsr(enum.IntEnum):
-    WTB_EMPTY  = 0
-    WTB_FULL   = 1
-    RW_HIT     = 4
-    RW_MISS    = 8
-    READ_HIT   = 12
-    READ_MISS  = 16
-    WRITE_HIT  = 20
-    WRITE_MISS = 24
-    RST_CNTRS  = 28
-    INVALIDATE = 29
-    VERSION    = 32
 
-@cocotb.test(timeout_time=10, timeout_unit="ms", skip=True)
-async def test_glue_rd(dut):
+class Range(NamedTuple):
+    name: str
+    decode: int
+    low: int
+    size: int
+
+    @property
+    def high(self):
+        return self.low+self.size-1
+
+@cocotb.test(timeout_time=10, timeout_unit="ms", skip=False)
+async def test_decode(dut):
+    #print(walk_dut(dut))
     tb = TB(dut)
     await tb.cycle_reset()
     dut.mem_data_wr_i.value = 0
@@ -279,205 +288,49 @@ async def test_glue_rd(dut):
     dut.mem_rd_i.value = 0
     await tb.clkcycle(10)
 
-    cnt = 0
-    addr = 0
-    dut.mem_rd_i.value = 1
-    while True:
-        dut.mem_addr_i.value = addr
-        await tb.clkcycle(1)
-        if dut.mem_accept_o.value:
-            addr+=32
-            cnt +=1
-        if cnt == 32:
-            break
-    dut.mem_rd_i.value = 0
-
-    await tb.clkcycle(40)
-
-    cnt = 0
-    addr = 0
-    dut.mem_rd_i.value = 1
-    while True:
-        dut.mem_addr_i.value = addr
-        await tb.clkcycle(1)
-        if dut.mem_accept_o.value:
-            addr+=4
-            cnt +=1
-        if cnt == 32*4:
-            break
-    dut.mem_rd_i.value = 0
-
-
-    await tb.clkcycle(20)
-
-
-@cocotb.test(timeout_time=10, timeout_unit="ms", skip=True)
-async def test_glue_wr(dut):
-    tb = TB(dut)
-    await tb.cycle_reset()
-    dut.mem_data_wr_i.value = 0
-    dut.mem_wr_i.value = 0
-    dut.mem_addr_i.value = 0
-    dut.mem_rd_i.value = 0
-    await tb.clkcycle(10)
-
-    cnt = 0
-    addr = 0
-    dut.mem_wr_i.value = 0xF
-    while True:
-        dut.mem_addr_i.value = addr
-        await tb.clkcycle(1)
-        if dut.mem_accept_o.value:
-            addr+=32
-            cnt +=1
-        if cnt == 32:
-            break
-    dut.mem_wr_i.value = 0
-
-    await tb.clkcycle(40)
-
-    cnt = 0
-    addr = 0
-    dut.mem_wr_i.value = 0xF
-    while True:
-        dut.mem_addr_i.value = addr
-        await tb.clkcycle(1)
-        if dut.mem_accept_o.value:
-            addr+=4
-            cnt +=1
-        if cnt == 32*4:
-            break
-    dut.mem_wr_i.value = 0
-
-
-    await tb.clkcycle(200)
-
-
-@cocotb.test(timeout_time=10, timeout_unit="ms", skip=True)
-async def test_iob_random(dut):
-
-    tb = TB(dut)
-    cocotb.start_soon(tb.proc_req())
-    cocotb.start_soon(tb.proc_rsp())
-    cocotb.start_soon(tb.proc_check())
-    await tb.cycle_reset()
-    dut.mem_data_wr_i.value = 0
-    dut.mem_wr_i.value = 0
-    dut.mem_addr_i.value = 0
-    dut.mem_rd_i.value = 0
-    await tb.clkcycle(10)
-
-    # fill in memory and ref block with random data
     for _ in range(0,ADDR_RANGE,4):
         v = random_int()
         tb.write_ref(_,v)
         tb.write_pool(_,v)
 
-    #for _ in range(1000):
-    #    tb.write(random_addr(),random_int())
-
-    #for _ in range(1000):
-    #    tb.read(random_addr())
-
-    for _ in range(ADDR_RANGE//8):
-        if random_int()%2 == 0:
-            tb.write(random_addr(),random_int())
-        else:
-            tb.read(random_addr())
-
-    # issue reads for entire memory range to do a final check
-    for _ in range(0,ADDR_RANGE,4):
-        tb.read(_)
 
 
-    for _ in range(0,ADDR_RANGE,4):
-        assert tb.read_ref(_) == tb.read_pool(_)
+    async def set_addr(addr):
+        dut.mem_addr_i.value = addr
+        dut.mem_rd_i.value = 1
+        await tb.clkcycle(1)
+        decode = dut.i_mem_dport_axi.i_mem_dport_mux.o_decode.value
+        dut.mem_rd_i.value = 0
+        await tb.clkcycle(1)
+        return decode
 
+    ranges = [
+        Range("local",    0b000001, 0x0000_0000, 64*1024),
+        Range("dtcm",     0b000010, 0x8002_0000, 128*1024),
+        Range("cached",   0b000100, 0x9000_0000, 256*1024*1024),
+        Range("uncached", 0b001000, 0xA000_0000, 256*1024*1024),
+        Range("axil",     0b010000, 0xB000_0000, 256*1024*1024),
+    ]
 
-    #tb.read(4)
-    #tb.read(8)
-    #tb.read(12)
-    #tb.write(32,0xDEADBEEF)
-    #tb.read(32)
+    #await set_addr(0xA0000000)
+    #await set_addr(0x80000000)
+    #await set_addr(0x10000000)
 
-    #rsp = await tb.rsp_queue.get()
-    #print(rsp)
-    #rsp = await tb.rsp_queue.get()
-    #print(rsp)
-    #rsp = await tb.rsp_queue.get()
-    #print(rsp)
-    #rsp = await tb.rsp_queue.get()
-    #print(rsp)
-
-    while not tb.rsp_queue.empty() or not tb.req_queue.empty() or not tb.pend_queue.empty():
+    for r in ranges:
+        if r.low >0:
+            assert await set_addr(r.low-1) != r.decode
+        assert await set_addr(r.low) == r.decode
+        assert await set_addr(r.high) == r.decode
+        assert await set_addr(r.high+1) != r.decode
         await tb.clkcycle(10)
 
 
-@cocotb.test(timeout_time=10, timeout_unit="ms", skip=False)
-async def test_axi(dut):
-
-    tb = TB(dut)
-    cocotb.start_soon(tb.proc_req())
-    cocotb.start_soon(tb.proc_rsp())
-    cocotb.start_soon(tb.proc_check())
-    await tb.cycle_reset()
-    dut.mem_data_wr_i.value = 0
-    dut.mem_wr_i.value = 0
-    dut.mem_addr_i.value = 0
-    dut.mem_rd_i.value = 0
-    await tb.clkcycle(10)
-
-    for _ in range(0,ADDR_RANGE,4):
-        v = random_int()
-        tb.write_ref(_,v)
-        tb.write_pool(_,v)
-
-    tb.read(random_addr())
-    tb.read(random_addr())
-    tb.read(random_addr())
-    tb.write(random_addr(),random_int())
-    tb.write(random_addr(),random_int())
-    tb.write(random_addr(),random_int())
-    #await tb.clkcycle(10)
-    await tb.clkcycle(100)
-
-
-
-
-
-@cocotb.test(timeout_time=10, timeout_unit="ms", skip=True)
-async def test_decode(dut):
-
-    tb = TB(dut)
-    await tb.cycle_reset()
-    dut.mem_data_wr_i.value = 0
-    dut.mem_wr_i.value = 0
-    dut.mem_addr_i.value = 0
-    dut.mem_rd_i.value = 0
-    await tb.clkcycle(10)
-
-    for _ in range(0,ADDR_RANGE,4):
-        v = random_int()
-        tb.write_ref(_,v)
-        tb.write_pool(_,v)
-
-
-    dut.mem_addr_i.value = 0xA0000000
-    dut.mem_rd_i.value = 1
-    await tb.clkcycle(1)
-    dut.mem_rd_i.value = 0
-    await tb.clkcycle(1)
-
-    dut.mem_addr_i.value = 0x80000000
-    dut.mem_rd_i.value = 1
-    await tb.clkcycle(1)
-    dut.mem_rd_i.value = 0
-    await tb.clkcycle(1)
-
-    dut.mem_addr_i.value = 0x10000000
-    dut.mem_rd_i.value = 1
-    await tb.clkcycle(1)
-    dut.mem_rd_i.value = 0
-    await tb.clkcycle(1)
+    #assert await set_addr(0x0000_0000) == 0b000001
+    #assert await set_addr(0x0000_FFFF) == 0b000001
+    #assert await set_addr(0x0001_0000) == 0b100000
+    #assert await set_addr(0x8000_0000) == 0b000010
+    #assert await set_addr(0x9000_0000) == 0b000100
+    #assert await set_addr(0xA000_0000) == 0b001000
+    #assert await set_addr(0xB000_0000) == 0b010000
 
     await tb.clkcycle(100)

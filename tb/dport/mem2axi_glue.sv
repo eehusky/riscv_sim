@@ -15,7 +15,6 @@ module mem2axi_glue #(
     output logic [            31:0] mem_data_rd_o,
     output logic                    mem_accept_o,
     output logic                    mem_ack_o,
-    //
     input  logic                    axi_arready_i,
     output logic                    axi_arvalid_o,
     output logic [  AXI_ADDR_W-1:0] axi_araddr_o,
@@ -26,14 +25,12 @@ module mem2axi_glue #(
     output logic                    axi_arlock_o,
     output logic [           4-1:0] axi_arcache_o,
     output logic [           4-1:0] axi_arqos_o,
-    //
     output logic                    axi_rready_o,
     input  logic                    axi_rvalid_i,
     input  logic [  AXI_DATA_W-1:0] axi_rdata_i,
     input  logic [           2-1:0] axi_rresp_i,
     input  logic [    AXI_ID_W-1:0] axi_rid_i,
     input  logic                    axi_rlast_i,
-    //
     input  logic                    axi_awready_i,
     output logic                    axi_awvalid_o,
     output logic [  AXI_ADDR_W-1:0] axi_awaddr_o,
@@ -44,13 +41,11 @@ module mem2axi_glue #(
     output logic                    axi_awlock_o,
     output logic [           4-1:0] axi_awcache_o,
     output logic [           4-1:0] axi_awqos_o,
-    //
     input  logic                    axi_wready_i,
     output logic [  AXI_DATA_W-1:0] axi_wdata_o,
     output logic [AXI_DATA_W/8-1:0] axi_wstrb_o,
     output logic                    axi_wvalid_o,
     output logic                    axi_wlast_o,
-    //
     output logic                    axi_bready_o,
     input  logic [           2-1:0] axi_bresp_i,
     input  logic                    axi_bvalid_i,

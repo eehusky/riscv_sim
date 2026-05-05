@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(tb_soc_top)
+project(tb_dport)
 
 set(REPO_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 set(VERILOG_AXI     $ENV{HOME}/github/alexforencich/verilog-axi/)
@@ -41,33 +41,33 @@ verilate(Vtop
     OPT_FAST
         ${CMAKE_CXX_FLAGS}
     TOP_MODULE
-        tb_iobcache
+        tb_dport
     SOURCES
-        ${IOBCACHE}/hardware/src/iob_asym_converter.v
-        ${IOBCACHE}/hardware/src/iob_cache_axi_csrs.v
-        ${IOBCACHE}/hardware/src/iob_cache_axi.v
-        ${IOBCACHE}/hardware/src/iob_cache_back_end_axi.v
-        ${IOBCACHE}/hardware/src/iob_cache_control.v
-        ${IOBCACHE}/hardware/src/iob_cache_front_end.v
-        ${IOBCACHE}/hardware/src/iob_cache_gen_sp_ram.v
-        ${IOBCACHE}/hardware/src/iob_cache_memory.v
-        ${IOBCACHE}/hardware/src/iob_cache_onehot_to_bin.v
-        ${IOBCACHE}/hardware/src/iob_cache_read_channel_axi.v
-        ${IOBCACHE}/hardware/src/iob_cache_replacement_policy.v
-        ${IOBCACHE}/hardware/src/iob_cache_write_channel_axi.v
-        ${IOBCACHE}/hardware/src/iob_counter.v
-        ${IOBCACHE}/hardware/src/iob_ctls.v
-        ${IOBCACHE}/hardware/src/iob_fifo_sync.v
-        ${IOBCACHE}/hardware/src/iob_prio_enc.v
-        ${IOBCACHE}/hardware/src/iob_ram_sp.v
-        ${IOBCACHE}/hardware/src/iob_ram_t2p.v
-        ${IOBCACHE}/hardware/src/iob_regarray_sp.v
-        ${IOBCACHE}/hardware/src/iob_reg_cae.v
-        ${IOBCACHE}/hardware/src/iob_reg_care.v
-        ${IOBCACHE}/hardware/src/iob_reg_car.v
-        ${IOBCACHE}/hardware/src/iob_reg_ca.v
-        ${IOBCACHE}/hardware/src/iob_reverse.v
-        ${IOBCACHE}/hardware/src/iob_universal_converter_iob_iob.v
+        #${IOBCACHE}/hardware/src/iob_asym_converter.v
+        #${IOBCACHE}/hardware/src/iob_cache_axi_csrs.v
+        #${IOBCACHE}/hardware/src/iob_cache_axi.v
+        #${IOBCACHE}/hardware/src/iob_cache_back_end_axi.v
+        #${IOBCACHE}/hardware/src/iob_cache_control.v
+        #${IOBCACHE}/hardware/src/iob_cache_front_end.v
+        #${IOBCACHE}/hardware/src/iob_cache_gen_sp_ram.v
+        #${IOBCACHE}/hardware/src/iob_cache_memory.v
+        #${IOBCACHE}/hardware/src/iob_cache_onehot_to_bin.v
+        #${IOBCACHE}/hardware/src/iob_cache_read_channel_axi.v
+        #${IOBCACHE}/hardware/src/iob_cache_replacement_policy.v
+        #${IOBCACHE}/hardware/src/iob_cache_write_channel_axi.v
+        #${IOBCACHE}/hardware/src/iob_counter.v
+        #${IOBCACHE}/hardware/src/iob_ctls.v
+        #${IOBCACHE}/hardware/src/iob_fifo_sync.v
+        #${IOBCACHE}/hardware/src/iob_prio_enc.v
+        #${IOBCACHE}/hardware/src/iob_ram_sp.v
+        #${IOBCACHE}/hardware/src/iob_ram_t2p.v
+        #${IOBCACHE}/hardware/src/iob_regarray_sp.v
+        #${IOBCACHE}/hardware/src/iob_reg_cae.v
+        #${IOBCACHE}/hardware/src/iob_reg_care.v
+        #${IOBCACHE}/hardware/src/iob_reg_car.v
+        #${IOBCACHE}/hardware/src/iob_reg_ca.v
+        #${IOBCACHE}/hardware/src/iob_reverse.v
+        #${IOBCACHE}/hardware/src/iob_universal_converter_iob_iob.v
         #
         ${VERILOG_AXI}/rtl/axi_dp_ram.v
         ${VERILOG_AXI}/rtl/axi_ram_wr_rd_if.v
@@ -75,11 +75,15 @@ verilate(Vtop
         ${VERILOG_AXI}/rtl/axi_ram_rd_if.v
         #
         ${REPO_DIR}/cores/ringbuffer/ringbuffer_sfifo.v
-        tb_iobcache.vlt
+        tb_dport.vlt
         mem2iob_glue.sv
         mem2axi_glue.sv
+        mem2axil_glue.sv
         addrdecode.sv
-        tb_iobcache.sv
+        mem_dport_mux.sv
+        mem_dport_axi.sv
+        mem_dummy.sv
+        tb_dport.sv
         #
         ${COCOTB_SHARE}/lib/verilator/verilator.cpp
     VERILATOR_ARGS
@@ -109,6 +113,6 @@ verilate(Vtop
 
         #--waiver-multiline
         #--waiver-output mywaiver.vlt
-        #--public-flat-rw
+        --public-flat-rw
         -LDFLAGS "-Wl,-rpath,${COCOTB_LIB_DIR} -L${COCOTB_LIB_DIR} -lcocotbvpi_verilator -lgpi "
 )
