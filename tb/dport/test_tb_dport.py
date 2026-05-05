@@ -340,9 +340,9 @@ async def test_decode(dut):
     ranges = [
         Range("local",    0b000001, 0x0000_0000, 64*1024),
         Range("dtcm",     0b000010, 0x8002_0000, 128*1024),
-        Range("cached",   0b000100, 0x9000_0000, 256*1024*1024),
-        Range("uncached", 0b001000, 0xA000_0000, 256*1024*1024),
-        Range("axil",     0b010000, 0xB000_0000, 256*1024*1024),
+        Range("cached",   0b000100, 0x9000_0000, 128*1024),
+        Range("uncached", 0b001000, 0xA000_0000, 128*1024),
+        Range("axil",     0b010000, 0xB000_0000, 128*1024),
     ]
 
     #await set_addr(0xA0000000)
