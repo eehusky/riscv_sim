@@ -83,6 +83,7 @@ verilate(Vtop
         mem_dport_mux.sv
         mem_dport_axi.sv
         mem_dummy.sv
+        dtcm.sv
         tb_dport.sv
         #
         ${COCOTB_SHARE}/lib/verilator/verilator.cpp
@@ -95,7 +96,7 @@ verilate(Vtop
         #--noassert
         #--decorations none
         #-Wno-context
-        -Wno-WIDTHTRUNC
+        #-Wno-WIDTHTRUNC
         #--runtime-debug
         --report-unoptflat
         #--Wall

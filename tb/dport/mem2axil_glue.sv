@@ -13,6 +13,7 @@ module mem2axil_glue #(
     input  logic [                3:0] mem_wr_i,
     output logic [               31:0] mem_data_rd_o,
     output logic                       mem_accept_o,
+    output logic                       mem_error_o,
     output logic                       mem_ack_o,
     //
     output logic [     ADDR_WIDTH-1:0] araddr,

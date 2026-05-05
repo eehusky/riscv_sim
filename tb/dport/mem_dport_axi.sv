@@ -156,8 +156,6 @@ module mem_dport_axi #(
     output logic [AXIL_STRB_WIDTH-1:0] m_axil_wstrb,
     output logic                       m_axil_wvalid
 );
-
-
     logic        periph_accept;
     logic        periph_ack;
     logic [31:0] periph_addr;
@@ -318,6 +316,67 @@ module mem_dport_axi #(
         .axi_bid_i    (m_axi_cached_bid)
     );
 
+    parameter DTCM_ADDR_W = 17;
+    dtcm #(
+        .DATA_WIDTH(32),
+        .ADDR_WIDTH(DTCM_ADDR_W),
+        .STRB_WIDTH(4),
+        .ID_WIDTH(4)
+    )i_dtcm(
+        .a_clk(clk_i),
+        .a_rst(rst_i),
+        //.b_clk(clk_i),
+        //.b_rst(rst_i),
+        .ram_a_cmd_id           (0),
+        .ram_a_cmd_addr         (dtcm_addr[DTCM_ADDR_W-1:0]),
+        .ram_a_cmd_wr_data      (dtcm_data_wr),
+        .ram_a_cmd_wr_strb      (dtcm_wr),
+        .ram_a_cmd_wr_en        (|dtcm_wr),
+        .ram_a_cmd_rd_en        (dtcm_rd),
+        .ram_a_cmd_last         (0),
+        .ram_a_cmd_ready        (dtcm_accept),
+        .ram_a_rd_resp_id_reg   (),
+        .ram_a_rd_resp_data_reg (dtcm_data_rd),
+        .ram_a_rd_resp_last_reg (),
+        .ram_a_rd_resp_valid_reg(dtcm_ack),
+        .ram_a_rd_resp_ready    (1),
+        .s_axi_b_awid           (s_axi_dtcm_awid),
+        .s_axi_b_awaddr         (s_axi_dtcm_awaddr[DTCM_ADDR_W-1:0]),
+        .s_axi_b_awlen          (s_axi_dtcm_awlen),
+        .s_axi_b_awsize         (s_axi_dtcm_awsize),
+        .s_axi_b_awburst        (s_axi_dtcm_awburst),
+        .s_axi_b_awlock         (s_axi_dtcm_awlock),
+        .s_axi_b_awcache        (s_axi_dtcm_awcache),
+        .s_axi_b_awprot         (s_axi_dtcm_awprot),
+        .s_axi_b_awvalid        (s_axi_dtcm_awvalid),
+        .s_axi_b_awready        (s_axi_dtcm_awready),
+        .s_axi_b_wdata          (s_axi_dtcm_wdata),
+        .s_axi_b_wstrb          (s_axi_dtcm_wstrb),
+        .s_axi_b_wlast          (s_axi_dtcm_wlast),
+        .s_axi_b_wvalid         (s_axi_dtcm_wvalid),
+        .s_axi_b_wready         (s_axi_dtcm_wready),
+        .s_axi_b_bid            (s_axi_dtcm_bid),
+        .s_axi_b_bresp          (s_axi_dtcm_bresp),
+        .s_axi_b_bvalid         (s_axi_dtcm_bvalid),
+        .s_axi_b_bready         (s_axi_dtcm_bready),
+        .s_axi_b_arid           (s_axi_dtcm_arid),
+        .s_axi_b_araddr         (s_axi_dtcm_araddr[DTCM_ADDR_W-1:0]),
+        .s_axi_b_arlen          (s_axi_dtcm_arlen),
+        .s_axi_b_arsize         (s_axi_dtcm_arsize),
+        .s_axi_b_arburst        (s_axi_dtcm_arburst),
+        .s_axi_b_arlock         (s_axi_dtcm_arlock),
+        .s_axi_b_arcache        (s_axi_dtcm_arcache),
+        .s_axi_b_arprot         (s_axi_dtcm_arprot),
+        .s_axi_b_arvalid        (s_axi_dtcm_arvalid),
+        .s_axi_b_arready        (s_axi_dtcm_arready),
+        .s_axi_b_rid            (s_axi_dtcm_rid),
+        .s_axi_b_rdata          (s_axi_dtcm_rdata),
+        .s_axi_b_rresp          (s_axi_dtcm_rresp),
+        .s_axi_b_rlast          (s_axi_dtcm_rlast),
+        .s_axi_b_rvalid         (s_axi_dtcm_rvalid),
+        .s_axi_b_rready         (s_axi_dtcm_rready)
+    );
+
 
     mem2axi_glue #(
         .AXI_ID_W  (AXI_ID_W),
@@ -371,7 +430,6 @@ module mem_dport_axi #(
         .axi_bid_i    (m_axi_uncached_bid)
     );
 
-
     mem2axil_glue i_mem2axil_glue (
         .clk_i        (clk_i),
         .rst_i        (rst_i),
@@ -381,6 +439,7 @@ module mem_dport_axi #(
         .mem_wr_i     (axil_wr),
         .mem_data_rd_o(axil_data_rd),
         .mem_accept_o (axil_accept),
+        .mem_error_o (axil_error),
         .mem_ack_o    (axil_ack),
         .araddr       (m_axil_araddr),
         .arprot       (m_axil_arprot),
@@ -402,7 +461,4 @@ module mem_dport_axi #(
         .wstrb        (m_axil_wstrb),
         .wvalid       (m_axil_wvalid)
     );
-
-
-
 endmodule : mem_dport_axi
