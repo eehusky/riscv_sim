@@ -84,7 +84,7 @@ module mem2axi_glue #(
     logic               mem_req_push;
     logic               mem_req_pop;
 
-    assign mem_req_push = (mem_rd_i || |mem_wr_i) && mem_accept_o;//~mem_req_full && ~wdata_full;
+    assign mem_req_push = (mem_rd_i || |mem_wr_i) && mem_accept_o;
     assign mem_req_pop  = ar_ack || aw_ack;
 
     ringbuffer_sfifo #(
@@ -119,8 +119,8 @@ module mem2axi_glue #(
     logic             wdata_push;
     logic             wdata_pop;
 
-    assign wdata_push = mem_req_push;
-    assign wdata_pop  = ar_ack || w_ack;
+    assign wdata_push = |mem_wr_i && mem_accept_o;
+    assign wdata_pop  = w_ack;
 
     ringbuffer_sfifo #(
         .BW               ($size(wdata_t)),
@@ -155,7 +155,7 @@ module mem2axi_glue #(
     logic               mem_rsp_pop;
 
     assign mem_rsp_push = mem_req_pop;
-    assign mem_rsp_pop  = ((r_ack && mem_rsp_data_out.rd) || (b_ack && mem_rsp_data_out.wr));// && ~mem_rsp_empty;
+    assign mem_rsp_pop  = r_ack || b_ack;
 
     ringbuffer_sfifo #(
         .BW               ($size(mem_rsp_t)),
@@ -192,7 +192,6 @@ module mem2axi_glue #(
 
     assign mem_data_rd_o = (r_ack && mem_rsp_data_out.rd) ? axi_rdata_i : 0;
     assign mem_accept_o  = ~mem_req_full && ~wdata_full && ~mem_rsp_full;
-    //assign mem_accept_o  = mem_req_empty && wdata_empty && mem_rsp_empty;
     assign mem_ack_o     = mem_rsp_pop;
     assign mem_error_o   = mem_rsp_pop && (axi_rresp_i[1] || axi_bresp_i[1]);
 

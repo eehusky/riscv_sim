@@ -81,6 +81,17 @@ class ReferenceMemoryRegion(MemoryRegion):
         super().__init__(size, **kwargs)
         self.ref = mmap.mmap(-1, size)
 
+    def random_addr(self):
+        return self.base+random.randint(0,self.size-4) & 0xFFFFFFFC
+
+    @property
+    def end_addr(self):
+        return self.base+self.size
+
+    @property
+    def last_addr(self):
+        return self.base+self.size-4
+
 class VPIRegion(MemoryInterface):
     def __init__(self, vpiobj, **kwargs):
         self._width_bits = len(vpiobj[0])
@@ -471,7 +482,7 @@ async def test_iob_random(dut):
 
 
 @cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
-#@cocotb.parametrize(region_def=REGIONS)
+@cocotb.parametrize(region_def=REGIONS)
 async def test_iob_region(dut,region_def=REGIONS[2]):
     tb = TB(dut)
     cocotb.start_soon(tb.proc_req())
@@ -506,11 +517,11 @@ async def test_iob_region(dut,region_def=REGIONS[2]):
     #for _ in range(10):
     #    tb.write(region.random_addr(),random_int())
     #    tb.read(region.random_addr())
-    #for _ in range(1000):
-    #    if random.choice([True,False]):
-    #        tb.write(region.random_addr(),random_int())
-    #    else:
-    #        tb.read(region.random_addr())
+    for _ in range(1000):
+        if random.choice([True,False]):
+            tb.write(region.random_addr(),random_int())
+        else:
+            tb.read(region.random_addr())
 
     print("wait random")
     for _ in range(1000):
