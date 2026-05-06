@@ -85,21 +85,9 @@ module mem_dport_mux #(
     addrdecode #(
         .NS            (5),
         .AW            (32),
-        .DW            (32 + 4 + 1),
-        .SLAVE_ADDR    ({
-            32'hB000_0000,
-            32'hA000_0000,
-            32'h9000_0000,
-            32'h8002_0000,
-            32'h0000_0000
-        }),
-        .SLAVE_MASK    ({
-            32'hFFFE_0000,
-            32'hFFFE_0000,
-            32'hFFFE_0000,
-            32'hFFFE_0000,
-            32'hFFFF_0000
-        }),
+        .DW            ($size(mem_data_t)),
+        .SLAVE_ADDR    ({32'hB000_0000, 32'hA000_0000, 32'h9000_0000, 32'h8002_0000, 32'h0000_0000}),
+        .SLAVE_MASK    ({32'hFFFE_0000, 32'hFFFE_0000, 32'hFFFE_0000, 32'hFFFE_0000, 32'hFFFF_0000}),
         .ACCESS_ALLOWED(-1),
         .OPT_REGISTERED(0),
         .OPT_LOWPOWER  (1)
@@ -141,10 +129,10 @@ module mem_dport_mux #(
         axil_data_wr_o     = 0;
         axil_rd_o          = 0;
         axil_wr_o          = 0;
-        dummy_addr = 0;
-        dummy_data_wr = 0;
-        dummy_rd = 0;
-        dummy_wr = 0;
+        dummy_addr         = 0;
+        dummy_data_wr      = 0;
+        dummy_rd           = 0;
+        dummy_wr           = 0;
         decode_stall       = 0;
         case (o_decode)
             6'b000001: begin
@@ -210,20 +198,20 @@ module mem_dport_mux #(
                 axil_data_wr_o     = 0;
                 axil_rd_o          = 0;
                 axil_wr_o          = 0;
-                dummy_addr = 0;
-                dummy_data_wr = 0;
-                dummy_rd = 0;
-                dummy_wr = 0;
+                dummy_addr         = 0;
+                dummy_data_wr      = 0;
+                dummy_rd           = 0;
+                dummy_wr           = 0;
                 decode_stall       = 0;
             end
         endcase
     end
 
     always_ff @(posedge i_clk) begin : proc_
-        dummy_accept <= 1;
-        dummy_error <= 1;
+        dummy_accept  <= 1;
+        dummy_error   <= 1;
         dummy_data_rd <= 0;
-        if(dummy_rd|| |dummy_wr)begin
+        if (dummy_rd || |dummy_wr) begin
             dummy_ack <= 1;
         end else begin
             dummy_ack <= 0;

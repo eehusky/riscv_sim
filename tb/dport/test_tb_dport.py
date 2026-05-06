@@ -145,14 +145,15 @@ class TB:
         logging.getLogger("cocotb.tb").setLevel(tb_loglevel)
         self.local_mem = self.dut.i_mem_dport_axi.i_mem_dummy.mem
         self.dtcm_mem = self.dut.i_mem_dport_axi.i_dtcm.mem
+        self.axil_mem = self.dut.i_axil_ram.mem
 
         self.addrspace = AddressSpace()
 
-        self.cached_region = ReferenceMemoryRegion(ADDR_RANGE)
-        self.uncached_region = ReferenceMemoryRegion(ADDR_RANGE)
-        self.axil_region = ReferenceMemoryRegion(ADDR_RANGE)
         self.local_region = ReferenceVPIRegion(ADDR_RANGE, self.local_mem)
         self.dtcm_region = ReferenceVPIRegion(ADDR_RANGE, self.dtcm_mem)
+        self.cached_region = ReferenceMemoryRegion(ADDR_RANGE)
+        self.uncached_region = ReferenceMemoryRegion(ADDR_RANGE)
+        self.axil_region = ReferenceVPIRegion(ADDR_RANGE,self.dtcm_mem)
         self.addrspace.register_region(self.local_region,0x0000_0000,1<<16)
         self.addrspace.register_region(self.dtcm_region,0x8002_0000,1<<17)
         self.addrspace.register_region(self.cached_region,0x9000_0000,ADDR_RANGE)
@@ -257,15 +258,12 @@ class TB:
 
     async  def write_pool(self,addr:int,data:int):
         await self.addrspace.write(addr,data.to_bytes(4,byteorder="little"))
-        ##self.cached_region.mem[addr:addr+4] = data.to_bytes(4,byteorder="little")
 
     async def read_pool(self,addr:int):
         return int.from_bytes(await self.addrspace.read(addr,4),byteorder="little")
-        #return int.from_bytes(self.cached_region.mem[addr:addr+4],byteorder="little")
 
     async def write_ref(self,addr:int,data:int):
         base, size, translate, region = self.addrspace.find_regions(addr)[0]
-
         assert isinstance(region, ReferenceVPIRegion|ReferenceMemoryRegion)
         region.ref[addr:addr+4] = data.to_bytes(4)
 
@@ -280,27 +278,6 @@ class TB:
     def write(self,addr:int,data:int):
         self.req_queue.put_nowait((Request(addr,data,0xF)))
 
-
-    #def _read_local(self,addr:int):
-    #    mem = self.dut.i_mem_dport_axi.i_mem_dummy.mem
-    #    word = mem[addr//4].value.to_unsigned()
-    #    value = word >> ((addr%4)*8) & 0xFF
-    #    return value
-    #def _write_local(self,addr:int, data:int):
-    #    mem = self.dut.i_mem_dport_axi.i_mem_dummy.mem
-    #    word = mem[addr//4].value.to_unsigned()
-    #    mask = 0xFF << ((addr%4)*8)
-    #    word &= ~mask
-    #    word |= (data& 0xFF) << ((addr%4)*8)
-    #    mem[addr//4].value = word
-    #def write_local_word(self,addr:int, data:int):
-    #    self.local_mem[addr//4].value = data
-    #def read_local_word(self,addr:int):
-    #    return self.local_mem[addr//4].value.to_unsigned()
-    #def write_dtcm_word(self,addr:int, data:int):
-    #    self.dtcm_mem[addr//4].value = data
-    #def read_dtcm_word(self,addr:int):
-    #    return self.dtcm_mem[addr//4].value.to_unsigned()
 
 ## ----------------------------------------------------------------------------
 ## ----------------------------------------------------------------------------

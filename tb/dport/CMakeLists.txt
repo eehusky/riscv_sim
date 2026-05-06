@@ -73,6 +73,7 @@ verilate(Vtop
         ${VERILOG_AXI}/rtl/axi_ram_wr_rd_if.v
         ${VERILOG_AXI}/rtl/axi_ram_wr_if.v
         ${VERILOG_AXI}/rtl/axi_ram_rd_if.v
+        ${VERILOG_AXI}/rtl/axil_ram.v
         #
         ${REPO_DIR}/cores/ringbuffer/ringbuffer_sfifo.v
         tb_dport.vlt
