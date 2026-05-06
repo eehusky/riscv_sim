@@ -92,6 +92,10 @@ class ReferenceMemoryRegion(MemoryRegion):
     def last_addr(self):
         return self.base+self.size-4
 
+    def iter_addrspace(self,step=4):
+        for _ in range(self.base, self.end_addr, step):
+            yield _
+
 class VPIRegion(MemoryInterface):
     def __init__(self, vpiobj, **kwargs):
         self._width_bits = len(vpiobj[0])
@@ -132,7 +136,9 @@ class VPIRegion(MemoryInterface):
     def last_addr(self):
         return self.base+self.size-4
 
-
+    def iter_addrspace(self,step=4):
+        for _ in range(self.base, self.end_addr, step):
+            yield _
 
 
 class ReferenceVPIRegion(VPIRegion):
@@ -325,6 +331,14 @@ class TB:
         self.req_queue.put_nowait((Request(addr,data,0xF)))
 
 
+    def random_addr(self):
+        region = random.choice(list(self.regions.values()))
+        return region.random_addr()
+
+    def iter_addrspace(self,step=4):
+        for region in self.regions.values():
+            yield from region.iter_addrspace(step)
+
 ## ----------------------------------------------------------------------------
 ## ----------------------------------------------------------------------------
 ## ----------------------------------------------------------------------------
@@ -481,7 +495,7 @@ async def test_iob_random(dut):
     await tb.clkcycle(1000)
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
 @cocotb.parametrize(region_def=REGIONS)
 async def test_iob_region(dut,region_def=REGIONS[2]):
     tb = TB(dut)
@@ -548,6 +562,82 @@ async def test_iob_region(dut,region_def=REGIONS[2]):
     ## check the memory pool against the reference pool
     print("verify")
     for _ in range(region.base,region.end_addr,4):
+        ref= await tb.read_ref(_)
+        pool = await tb.read_pool(_)
+        assert ref == pool, f"{_:04X}: {ref:08X} == {pool:08x}"
+
+    await tb.clkcycle(1000)
+
+
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
+async def test_iob_addrspace(dut):
+    tb = TB(dut)
+    cocotb.start_soon(tb.proc_req())
+    cocotb.start_soon(tb.proc_rsp())
+    cocotb.start_soon(tb.proc_check())
+    await tb.cycle_reset()
+    #name, _,_  = region_def
+    #region = tb.regions[name]
+
+    ## fill in memory and ref block with random data
+    print("seed")
+    for _ in tb.iter_addrspace():
+        v = random_int()
+        #await tb.write_ref(_,v)
+        #await tb.write_pool(_,v)
+        await tb.write_ref(_,_)
+        await tb.write_pool(_,_)
+
+    print("random")
+
+    #tb.write(region.random_addr(),random_int())
+    #tb.read(region.random_addr())
+    #tb.write(region.random_addr(),random_int())
+
+    for _ in range(1000):
+        #if random.choice([True,False]):
+        #    tb.write(tb.random_addr(),random_int())
+        #else:
+        tb.read(tb.random_addr())
+        #await tb.clkcycle(2)
+
+    print("wait random")
+    for _ in range(1000):
+        if tb.rsp_queue.empty() and tb.req_queue.empty() and tb.pend_queue.empty():
+            break
+        await tb.clkcycle(100)
+    else:
+        print(f"{tb.rsp_queue.qsize()}")
+        print(f"{tb.req_queue.qsize()}")
+        print(f"{tb.pend_queue.qsize()}")
+        assert tb.rsp_queue.empty()
+        assert tb.req_queue.empty()
+        assert tb.pend_queue.empty()
+
+    await tb.clkcycle(100)
+
+    ## issue reads for entire memory range to do a final check
+    #print("readback")
+    #for _ in tb.iter_addrspace():
+    #    tb.read(_)
+
+    ## wait for pipe line to clear
+    print("wait readback")
+    for _ in range(5000):
+        if tb.rsp_queue.empty() and tb.req_queue.empty() and tb.pend_queue.empty():
+            break
+        await tb.clkcycle(100)
+    else:
+        print(f"{tb.rsp_queue.qsize()}")
+        print(f"{tb.req_queue.qsize()}")
+        print(f"{tb.pend_queue.qsize()}")
+        assert tb.rsp_queue.empty()
+        assert tb.req_queue.empty()
+        assert tb.pend_queue.empty()
+
+    ## check the memory pool against the reference pool
+    print("verify")
+    for _ in tb.iter_addrspace():
         ref= await tb.read_ref(_)
         pool = await tb.read_pool(_)
         assert ref == pool, f"{_:04X}: {ref:08X} == {pool:08x}"

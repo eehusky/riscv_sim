@@ -231,7 +231,7 @@ module mem_dport_mux #(
     logic                rsp_pop;
 
     assign rsp_push = decode_valid && decode_stall;
-    assign rsp_pop  = |(rsp_ack & rsp_grant);
+    assign rsp_pop  = |rsp_ack;
 
     ringbuffer_sfifo #(
         .BW               ($size(rsp_data_t)),
@@ -251,13 +251,16 @@ module mem_dport_mux #(
         .o_empty(rsp_empty)
     );
 
+    logic [NS:0] rsp_ready;
     logic [NS:0] rsp_ack;
     logic [NS:0] rsp_grant;
-    assign rsp_ack   = {dummy_ack, axil_ack_i, uncached_ack_i, cached_ack_i, dtcm_ack_i, periph_ack_i};
+
+    assign rsp_ready   = {dummy_ack, axil_ack_i, uncached_ack_i, cached_ack_i, dtcm_ack_i, periph_ack_i};
     assign rsp_grant = rsp_data_out.decode;
+    assign rsp_ack = rsp_ready & rsp_grant;
 
     always_comb begin : proc_ack
-        case (rsp_ack & rsp_grant)
+        case (rsp_ack)
             6'b000001: begin
                 mem_data_rd_o = periph_data_rd_i;
                 mem_ack_o     = periph_ack_i;
@@ -297,6 +300,8 @@ module mem_dport_mux #(
     end
 
     always_ff @(posedge i_clk) begin : proc_assert
+        assert (~(rsp_push && rsp_full));
+        assert (~(rsp_pop && rsp_empty));
         assert ((decode_valid && |req_grant) || ~decode_valid);
     end
 
