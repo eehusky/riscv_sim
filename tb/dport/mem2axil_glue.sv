@@ -2,18 +2,11 @@
 module mem2axil_glue #(
     parameter int ADDR_WIDTH = 32
 ) (
-    input  logic                  clk_i,
-    input  logic                  rst_i,
-    //
-    input  logic [          31:0] mem_addr_i,
-    input  logic [          31:0] mem_data_wr_i,
-    input  logic                  mem_rd_i,
-    input  logic [           3:0] mem_wr_i,
-    output logic [          31:0] mem_data_rd_o,
-    output logic                  mem_accept_o,
-    output logic                  mem_error_o,
-    output logic                  mem_ack_o,
-    //
+    input logic clk_i,
+    input logic rst_i,
+
+    mem_if.slave dport,
+
     output logic [ADDR_WIDTH-1:0] araddr,
     output logic [           2:0] arprot,
     input  logic                  arready,
@@ -35,160 +28,58 @@ module mem2axil_glue #(
     output logic                  wvalid
 );
 
-    localparam int LGREQ = 1;
-    localparam int LGRSP = LGREQ + 1;
-
-    // ------------------------------------------------------------------------
-
-    logic ar_ack;
-    logic aw_ack;
-    logic r_ack;
-    logic w_ack;
-    logic b_ack;
-
-    assign ar_ack = arready && arvalid;
-    assign aw_ack = awready && awvalid;
-    assign r_ack  = rready && rvalid;
-    assign w_ack  = wready && wvalid;
-    assign b_ack  = bready && bvalid;
-
-    // ------------------------------------------------------------------------
-
-    typedef struct packed {
-        logic [31:0] addr;
-        logic        rd;
-        logic        wr;
-    } mem_req_t;
-
-    mem_req_t           mem_req_data_out;
-    logic     [LGREQ:0] mem_req_fill;
-    logic               mem_req_empty;
-    logic               mem_req_full;
-    logic               mem_req_push;
-    logic               mem_req_pop;
-
-    assign mem_req_push = (mem_rd_i || |mem_wr_i) && mem_accept_o;
-    assign mem_req_pop  = ar_ack || aw_ack;
-
-    ringbuffer_sfifo #(
-        .BW               ($size(mem_req_t)),
-        .LGFLEN           (LGREQ),
-        .OPT_ASYNC_READ   (1),
-        .OPT_WRITE_ON_FULL(0),
-        .OPT_READ_ON_EMPTY(0)
-    ) i_mem_req_fifo (
-        .i_clk  (clk_i),
-        .i_reset(rst_i),
-        .i_data ({mem_addr_i, mem_rd_i, |mem_wr_i}),
-        .i_wr   (mem_req_push),
-        .o_full (mem_req_full),
-        .o_fill (mem_req_fill),
-        .i_rd   (mem_req_pop),
-        .o_data (mem_req_data_out),
-        .o_empty(mem_req_empty)
+    mem2axi_glue #(
+        .AXI_ADDR_W(ADDR_WIDTH),
+        .AXI_DATA_W(32),
+        .AXI_ID_W  (1),
+        .AXI_LEN_W (1)
+    ) i_mem2axil_convert (
+        .clk_i        (clk_i),
+        .rst_i        (rst_i),
+        .dport        (dport),
+        //
+        .axi_arready_i(arready),
+        .axi_arvalid_o(arvalid),
+        .axi_araddr_o (araddr),
+        .axi_arid_o   (),
+        .axi_arlen_o  (),
+        .axi_arsize_o (),
+        .axi_arburst_o(),
+        .axi_arlock_o (),
+        .axi_arcache_o(),
+        .axi_arqos_o  (),
+        //
+        .axi_rready_o (rready),
+        .axi_rvalid_i (rvalid),
+        .axi_rdata_i  (rdata),
+        .axi_rresp_i  (rresp),
+        .axi_rid_i    (0),
+        .axi_rlast_i  (0),
+        //
+        .axi_awready_i(awready),
+        .axi_awvalid_o(awvalid),
+        .axi_awaddr_o (awaddr),
+        .axi_awid_o   (),
+        .axi_awlen_o  (),
+        .axi_awsize_o (),
+        .axi_awburst_o(),
+        .axi_awlock_o (),
+        .axi_awcache_o(),
+        .axi_awqos_o  (),
+        //
+        .axi_wready_i (wready),
+        .axi_wdata_o  (wdata),
+        .axi_wstrb_o  (wstrb),
+        .axi_wvalid_o (wvalid),
+        .axi_wlast_o  (),
+        //
+        .axi_bready_o (bready),
+        .axi_bresp_i  (bresp),
+        .axi_bvalid_i (bvalid),
+        .axi_bid_i    (0)
     );
 
-    // ------------------------------------------------------------------------
-
-    typedef struct packed {
-        logic [31:0] data_wr;
-        logic [3:0]  wr;
-    } wdata_t;
-
-    wdata_t           wdata_data_out;
-    logic   [LGREQ:0] wdata_fill;
-    logic             wdata_empty;
-    logic             wdata_full;
-    logic             wdata_push;
-    logic             wdata_pop;
-
-    assign wdata_push = |mem_wr_i && mem_accept_o;
-    assign wdata_pop  = w_ack;
-
-    ringbuffer_sfifo #(
-        .BW               ($size(wdata_t)),
-        .LGFLEN           (LGREQ),
-        .OPT_ASYNC_READ   (1),
-        .OPT_WRITE_ON_FULL(0),
-        .OPT_READ_ON_EMPTY(0)
-    ) i_wdata_fifo (
-        .i_clk  (clk_i),
-        .i_reset(rst_i),
-        .i_data ({mem_data_wr_i, mem_wr_i}),
-        .i_wr   (wdata_push),
-        .o_full (wdata_full),
-        .o_fill (wdata_fill),
-        .i_rd   (wdata_pop),
-        .o_data (wdata_data_out),
-        .o_empty(wdata_empty)
-    );
-
-    // ------------------------------------------------------------------------
-
-    typedef struct packed {
-        logic rd;
-        logic wr;
-    } mem_rsp_t;
-
-    mem_rsp_t           mem_rsp_data_out;
-    logic     [LGRSP:0] mem_rsp_fill;
-    logic               mem_rsp_empty;
-    logic               mem_rsp_full;
-    logic               mem_rsp_push;
-    logic               mem_rsp_pop;
-
-    assign mem_rsp_push = mem_req_pop;
-    assign mem_rsp_pop  = r_ack || b_ack;
-
-    ringbuffer_sfifo #(
-        .BW               ($size(mem_rsp_t)),
-        .LGFLEN           (LGRSP),
-        .OPT_ASYNC_READ   (1),
-        .OPT_WRITE_ON_FULL(0),
-        .OPT_READ_ON_EMPTY(0)
-    ) i_mem_rsp_fifo (
-        .i_clk  (clk_i),
-        .i_reset(rst_i),
-        .i_data ({mem_req_data_out.rd, mem_req_data_out.wr}),
-        .i_wr   (mem_rsp_push),
-        .o_full (mem_rsp_full),
-        .o_fill (mem_rsp_fill),
-        .i_rd   (mem_rsp_pop),
-        .o_data (mem_rsp_data_out),
-        .o_empty(mem_rsp_empty)
-    );
-
-    // ------------------------------------------------------------------------
-
-    assign araddr        = arvalid ? mem_req_data_out.addr : 0;
-    assign arvalid       = ~mem_req_empty && mem_req_data_out.rd;
-    assign rready        = ~mem_rsp_empty && mem_rsp_data_out.rd;
-
-    assign awaddr        = awvalid ? mem_req_data_out.addr : 0;
-    assign awvalid       = ~mem_req_empty && mem_req_data_out.wr;
-
-    assign wvalid        = ~wdata_empty && |wdata_data_out.wr;
-    assign wdata         = wvalid ? wdata_data_out.data_wr : 0;
-    assign wstrb         = wvalid ? wdata_data_out.wr : 0;
-    assign bready        = ~mem_rsp_empty && mem_rsp_data_out.wr;
-
-    assign mem_data_rd_o = (r_ack && mem_rsp_data_out.rd) ? rdata : 0;
-    assign mem_accept_o  = ~mem_req_full && ~wdata_full && ~mem_rsp_full;
-    assign mem_ack_o     = mem_rsp_pop;
-    assign mem_error_o   = mem_rsp_pop && (rresp[1] || bresp[1]);
-
-    // constants
-    assign arprot        = 0;
-    assign awprot        = 0;
-
-
-    always_ff @(posedge clk_i) begin : proc_assert
-        assert (~(mem_req_push && mem_req_full));
-        assert (~(mem_req_pop && mem_req_empty));
-        assert (~(wdata_push && wdata_full));
-        assert (~(wdata_pop && wdata_empty));
-        assert (~(mem_rsp_push && mem_rsp_full));
-        assert (~(mem_rsp_pop && mem_rsp_empty));
-    end
+    assign arprot = 0;
+    assign awprot = 0;
 
 endmodule : mem2axil_glue

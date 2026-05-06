@@ -1,17 +1,10 @@
 module mem_dummy #(
     parameter int ADDR_WIDTH = 16
 ) (
-    input  logic        clk_i,
-    input  logic        rst_i,
-    //
-    output logic        mem_accept_o,
-    output logic        mem_ack_o,
-    input  logic [31:0] mem_addr_i,
-    output logic [31:0] mem_data_rd_o,
-    input  logic [31:0] mem_data_wr_i,
-    output logic        mem_error_o,
-    input  logic        mem_rd_i,
-    input  logic [ 3:0] mem_wr_i
+    input logic clk_i,
+    input logic rst_i,
+
+    mem_if.slave dport
 );
     localparam WORD_ADDR_WIDTH = ADDR_WIDTH - $clog2(4);
 
@@ -19,29 +12,29 @@ module mem_dummy #(
     logic   [               31:0] mem       [(2**WORD_ADDR_WIDTH)-1];
     integer                       i;
 
-    assign word_addr = mem_addr_i[ADDR_WIDTH-1:ADDR_WIDTH-WORD_ADDR_WIDTH];
+    assign word_addr = dport.addr[ADDR_WIDTH-1:ADDR_WIDTH-WORD_ADDR_WIDTH];
 
     always_ff @(posedge clk_i) begin : proc_
         if (rst_i) begin
-            mem_accept_o  <= 0;
-            mem_ack_o     <= 0;
-            mem_data_rd_o <= 0;
+            dport.accept  <= 0;
+            dport.ack     <= 0;
+            dport.data_rd <= 0;
         end else begin
-            mem_accept_o  <= 1;
-            if (mem_rd_i) begin
-                mem_ack_o     <= 1;
-                mem_data_rd_o <= mem[word_addr];
-            end else if (|mem_wr_i) begin
-                mem_ack_o <= 1;
-                mem_data_rd_o <= 0;
+            dport.accept <= 1;
+            if (dport.rd) begin
+                dport.ack     <= 1;
+                dport.data_rd <= mem[word_addr];
+            end else if (|dport.wr) begin
+                dport.ack     <= 1;
+                dport.data_rd <= 0;
                 for (i = 0; i < 4; i = i + 1) begin
-                    if (mem_wr_i[i]) begin
-                        mem[word_addr][8*i+:8] <= mem_data_wr_i[8*i+:8];
+                    if (dport.wr[i]) begin
+                        mem[word_addr][8*i+:8] <= dport.data_wr[8*i+:8];
                     end
                 end
             end else begin
-                mem_ack_o     <= 0;
-                mem_data_rd_o <= 0;
+                dport.ack     <= 0;
+                dport.data_rd <= 0;
             end
         end
     end

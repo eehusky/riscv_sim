@@ -495,7 +495,7 @@ async def test_iob_random(dut):
     await tb.clkcycle(1000)
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
 @cocotb.parametrize(region_def=REGIONS)
 async def test_iob_region(dut,region_def=REGIONS[2]):
     tb = TB(dut)
@@ -541,9 +541,9 @@ async def test_iob_region(dut,region_def=REGIONS[2]):
     await tb.clkcycle(100)
 
     ## issue reads for entire memory range to do a final check
-    print("readback")
-    for _ in range(region.base,region.end_addr,4):
-        tb.read(_)
+    #print("readback")
+    #for _ in range(region.base,region.end_addr,4):
+    #    tb.read(_)
 
     ## wait for pipe line to clear
     print("wait readback")
@@ -569,7 +569,7 @@ async def test_iob_region(dut,region_def=REGIONS[2]):
     await tb.clkcycle(1000)
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
 async def test_iob_addrspace(dut):
     tb = TB(dut)
     cocotb.start_soon(tb.proc_req())

@@ -85,6 +85,7 @@ verilate(Vtop
         mem_dport_mux.sv
         mem_dport_axi.sv
         mem_dummy.sv
+        mem_if.sv
         dtcm.sv
         tb_dport.sv
         #

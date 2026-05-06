@@ -1,73 +1,19 @@
 module mem_dport_mux #(
 
 ) (
-    input  logic        i_reset,
-    input  logic        i_clk,
-    //
-    output logic        mem_accept_o,
-    output logic        mem_ack_o,
-    input  logic [31:0] mem_addr_i,
-    output logic [31:0] mem_data_rd_o,
-    input  logic [31:0] mem_data_wr_i,
-    output logic        mem_error_o,
-    input  logic        mem_rd_i,
-    input  logic [ 3:0] mem_wr_i,
-    //
-    input  logic        periph_accept_i,
-    input  logic        periph_ack_i,
-    output logic [31:0] periph_addr_o,
-    input  logic [31:0] periph_data_rd_i,
-    output logic [31:0] periph_data_wr_o,
-    input  logic        periph_error_i,
-    output logic        periph_rd_o,
-    output logic [ 3:0] periph_wr_o,
-    //
-    input  logic        dtcm_accept_i,
-    input  logic        dtcm_ack_i,
-    output logic [31:0] dtcm_addr_o,
-    input  logic [31:0] dtcm_data_rd_i,
-    output logic [31:0] dtcm_data_wr_o,
-    input  logic        dtcm_error_i,
-    output logic        dtcm_rd_o,
-    output logic [ 3:0] dtcm_wr_o,
-    //
-    input  logic        cached_accept_i,
-    input  logic        cached_ack_i,
-    output logic [31:0] cached_addr_o,
-    input  logic [31:0] cached_data_rd_i,
-    output logic [31:0] cached_data_wr_o,
-    input  logic        cached_error_i,
-    output logic        cached_rd_o,
-    output logic [ 3:0] cached_wr_o,
-    //
-    input  logic        uncached_accept_i,
-    input  logic        uncached_ack_i,
-    output logic [31:0] uncached_addr_o,
-    input  logic [31:0] uncached_data_rd_i,
-    output logic [31:0] uncached_data_wr_o,
-    input  logic        uncached_error_i,
-    output logic        uncached_rd_o,
-    output logic [ 3:0] uncached_wr_o,
-    //
-    input  logic        axil_accept_i,
-    input  logic        axil_ack_i,
-    output logic [31:0] axil_addr_o,
-    input  logic [31:0] axil_data_rd_i,
-    output logic [31:0] axil_data_wr_o,
-    input  logic        axil_error_i,
-    output logic        axil_rd_o,
-    output logic [ 3:0] axil_wr_o
+    input logic i_reset,
+    input logic i_clk,
+
+    mem_if.slave  cpu,
+    mem_if.master periph,
+    mem_if.master dtcm,
+    mem_if.master cached,
+    mem_if.master uncached,
+    mem_if.master axil
 );
     localparam int NS = 5;
 
-    logic        dummy_accept;
-    logic        dummy_ack;
-    logic [31:0] dummy_addr;
-    logic [31:0] dummy_data_rd;
-    logic [31:0] dummy_data_wr;
-    logic        dummy_error;
-    logic        dummy_rd;
-    logic [ 3:0] dummy_wr;
+    mem_if dummy ();
 
     typedef struct packed {
         logic [31:0] data_wr;
@@ -96,10 +42,10 @@ module mem_dport_mux #(
         .i_clk   (i_clk),
         .i_reset (i_reset),
         //
-        .i_valid (mem_rd_i || |mem_wr_i),
-        .o_stall (mem_accept_o),
-        .i_addr  (mem_addr_i),
-        .i_data  ({mem_data_wr_i, mem_rd_i, mem_wr_i}),
+        .i_valid (cpu.rd || |cpu.wr),
+        .o_stall (cpu.accept),
+        .i_addr  (cpu.addr),
+        .i_data  ({cpu.data_wr, cpu.rd, cpu.wr}),
         //
         .o_valid (decode_valid),
         .i_stall (decode_stall),
@@ -110,112 +56,112 @@ module mem_dport_mux #(
     );
 
     always_comb begin : proc_decode
-        periph_addr_o      = 0;
-        periph_data_wr_o   = 0;
-        periph_rd_o        = 0;
-        periph_wr_o        = 0;
-        dtcm_addr_o        = 0;
-        dtcm_data_wr_o     = 0;
-        dtcm_rd_o          = 0;
-        dtcm_wr_o          = 0;
-        cached_addr_o      = 0;
-        cached_data_wr_o   = 0;
-        cached_rd_o        = 0;
-        cached_wr_o        = 0;
-        uncached_addr_o    = 0;
-        uncached_data_wr_o = 0;
-        uncached_rd_o      = 0;
-        uncached_wr_o      = 0;
-        axil_addr_o        = 0;
-        axil_data_wr_o     = 0;
-        axil_rd_o          = 0;
-        axil_wr_o          = 0;
-        dummy_addr         = 0;
-        dummy_data_wr      = 0;
-        dummy_rd           = 0;
-        dummy_wr           = 0;
-        decode_stall       = 0;
+        periph.addr      = 0;
+        periph.data_wr   = 0;
+        periph.rd        = 0;
+        periph.wr        = 0;
+        dtcm.addr        = 0;
+        dtcm.data_wr     = 0;
+        dtcm.rd          = 0;
+        dtcm.wr          = 0;
+        cached.addr      = 0;
+        cached.data_wr   = 0;
+        cached.rd        = 0;
+        cached.wr        = 0;
+        uncached.addr    = 0;
+        uncached.data_wr = 0;
+        uncached.rd      = 0;
+        uncached.wr      = 0;
+        axil.addr        = 0;
+        axil.data_wr     = 0;
+        axil.rd          = 0;
+        axil.wr          = 0;
+        dummy.addr       = 0;
+        dummy.data_wr    = 0;
+        dummy.rd         = 0;
+        dummy.wr         = 0;
+        decode_stall     = 0;
         case (req_grant)
             6'b000001: begin
-                periph_addr_o    = decode_addr;
-                periph_data_wr_o = decode_data.data_wr;
-                periph_rd_o      = decode_data.rd;
-                periph_wr_o      = decode_data.wr;
-                decode_stall     = periph_accept_i;
+                periph.addr    = decode_addr;
+                periph.data_wr = decode_data.data_wr;
+                periph.rd      = decode_data.rd;
+                periph.wr      = decode_data.wr;
+                decode_stall   = periph.accept;
             end
             6'b000010: begin
-                dtcm_addr_o    = decode_addr;
-                dtcm_data_wr_o = decode_data.data_wr;
-                dtcm_rd_o      = decode_data.rd;
-                dtcm_wr_o      = decode_data.wr;
-                decode_stall   = dtcm_accept_i;
+                dtcm.addr    = decode_addr;
+                dtcm.data_wr = decode_data.data_wr;
+                dtcm.rd      = decode_data.rd;
+                dtcm.wr      = decode_data.wr;
+                decode_stall = dtcm.accept;
             end
             6'b000100: begin
-                cached_addr_o    = decode_addr;
-                cached_data_wr_o = decode_data.data_wr;
-                cached_rd_o      = decode_data.rd;
-                cached_wr_o      = decode_data.wr;
-                decode_stall     = cached_accept_i;
+                cached.addr    = decode_addr;
+                cached.data_wr = decode_data.data_wr;
+                cached.rd      = decode_data.rd;
+                cached.wr      = decode_data.wr;
+                decode_stall   = cached.accept;
             end
             6'b001000: begin
-                uncached_addr_o    = decode_addr;
-                uncached_data_wr_o = decode_data.data_wr;
-                uncached_rd_o      = decode_data.rd;
-                uncached_wr_o      = decode_data.wr;
-                decode_stall       = uncached_accept_i;
+                uncached.addr    = decode_addr;
+                uncached.data_wr = decode_data.data_wr;
+                uncached.rd      = decode_data.rd;
+                uncached.wr      = decode_data.wr;
+                decode_stall     = uncached.accept;
             end
             6'b010000: begin
-                axil_addr_o    = decode_addr;
-                axil_data_wr_o = decode_data.data_wr;
-                axil_rd_o      = decode_data.rd;
-                axil_wr_o      = decode_data.wr;
-                decode_stall   = axil_accept_i;
+                axil.addr    = decode_addr;
+                axil.data_wr = decode_data.data_wr;
+                axil.rd      = decode_data.rd;
+                axil.wr      = decode_data.wr;
+                decode_stall = axil.accept;
             end
             6'b100000: begin
-                dummy_addr    = decode_addr;
-                dummy_data_wr = decode_data.data_wr;
-                dummy_rd      = decode_data.rd;
-                dummy_wr      = decode_data.wr;
-                decode_stall  = dummy_accept;
+                dummy.addr    = decode_addr;
+                dummy.data_wr = decode_data.data_wr;
+                dummy.rd      = decode_data.rd;
+                dummy.wr      = decode_data.wr;
+                decode_stall  = dummy.accept;
             end
             default: begin
-                periph_addr_o      = 0;
-                periph_data_wr_o   = 0;
-                periph_rd_o        = 0;
-                periph_wr_o        = 0;
-                dtcm_addr_o        = 0;
-                dtcm_data_wr_o     = 0;
-                dtcm_rd_o          = 0;
-                dtcm_wr_o          = 0;
-                cached_addr_o      = 0;
-                cached_data_wr_o   = 0;
-                cached_rd_o        = 0;
-                cached_wr_o        = 0;
-                uncached_addr_o    = 0;
-                uncached_data_wr_o = 0;
-                uncached_rd_o      = 0;
-                uncached_wr_o      = 0;
-                axil_addr_o        = 0;
-                axil_data_wr_o     = 0;
-                axil_rd_o          = 0;
-                axil_wr_o          = 0;
-                dummy_addr         = 0;
-                dummy_data_wr      = 0;
-                dummy_rd           = 0;
-                dummy_wr           = 0;
-                decode_stall       = 0;
+                periph.addr      = 0;
+                periph.data_wr   = 0;
+                periph.rd        = 0;
+                periph.wr        = 0;
+                dtcm.addr        = 0;
+                dtcm.data_wr     = 0;
+                dtcm.rd          = 0;
+                dtcm.wr          = 0;
+                cached.addr      = 0;
+                cached.data_wr   = 0;
+                cached.rd        = 0;
+                cached.wr        = 0;
+                uncached.addr    = 0;
+                uncached.data_wr = 0;
+                uncached.rd      = 0;
+                uncached.wr      = 0;
+                axil.addr        = 0;
+                axil.data_wr     = 0;
+                axil.rd          = 0;
+                axil.wr          = 0;
+                dummy.addr       = 0;
+                dummy.data_wr    = 0;
+                dummy.rd         = 0;
+                dummy.wr         = 0;
+                decode_stall     = 0;
             end
         endcase
     end
 
     always_ff @(posedge i_clk) begin : proc_dummy
-        dummy_accept  <= 1;
-        dummy_error   <= 1;
-        dummy_data_rd <= 0;
-        if (dummy_rd || |dummy_wr) begin
-            dummy_ack <= 1;
+        dummy.accept  <= 1;
+        dummy.error   <= 1;
+        dummy.data_rd <= 0;
+        if (dummy.rd || |dummy.wr) begin
+            dummy.ack <= 1;
         end else begin
-            dummy_ack <= 0;
+            dummy.ack <= 0;
         end
     end
 
@@ -255,46 +201,46 @@ module mem_dport_mux #(
     logic [NS:0] rsp_ack;
     logic [NS:0] rsp_grant;
 
-    assign rsp_ready   = {dummy_ack, axil_ack_i, uncached_ack_i, cached_ack_i, dtcm_ack_i, periph_ack_i};
+    assign rsp_ready = {dummy.ack, axil.ack, uncached.ack, cached.ack, dtcm.ack, periph.ack};
     assign rsp_grant = rsp_data_out.decode;
-    assign rsp_ack = rsp_ready & rsp_grant;
+    assign rsp_ack   = rsp_ready & rsp_grant;
 
     always_comb begin : proc_ack
         case (rsp_ack)
             6'b000001: begin
-                mem_data_rd_o = periph_data_rd_i;
-                mem_ack_o     = periph_ack_i;
-                mem_error_o   = periph_error_i;
+                cpu.data_rd = periph.data_rd;
+                cpu.ack     = periph.ack;
+                cpu.error   = periph.error;
             end
             6'b000010: begin
-                mem_data_rd_o = dtcm_data_rd_i;
-                mem_ack_o     = dtcm_ack_i;
-                mem_error_o   = dtcm_error_i;
+                cpu.data_rd = dtcm.data_rd;
+                cpu.ack     = dtcm.ack;
+                cpu.error   = dtcm.error;
             end
             6'b000100: begin
-                mem_data_rd_o = cached_data_rd_i;
-                mem_ack_o     = cached_ack_i;
-                mem_error_o   = cached_error_i;
+                cpu.data_rd = cached.data_rd;
+                cpu.ack     = cached.ack;
+                cpu.error   = cached.error;
             end
             6'b001000: begin
-                mem_data_rd_o = uncached_data_rd_i;
-                mem_ack_o     = uncached_ack_i;
-                mem_error_o   = uncached_error_i;
+                cpu.data_rd = uncached.data_rd;
+                cpu.ack     = uncached.ack;
+                cpu.error   = uncached.error;
             end
             6'b010000: begin
-                mem_data_rd_o = axil_data_rd_i;
-                mem_ack_o     = axil_ack_i;
-                mem_error_o   = axil_error_i;
+                cpu.data_rd = axil.data_rd;
+                cpu.ack     = axil.ack;
+                cpu.error   = axil.error;
             end
             6'b100000: begin
-                mem_data_rd_o = dummy_data_rd;
-                mem_ack_o     = dummy_ack;
-                mem_error_o   = dummy_error;
+                cpu.data_rd = dummy.data_rd;
+                cpu.ack     = dummy.ack;
+                cpu.error   = dummy.error;
             end
             default: begin
-                mem_data_rd_o = 0;
-                mem_ack_o     = 0;
-                mem_error_o   = 0;
+                cpu.data_rd = 0;
+                cpu.ack     = 0;
+                cpu.error   = 0;
             end
         endcase
     end

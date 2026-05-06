@@ -5,17 +5,11 @@ module mem2axi_glue #(
     parameter int AXI_ID_W,
     parameter int AXI_LEN_W
 ) (
-    input  logic                    clk_i,
-    input  logic                    rst_i,
-    //
-    input  logic [            31:0] mem_addr_i,
-    input  logic [            31:0] mem_data_wr_i,
-    input  logic                    mem_rd_i,
-    input  logic [             3:0] mem_wr_i,
-    output logic [            31:0] mem_data_rd_o,
-    output logic                    mem_error_o,
-    output logic                    mem_accept_o,
-    output logic                    mem_ack_o,
+    input logic clk_i,
+    input logic rst_i,
+
+    mem_if.slave dport,
+
     input  logic                    axi_arready_i,
     output logic                    axi_arvalid_o,
     output logic [  AXI_ADDR_W-1:0] axi_araddr_o,
@@ -84,7 +78,7 @@ module mem2axi_glue #(
     logic               mem_req_push;
     logic               mem_req_pop;
 
-    assign mem_req_push = (mem_rd_i || |mem_wr_i) && mem_accept_o;
+    assign mem_req_push = (dport.rd || |dport.wr) && dport.accept;
     assign mem_req_pop  = ar_ack || aw_ack;
 
     ringbuffer_sfifo #(
@@ -96,7 +90,7 @@ module mem2axi_glue #(
     ) i_mem_req_fifo (
         .i_clk  (clk_i),
         .i_reset(rst_i),
-        .i_data ({mem_addr_i, mem_rd_i, |mem_wr_i}),
+        .i_data ({dport.addr, dport.rd, |dport.wr}),
         .i_wr   (mem_req_push),
         .o_full (mem_req_full),
         .o_fill (mem_req_fill),
@@ -119,7 +113,7 @@ module mem2axi_glue #(
     logic             wdata_push;
     logic             wdata_pop;
 
-    assign wdata_push = |mem_wr_i && mem_accept_o;
+    assign wdata_push = |dport.wr && dport.accept;
     assign wdata_pop  = w_ack;
 
     ringbuffer_sfifo #(
@@ -131,7 +125,7 @@ module mem2axi_glue #(
     ) i_wdata_fifo (
         .i_clk  (clk_i),
         .i_reset(rst_i),
-        .i_data ({mem_data_wr_i, mem_wr_i}),
+        .i_data ({dport.data_wr, dport.wr}),
         .i_wr   (wdata_push),
         .o_full (wdata_full),
         .o_fill (wdata_fill),
@@ -190,10 +184,10 @@ module mem2axi_glue #(
     assign axi_wstrb_o   = axi_wvalid_o ? wdata_data_out.wr : 0;
     assign axi_bready_o  = ~mem_rsp_empty && mem_rsp_data_out.wr;
 
-    assign mem_data_rd_o = (r_ack && mem_rsp_data_out.rd) ? axi_rdata_i : 0;
-    assign mem_accept_o  = ~mem_req_full && ~wdata_full && ~mem_rsp_full;
-    assign mem_ack_o     = mem_rsp_pop;
-    assign mem_error_o   = mem_rsp_pop && (axi_rresp_i[1] || axi_bresp_i[1]);
+    assign dport.data_rd = (r_ack && mem_rsp_data_out.rd) ? axi_rdata_i : 0;
+    assign dport.accept  = ~mem_req_full && ~wdata_full && ~mem_rsp_full;
+    assign dport.ack     = mem_rsp_pop;
+    assign dport.error   = mem_rsp_pop && (axi_rresp_i[1] || axi_bresp_i[1]);
 
     // constants
     assign axi_arid_o    = 0;

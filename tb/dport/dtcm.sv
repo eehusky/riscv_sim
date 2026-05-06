@@ -45,17 +45,7 @@ module dtcm #(
     input wire a_clk,
     input wire a_rst,
 
-    //input wire b_clk,
-    //input wire b_rst,
-
-    output logic        port_a_accept_o,
-    output logic        port_a_ack_o,
-    input  logic [31:0] port_a_addr_i,
-    output logic [31:0] port_a_data_rd_o,
-    input  logic [31:0] port_a_data_wr_i,
-    output logic        port_a_error_o,
-    input  logic        port_a_rd_i,
-    input  logic [ 3:0] port_a_wr_i,
+    mem_if.slave dport,
 
     input  wire [  ID_WIDTH-1:0] s_axi_b_awid,
     input  wire [ADDR_WIDTH-1:0] s_axi_b_awaddr,
@@ -225,12 +215,12 @@ module dtcm #(
     );
 
     // (* RAM_STYLE="BLOCK" *)
-    reg [DATA_WIDTH-1:0] mem[(2**VALID_ADDR_WIDTH)-1];
+    reg  [      DATA_WIDTH-1:0] mem         [(2**VALID_ADDR_WIDTH)-1];
 
     wire [VALID_ADDR_WIDTH-1:0] word_addr_a;
-    assign word_addr_a = port_a_addr_i[ADDR_WIDTH-1:ADDR_WIDTH - VALID_ADDR_WIDTH];
+    assign word_addr_a = dport.addr[ADDR_WIDTH-1:ADDR_WIDTH-VALID_ADDR_WIDTH];
     wire [VALID_ADDR_WIDTH-1:0] word_addr_b;
-    assign word_addr_b = ram_b_cmd_addr[ADDR_WIDTH-1:ADDR_WIDTH - VALID_ADDR_WIDTH];
+    assign word_addr_b = ram_b_cmd_addr[ADDR_WIDTH-1:ADDR_WIDTH-VALID_ADDR_WIDTH];
 
     integer i, j;
 
@@ -244,53 +234,30 @@ module dtcm #(
         end
     end
 
-
     always_ff @(posedge a_clk) begin : proc_
         if (a_rst) begin
-            port_a_accept_o  <= 0;
-            port_a_ack_o     <= 0;
-            port_a_data_rd_o <= 0;
+            dport.accept  <= 0;
+            dport.ack     <= 0;
+            dport.data_rd <= 0;
         end else begin
-            port_a_accept_o  <= 1;
-            if (port_a_rd_i) begin
-                port_a_ack_o     <= 1;
-                port_a_data_rd_o <= mem[word_addr_a];
-            end else if (|port_a_wr_i) begin
-                port_a_ack_o <= 1;
-                port_a_data_rd_o <= 0;
+            dport.accept <= 1;
+            if (dport.rd) begin
+                dport.ack     <= 1;
+                dport.data_rd <= mem[word_addr_a];
+            end else if (|dport.wr) begin
+                dport.ack     <= 1;
+                dport.data_rd <= 0;
                 for (i = 0; i < 4; i = i + 1) begin
-                    if (port_a_wr_i[i]) begin
-                        mem[word_addr_a][8*i+:8] <= port_a_data_wr_i[8*i+:8];
+                    if (dport.wr[i]) begin
+                        mem[word_addr_a][8*i+:8] <= dport.data_wr[8*i+:8];
                     end
                 end
             end else begin
-                port_a_ack_o     <= 0;
-                port_a_data_rd_o <= 0;
+                dport.ack     <= 0;
+                dport.data_rd <= 0;
             end
         end
     end
-
-    //assign ram_a_cmd_ready = !ram_a_rd_resp_valid_reg || ram_a_rd_resp_ready;
-    //always @(posedge a_clk) begin
-    //    ram_a_rd_resp_valid_reg <= ram_a_rd_resp_valid_reg && !ram_a_rd_resp_ready;
-    //    if (ram_a_cmd_rd_en && ram_a_cmd_ready) begin
-    //        ram_a_rd_resp_id_reg    <= ram_a_cmd_id;
-    //        ram_a_rd_resp_data_reg  <= mem[word_addr_a];
-    //        ram_a_rd_resp_last_reg  <= ram_a_cmd_last;
-    //        ram_a_rd_resp_valid_reg <= 1'b1;
-    //    end else if (ram_a_cmd_wr_en && ram_a_cmd_ready) begin
-    //        for (i = 0; i < WORD_WIDTH; i = i + 1) begin
-    //            if (ram_a_cmd_wr_strb[i]) begin
-    //                mem[word_addr_a][WORD_SIZE*i+:WORD_SIZE] <= ram_a_cmd_wr_data[WORD_SIZE*i+:WORD_SIZE];
-    //            end
-    //        end
-    //    end
-    //    if (a_rst) begin
-    //        ram_a_rd_resp_valid_reg <= 1'b0;
-    //    end
-    //end
-
-
 
     assign ram_b_cmd_ready = !ram_b_rd_resp_valid_reg || ram_b_rd_resp_ready;
 
