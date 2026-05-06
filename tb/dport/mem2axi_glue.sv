@@ -84,7 +84,7 @@ module mem2axi_glue #(
     logic               mem_req_push;
     logic               mem_req_pop;
 
-    assign mem_req_push = (mem_rd_i || |mem_wr_i) && ~mem_req_full;
+    assign mem_req_push = (mem_rd_i || |mem_wr_i) && mem_accept_o;//~mem_req_full && ~wdata_full;
     assign mem_req_pop  = ar_ack || aw_ack;
 
     ringbuffer_sfifo #(
@@ -155,7 +155,7 @@ module mem2axi_glue #(
     logic               mem_rsp_pop;
 
     assign mem_rsp_push = mem_req_pop;
-    assign mem_rsp_pop  = ((r_ack && mem_rsp_data_out.rd) || (b_ack && mem_rsp_data_out.wr)) && ~mem_rsp_empty;
+    assign mem_rsp_pop  = ((r_ack && mem_rsp_data_out.rd) || (b_ack && mem_rsp_data_out.wr));// && ~mem_rsp_empty;
 
     ringbuffer_sfifo #(
         .BW               ($size(mem_rsp_t)),
@@ -179,19 +179,20 @@ module mem2axi_glue #(
 
     assign axi_araddr_o  = axi_arvalid_o ? mem_req_data_out.addr : 0;
     assign axi_arvalid_o = ~mem_req_empty && mem_req_data_out.rd;
-    assign axi_rready_o  = mem_rsp_data_out.rd;
+    assign axi_rready_o  = ~mem_rsp_empty && mem_rsp_data_out.rd;
 
     assign axi_awaddr_o  = axi_awvalid_o ? mem_req_data_out.addr : 0;
     assign axi_awvalid_o = ~mem_req_empty && mem_req_data_out.wr;
 
     assign axi_wvalid_o  = ~wdata_empty && |wdata_data_out.wr;
-    assign axi_wlast_o   = axi_awvalid_o;
+    assign axi_wlast_o   = axi_wvalid_o;
     assign axi_wdata_o   = axi_wvalid_o ? wdata_data_out.data_wr : 0;
     assign axi_wstrb_o   = axi_wvalid_o ? wdata_data_out.wr : 0;
-    assign axi_bready_o  = mem_rsp_data_out.wr;
+    assign axi_bready_o  = ~mem_rsp_empty && mem_rsp_data_out.wr;
 
     assign mem_data_rd_o = (r_ack && mem_rsp_data_out.rd) ? axi_rdata_i : 0;
-    assign mem_accept_o  = ~mem_req_full;
+    assign mem_accept_o  = ~mem_req_full && ~wdata_full && ~mem_rsp_full;
+    //assign mem_accept_o  = mem_req_empty && wdata_empty && mem_rsp_empty;
     assign mem_ack_o     = mem_rsp_pop;
     assign mem_error_o   = mem_rsp_pop && (axi_rresp_i[1] || axi_bresp_i[1]);
 
@@ -210,5 +211,15 @@ module mem2axi_glue #(
     assign axi_awlock_o  = 0;
     assign axi_awcache_o = 0;
     assign axi_awqos_o   = 0;
+
+
+    always_ff @(posedge clk_i) begin : proc_assert
+        assert (~(mem_req_push && mem_req_full));
+        assert (~(mem_req_pop && mem_req_empty));
+        assert (~(wdata_push && wdata_full));
+        assert (~(wdata_pop && wdata_empty));
+        assert (~(mem_rsp_push && mem_rsp_full));
+        assert (~(mem_rsp_pop && mem_rsp_empty));
+    end
 
 endmodule : mem2axi_glue

@@ -48,19 +48,14 @@ module dtcm #(
     //input wire b_clk,
     //input wire b_rst,
 
-    input  wire [  ID_WIDTH-1:0] ram_a_cmd_id,
-    input  wire [ADDR_WIDTH-1:0] ram_a_cmd_addr,
-    input  wire [DATA_WIDTH-1:0] ram_a_cmd_wr_data,
-    input  wire [STRB_WIDTH-1:0] ram_a_cmd_wr_strb,
-    input  wire                  ram_a_cmd_wr_en,
-    input  wire                  ram_a_cmd_rd_en,
-    input  wire                  ram_a_cmd_last,
-    output wire                  ram_a_cmd_ready,
-    output reg  [  ID_WIDTH-1:0] ram_a_rd_resp_id_reg,
-    output reg  [DATA_WIDTH-1:0] ram_a_rd_resp_data_reg,
-    output reg                   ram_a_rd_resp_last_reg,
-    output reg                   ram_a_rd_resp_valid_reg,
-    input  wire                  ram_a_rd_resp_ready,
+    output logic        port_a_accept_o,
+    output logic        port_a_ack_o,
+    input  logic [31:0] port_a_addr_i,
+    output logic [31:0] port_a_data_rd_o,
+    input  logic [31:0] port_a_data_wr_i,
+    output logic        port_a_error_o,
+    input  logic        port_a_rd_i,
+    input  logic [ 3:0] port_a_wr_i,
 
     input  wire [  ID_WIDTH-1:0] s_axi_b_awid,
     input  wire [ADDR_WIDTH-1:0] s_axi_b_awaddr,
@@ -230,12 +225,12 @@ module dtcm #(
     );
 
     // (* RAM_STYLE="BLOCK" *)
-    reg [DATA_WIDTH-1:0] mem[(2**VALID_ADDR_WIDTH)-1:0];
+    reg [DATA_WIDTH-1:0] mem[(2**VALID_ADDR_WIDTH)-1];
 
-    wire [VALID_ADDR_WIDTH-1:0] addr_a_valid;
-    assign addr_a_valid = ram_a_cmd_addr[ADDR_WIDTH-1:ADDR_WIDTH - VALID_ADDR_WIDTH];
-    wire [VALID_ADDR_WIDTH-1:0] addr_b_valid;
-    assign addr_b_valid = ram_b_cmd_addr[ADDR_WIDTH-1:ADDR_WIDTH - VALID_ADDR_WIDTH];
+    wire [VALID_ADDR_WIDTH-1:0] word_addr_a;
+    assign word_addr_a = port_a_addr_i[ADDR_WIDTH-1:ADDR_WIDTH - VALID_ADDR_WIDTH];
+    wire [VALID_ADDR_WIDTH-1:0] word_addr_b;
+    assign word_addr_b = ram_b_cmd_addr[ADDR_WIDTH-1:ADDR_WIDTH - VALID_ADDR_WIDTH];
 
     integer i, j;
 
@@ -249,28 +244,53 @@ module dtcm #(
         end
     end
 
-    assign ram_a_cmd_ready = !ram_a_rd_resp_valid_reg || ram_a_rd_resp_ready;
 
-    always @(posedge a_clk) begin
-        ram_a_rd_resp_valid_reg <= ram_a_rd_resp_valid_reg && !ram_a_rd_resp_ready;
-
-        if (ram_a_cmd_rd_en && ram_a_cmd_ready) begin
-            ram_a_rd_resp_id_reg    <= ram_a_cmd_id;
-            ram_a_rd_resp_data_reg  <= mem[addr_a_valid];
-            ram_a_rd_resp_last_reg  <= ram_a_cmd_last;
-            ram_a_rd_resp_valid_reg <= 1'b1;
-        end else if (ram_a_cmd_wr_en && ram_a_cmd_ready) begin
-            for (i = 0; i < WORD_WIDTH; i = i + 1) begin
-                if (ram_a_cmd_wr_strb[i]) begin
-                    mem[addr_a_valid][WORD_SIZE*i+:WORD_SIZE] <= ram_a_cmd_wr_data[WORD_SIZE*i+:WORD_SIZE];
+    always_ff @(posedge a_clk) begin : proc_
+        if (a_rst) begin
+            port_a_accept_o  <= 0;
+            port_a_ack_o     <= 0;
+            port_a_data_rd_o <= 0;
+        end else begin
+            port_a_accept_o  <= 1;
+            if (port_a_rd_i) begin
+                port_a_ack_o     <= 1;
+                port_a_data_rd_o <= mem[word_addr_a];
+            end else if (|port_a_wr_i) begin
+                port_a_ack_o <= 1;
+                port_a_data_rd_o <= 0;
+                for (i = 0; i < 4; i = i + 1) begin
+                    if (port_a_wr_i[i]) begin
+                        mem[word_addr_a][8*i+:8] <= port_a_data_wr_i[8*i+:8];
+                    end
                 end
+            end else begin
+                port_a_ack_o     <= 0;
+                port_a_data_rd_o <= 0;
             end
         end
-
-        if (a_rst) begin
-            ram_a_rd_resp_valid_reg <= 1'b0;
-        end
     end
+
+    //assign ram_a_cmd_ready = !ram_a_rd_resp_valid_reg || ram_a_rd_resp_ready;
+    //always @(posedge a_clk) begin
+    //    ram_a_rd_resp_valid_reg <= ram_a_rd_resp_valid_reg && !ram_a_rd_resp_ready;
+    //    if (ram_a_cmd_rd_en && ram_a_cmd_ready) begin
+    //        ram_a_rd_resp_id_reg    <= ram_a_cmd_id;
+    //        ram_a_rd_resp_data_reg  <= mem[word_addr_a];
+    //        ram_a_rd_resp_last_reg  <= ram_a_cmd_last;
+    //        ram_a_rd_resp_valid_reg <= 1'b1;
+    //    end else if (ram_a_cmd_wr_en && ram_a_cmd_ready) begin
+    //        for (i = 0; i < WORD_WIDTH; i = i + 1) begin
+    //            if (ram_a_cmd_wr_strb[i]) begin
+    //                mem[word_addr_a][WORD_SIZE*i+:WORD_SIZE] <= ram_a_cmd_wr_data[WORD_SIZE*i+:WORD_SIZE];
+    //            end
+    //        end
+    //    end
+    //    if (a_rst) begin
+    //        ram_a_rd_resp_valid_reg <= 1'b0;
+    //    end
+    //end
+
+
 
     assign ram_b_cmd_ready = !ram_b_rd_resp_valid_reg || ram_b_rd_resp_ready;
 
@@ -279,13 +299,13 @@ module dtcm #(
 
         if (ram_b_cmd_rd_en && ram_b_cmd_ready) begin
             ram_b_rd_resp_id_reg    <= ram_b_cmd_id;
-            ram_b_rd_resp_data_reg  <= mem[addr_b_valid];
+            ram_b_rd_resp_data_reg  <= mem[word_addr_b];
             ram_b_rd_resp_last_reg  <= ram_b_cmd_last;
             ram_b_rd_resp_valid_reg <= 1'b1;
         end else if (ram_b_cmd_wr_en && ram_b_cmd_ready) begin
             for (i = 0; i < WORD_WIDTH; i = i + 1) begin
                 if (ram_b_cmd_wr_strb[i]) begin
-                    mem[addr_b_valid][WORD_SIZE*i+:WORD_SIZE] <= ram_b_cmd_wr_data[WORD_SIZE*i+:WORD_SIZE];
+                    mem[word_addr_b][WORD_SIZE*i+:WORD_SIZE] <= ram_b_cmd_wr_data[WORD_SIZE*i+:WORD_SIZE];
                 end
             end
         end

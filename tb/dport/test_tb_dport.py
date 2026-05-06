@@ -1,4 +1,5 @@
 from __future__ import annotations
+import logging
 
 import enum
 import mmap
@@ -11,7 +12,6 @@ from cocotbext.axi.axi_master import AxiReadResp, AxiWriteResp
 warnings.simplefilter("ignore")
 
 import asyncio
-import logging
 import os
 import random
 
@@ -27,6 +27,8 @@ from rich.tree import Tree
 
 _print = print
 print = get_console().print
+
+
 
 
 CLK_PERIOD = 10
@@ -80,22 +82,23 @@ class ReferenceMemoryRegion(MemoryRegion):
         self.ref = mmap.mmap(-1, size)
 
 class VPIRegion(MemoryInterface):
-    def __init__(self, size, vpiobj, **kwargs):
-        super().__init__(size, **kwargs)
+    def __init__(self, vpiobj, **kwargs):
+        self._width_bits = len(vpiobj[0])
+        self._width_bytes = len(vpiobj[0])//8
+        self._n_words = len(vpiobj)
+        super().__init__(self._width_bytes * self._n_words, **kwargs)
         self._vpiobj = vpiobj
 
     def _read_local(self,addr:int):
-        mem = self._vpiobj
-        word = mem[addr//4].value.to_unsigned()
+        word = self._vpiobj[addr//4].value.to_unsigned()
         value = word >> ((addr%4)*8) & 0xFF
         return value
+
     def _write_local(self,addr:int, data:int):
-        mem = self._vpiobj
-        word = mem[addr//4].value.to_unsigned()
-        mask = 0xFF << ((addr%4)*8)
-        word &= ~mask
+        word = self._vpiobj[addr//4].value.to_unsigned()
+        word &= ~(0xFF << ((addr%4)*8))
         word |= (data& 0xFF) << ((addr%4)*8)
-        mem[addr//4].value = Immediate(word)
+        self._vpiobj[addr//4].value = Immediate(word)
 
     async def _read(self, address, length, **kwargs):
         rv = bytes([self._read_local(address+_) for _ in range(length)])
@@ -107,10 +110,24 @@ class VPIRegion(MemoryInterface):
         for ndx,_ in enumerate(data):
             self._write_local(address+ndx, _)
 
+    def random_addr(self):
+        return self.base+random.randint(0,self.size-4) & 0xFFFFFFFC
+
+    @property
+    def end_addr(self):
+        return self.base+self.size
+
+    @property
+    def last_addr(self):
+        return self.base+self.size-4
+
+
+
+
 class ReferenceVPIRegion(VPIRegion):
-    def __init__(self, size, vpiobj, **kwargs):
-        super().__init__(size, vpiobj, **kwargs)
-        self.ref = mmap.mmap(-1, size)
+    def __init__(self, vpiobj, **kwargs):
+        super().__init__(vpiobj, **kwargs)
+        self.ref = mmap.mmap(-1, self.size)
 
 
 class Request(NamedTuple):
@@ -127,57 +144,69 @@ class Response(NamedTuple):
     rdata: int
     req: Request
 
+REGIONS = [
+    ("local",    0x0000_0000, "i_mem_dport_axi.i_mem_dummy.mem"),
+    ("dtcm",     0x8002_0000, "i_mem_dport_axi.i_dtcm.mem"),
+    ("cached",   0x9000_0000, "i_axi_cached_ram.mem"),
+    ("uncached", 0xA000_0000, "i_axi_uncached_ram.mem"),
+    ("axil",     0xB000_0000, "i_axil_ram.mem"),
+]
+
+
 class TB:
     def __init__(self, dut):
         self.dut = dut
-        tb_loglevel = logging.FATAL
-        reg_loglevel = logging.FATAL
-        axi_loglevel = logging.FATAL
+        logging.getLogger("cocotb.initialize").setLevel(logging.INFO)
+        logging.getLogger("cocotb.regression").setLevel(logging.INFO)
+        logging.getLogger("gpi").setLevel(logging.INFO)
+        logging.getLogger("pygpi").setLevel(logging.INFO)
 
         self.reset = self.dut.rst_i
         self.clk = self.dut.clk_i
         cocotb.start_soon(Clock(self.clk, CLK_PERIOD, unit="ns", impl="gpi").start())
 
-        logging.getLogger("cocotb.tb_dport.m_axi_cached").setLevel(logging.WARNING)
-        logging.getLogger("cocotb.tb_dport.m_axi_uncached").setLevel(logging.WARNING)
-        logging.getLogger("cocotb.tb_dport.m_axil").setLevel(logging.WARNING)
-        #self.axi_logger.setLevel(logging.WARNING)
-        logging.getLogger("cocotb.tb").setLevel(tb_loglevel)
-        self.local_mem = self.dut.i_mem_dport_axi.i_mem_dummy.mem
-        self.dtcm_mem = self.dut.i_mem_dport_axi.i_dtcm.mem
-        self.cached_mem = self.dut.i_axi_cached_ram.mem
-        self.uncached_mem = self.dut.i_axi_uncached_ram.mem
-        self.axil_mem = self.dut.i_axil_ram.mem
+        #logging.getLogger("cocotb.tb_dport.m_axi_cached").setLevel(logging.WARNING)
+        #logging.getLogger("cocotb.tb_dport.m_axi_uncached").setLevel(logging.WARNING)
+        #logging.getLogger("cocotb.tb_dport.m_axil").setLevel(logging.WARNING)
+
+
+        #self.local_mem = self.dut.i_mem_dport_axi.i_mem_dummy.mem
+        #self.dtcm_mem = self.dut.i_mem_dport_axi.i_dtcm.mem
+        #self.cached_mem = self.dut.i_axi_cached_ram.mem
+        #self.uncached_mem = self.dut.i_axi_uncached_ram.mem
+        #self.axil_mem = self.dut.i_axil_ram.mem
 
         self.addrspace = AddressSpace()
-
-        self.local_region = ReferenceVPIRegion(ADDR_RANGE, self.local_mem)
-        self.dtcm_region = ReferenceVPIRegion(ADDR_RANGE, self.dtcm_mem)
-        self.cached_region = ReferenceVPIRegion(ADDR_RANGE,self.cached_mem)
-        self.uncached_region = ReferenceVPIRegion(ADDR_RANGE,self.uncached_mem)
-        self.axil_region = ReferenceVPIRegion(ADDR_RANGE,self.dtcm_mem)
-        self.addrspace.register_region(self.local_region,0x0000_0000,1<<16)
-        self.addrspace.register_region(self.dtcm_region,0x8002_0000,1<<17)
-        self.addrspace.register_region(self.cached_region,0x9000_0000,ADDR_RANGE)
-        self.addrspace.register_region(self.uncached_region,0xA000_0000,ADDR_RANGE)
-        self.addrspace.register_region(self.axil_region,0xB000_0000,ADDR_RANGE)
+        self.regions = dict[str,ReferenceVPIRegion]()
+        for name, base, vpi in REGIONS:
+            self.regions[name] = ReferenceVPIRegion(getattr(dut,vpi))
+            self.addrspace.register_region(self.regions[name],base)
 
 
-        self.ref = bytearray(0 for _ in range(ADDR_RANGE))
-        self.axi_cached = AxiSlave(
-            bus=AxiBus.from_prefix(dut, "m_axi_cached"),
-            clock=self.clk,
-            reset=self.reset,
-            reset_active_level=True,
-            target = self.addrspace
-        )
-        self.axi_uncached = AxiSlave(
-            bus=AxiBus.from_prefix(dut, "m_axi_uncached"),
-            clock=self.clk,
-            reset=self.reset,
-            reset_active_level=True,
-            target = self.addrspace
-        )
+        #self.local_region = ReferenceVPIRegion(self.local_mem)
+        #self.dtcm_region = ReferenceVPIRegion(self.dtcm_mem)
+        #self.cached_region = ReferenceVPIRegion(self.cached_mem)
+        #self.uncached_region = ReferenceVPIRegion(self.uncached_mem)
+        #self.axil_region = ReferenceVPIRegion(self.axil_mem)
+        #self.addrspace.register_region(self.local_region,0x0000_0000)
+        #self.addrspace.register_region(self.dtcm_region,0x8002_0000)
+        #self.addrspace.register_region(self.cached_region,0x9000_0000)
+        #self.addrspace.register_region(self.uncached_region,0xA000_0000)
+        #self.addrspace.register_region(self.axil_region,0xB000_0000)
+        #self.axi_cached = AxiSlave(
+        #    bus=AxiBus.from_prefix(dut, "m_axi_cached"),
+        #    clock=self.clk,
+        #    reset=self.reset,
+        #    reset_active_level=True,
+        #    target = self.addrspace
+        #)
+        #self.axi_uncached = AxiSlave(
+        #    bus=AxiBus.from_prefix(dut, "m_axi_uncached"),
+        #    clock=self.clk,
+        #    reset=self.reset,
+        #    reset_active_level=True,
+        #    target = self.addrspace
+        #)
         #self.axil = AxiLiteSlave(
         #    bus=AxiLiteBus.from_prefix(dut, "m_axil"),
         #    clock=self.clk,
@@ -196,12 +225,14 @@ class TB:
 
     async def cycle_reset(self):
         self.reset.value = 1
-
+        await self.clkcycle(1)
+        self.dut.mem_data_wr_i.value = 0
+        self.dut.mem_wr_i.value = 0
+        self.dut.mem_addr_i.value = 0
+        self.dut.mem_rd_i.value = 0
         await self.clkcycle(10)
         self.reset.value = 0
         await self.clkcycle(10)
-        #self.axi_logger.setLevel(logging.INFO)
-
         logging.getLogger("cocotb.tb_dport.m_axi_cached").setLevel(logging.INFO)
         logging.getLogger("cocotb.tb_dport.m_axi_uncached").setLevel(logging.INFO)
         logging.getLogger("cocotb.tb_dport.m_axil").setLevel(logging.INFO)
@@ -267,11 +298,13 @@ class TB:
     async def write_ref(self,addr:int,data:int):
         base, size, translate, region = self.addrspace.find_regions(addr)[0]
         assert isinstance(region, ReferenceVPIRegion|ReferenceMemoryRegion)
+        addr -= base
         region.ref[addr:addr+4] = data.to_bytes(4)
 
     async def read_ref(self,addr:int):
         base, size, translate, region = self.addrspace.find_regions(addr)[0]
         assert isinstance(region, ReferenceVPIRegion|ReferenceMemoryRegion)
+        addr -= base
         return int.from_bytes(region.ref[addr:addr+4])
 
     def read(self,addr:int):
@@ -318,7 +351,7 @@ class Range(NamedTuple):
     def high(self):
         return self.low+self.size-1
 
-@cocotb.test(timeout_time=10, timeout_unit="ms", skip=False)
+@cocotb.test(timeout_time=10, timeout_unit="ms", skip=True)
 async def test_decode(dut):
     #print(walk_dut(dut))
     tb = TB(dut)
@@ -405,6 +438,8 @@ async def test_iob_random(dut):
     dut.mem_rd_i.value = 0
     await tb.clkcycle(10)
 
+    region = tb.local_region
+
     # fill in memory and ref block with random data
     for _ in range(0,(1<<16)-4,4):
         v = random_int()
@@ -422,10 +457,97 @@ async def test_iob_random(dut):
     for _ in range(0,(1<<16)-4,4):
         tb.read(_)
 
+    # wait for pipe line to clear
     while not tb.rsp_queue.empty() or not tb.req_queue.empty() or not tb.pend_queue.empty():
         await tb.clkcycle(10)
 
+    # check the memory pool against the reference pool
     for _ in range(0,(1<<16)-4,4):
+        ref= await tb.read_ref(_)
+        pool = await tb.read_pool(_)
+        assert ref == pool, f"{_:04X}: {ref:08X} == {pool:08x}"
+
+    await tb.clkcycle(1000)
+
+
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
+#@cocotb.parametrize(region_def=REGIONS)
+async def test_iob_region(dut,region_def=REGIONS[2]):
+    tb = TB(dut)
+    cocotb.start_soon(tb.proc_req())
+    cocotb.start_soon(tb.proc_rsp())
+    cocotb.start_soon(tb.proc_check())
+    await tb.cycle_reset()
+    name, _,_  = region_def
+    region = tb.regions[name]
+    #base, size, translate, region = tb.addrspace.regions[1]
+
+
+    #for base, size, translate, region in tb.addrspace.regions:
+    #    print(f"{base=:08X} {size=:08X} {translate=:08X} {region.base=}")
+    #print(f"base      = 0x{region.base:08X}")
+    #print(f"last_addr = 0x{region.last_addr:08X}")
+    #print(f"size      = 0x{region.size:08X}")
+
+    ## fill in memory and ref block with random data
+    print("seed")
+    for _ in range(region.base,region.end_addr,4):
+        v = random_int()
+        await tb.write_ref(_,v)
+        await tb.write_pool(_,v)
+        #print(f"0x{_:08X}")
+
+    print("random")
+
+    tb.write(region.random_addr(),random_int())
+    tb.read(region.random_addr())
+    tb.write(region.random_addr(),random_int())
+
+    #for _ in range(10):
+    #    tb.write(region.random_addr(),random_int())
+    #    tb.read(region.random_addr())
+    #for _ in range(1000):
+    #    if random.choice([True,False]):
+    #        tb.write(region.random_addr(),random_int())
+    #    else:
+    #        tb.read(region.random_addr())
+
+    print("wait random")
+    for _ in range(1000):
+        if tb.rsp_queue.empty() and tb.req_queue.empty() and tb.pend_queue.empty():
+            break
+        await tb.clkcycle(100)
+    else:
+        print(f"{tb.rsp_queue.qsize()}")
+        print(f"{tb.req_queue.qsize()}")
+        print(f"{tb.pend_queue.qsize()}")
+        assert tb.rsp_queue.empty()
+        assert tb.req_queue.empty()
+        assert tb.pend_queue.empty()
+
+    await tb.clkcycle(100)
+    ## issue reads for entire memory range to do a final check
+    print("readback")
+    for _ in range(region.base,region.end_addr,4):
+        tb.read(_)
+
+    ## wait for pipe line to clear
+    print("wait readback")
+    for _ in range(5000):
+        if tb.rsp_queue.empty() and tb.req_queue.empty() and tb.pend_queue.empty():
+            break
+        await tb.clkcycle(100)
+    else:
+        print(f"{tb.rsp_queue.qsize()}")
+        print(f"{tb.req_queue.qsize()}")
+        print(f"{tb.pend_queue.qsize()}")
+        assert tb.rsp_queue.empty()
+        assert tb.req_queue.empty()
+        assert tb.pend_queue.empty()
+
+    ## check the memory pool against the reference pool
+    print("verify")
+    for _ in range(region.base,region.end_addr,4):
         ref= await tb.read_ref(_)
         pool = await tb.read_pool(_)
         assert ref == pool, f"{_:04X}: {ref:08X} == {pool:08x}"

@@ -23,15 +23,17 @@ module mem_dummy #(
 
     always_ff @(posedge clk_i) begin : proc_
         if (rst_i) begin
-            mem_data_rd_o <= 0;
             mem_accept_o  <= 0;
             mem_ack_o     <= 0;
+            mem_data_rd_o <= 0;
         end else begin
+            mem_accept_o  <= 1;
             if (mem_rd_i) begin
-                mem_data_rd_o <= mem[word_addr];
                 mem_ack_o     <= 1;
+                mem_data_rd_o <= mem[word_addr];
             end else if (|mem_wr_i) begin
                 mem_ack_o <= 1;
+                mem_data_rd_o <= 0;
                 for (i = 0; i < 4; i = i + 1) begin
                     if (mem_wr_i[i]) begin
                         mem[word_addr][8*i+:8] <= mem_data_wr_i[8*i+:8];
@@ -39,7 +41,6 @@ module mem_dummy #(
                 end
             end else begin
                 mem_ack_o     <= 0;
-                mem_accept_o  <= 1;
                 mem_data_rd_o <= 0;
             end
         end

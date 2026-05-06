@@ -230,7 +230,7 @@ module mem_dport_mux #(
     logic                rsp_push;
     logic                rsp_pop;
 
-    assign rsp_push = decode_valid;
+    assign rsp_push = decode_valid && decode_stall;
     assign rsp_pop  = |(rsp_ack & rsp_grant);
 
     ringbuffer_sfifo #(

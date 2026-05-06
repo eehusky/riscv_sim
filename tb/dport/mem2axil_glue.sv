@@ -67,7 +67,7 @@ module mem2axil_glue #(
     logic               mem_req_push;
     logic               mem_req_pop;
 
-    assign mem_req_push = (mem_rd_i || |mem_wr_i) && ~mem_req_full;
+    assign mem_req_push = (mem_rd_i || |mem_wr_i) && ~mem_req_full && ~wdata_full;
     assign mem_req_pop  = ar_ack || aw_ack;
 
     ringbuffer_sfifo #(
@@ -162,7 +162,7 @@ module mem2axil_glue #(
 
     assign araddr        = arvalid ? mem_req_data_out.addr : 0;
     assign arvalid       = ~mem_req_empty && mem_req_data_out.rd;
-    assign rready        = mem_rsp_data_out.rd;
+    assign rready        = ~mem_rsp_empty && mem_rsp_data_out.rd;
 
     assign awaddr        = awvalid ? mem_req_data_out.addr : 0;
     assign awvalid       = ~mem_req_empty && mem_req_data_out.wr;
@@ -170,14 +170,25 @@ module mem2axil_glue #(
     assign wvalid        = ~wdata_empty && |wdata_data_out.wr;
     assign wdata         = wvalid ? wdata_data_out.data_wr : 0;
     assign wstrb         = wvalid ? wdata_data_out.wr : 0;
-    assign bready        = mem_rsp_data_out.wr;
+    assign bready        = ~mem_rsp_empty && mem_rsp_data_out.wr;
 
     assign mem_data_rd_o = (r_ack && mem_rsp_data_out.rd) ? rdata : 0;
-    assign mem_accept_o  = ~mem_req_full;
+    assign mem_accept_o  = ~mem_req_full && ~wdata_full && ~mem_rsp_full;
     assign mem_ack_o     = mem_rsp_pop;
     assign mem_error_o   = mem_rsp_pop && (rresp[1] || bresp[1]);
 
     // constants
     assign arprot        = 0;
     assign awprot        = 0;
+
+
+    always_ff @(posedge clk_i) begin : proc_assert
+        assert (~(mem_req_push && mem_req_full));
+        assert (~(mem_req_pop && mem_req_empty));
+        assert (~(wdata_push && wdata_full));
+        assert (~(wdata_pop && wdata_empty));
+        assert (~(mem_rsp_push && mem_rsp_full));
+        assert (~(mem_rsp_pop && mem_rsp_empty));
+    end
+
 endmodule : mem2axil_glue
