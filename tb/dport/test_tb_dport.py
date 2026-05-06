@@ -491,14 +491,6 @@ async def test_iob_region(dut,region_def=REGIONS[2]):
     await tb.cycle_reset()
     name, _,_  = region_def
     region = tb.regions[name]
-    #base, size, translate, region = tb.addrspace.regions[1]
-
-
-    #for base, size, translate, region in tb.addrspace.regions:
-    #    print(f"{base=:08X} {size=:08X} {translate=:08X} {region.base=}")
-    #print(f"base      = 0x{region.base:08X}")
-    #print(f"last_addr = 0x{region.last_addr:08X}")
-    #print(f"size      = 0x{region.size:08X}")
 
     ## fill in memory and ref block with random data
     print("seed")
@@ -506,17 +498,13 @@ async def test_iob_region(dut,region_def=REGIONS[2]):
         v = random_int()
         await tb.write_ref(_,v)
         await tb.write_pool(_,v)
-        #print(f"0x{_:08X}")
 
     print("random")
 
-    tb.write(region.random_addr(),random_int())
-    tb.read(region.random_addr())
-    tb.write(region.random_addr(),random_int())
+    #tb.write(region.random_addr(),random_int())
+    #tb.read(region.random_addr())
+    #tb.write(region.random_addr(),random_int())
 
-    #for _ in range(10):
-    #    tb.write(region.random_addr(),random_int())
-    #    tb.read(region.random_addr())
     for _ in range(1000):
         if random.choice([True,False]):
             tb.write(region.random_addr(),random_int())
@@ -537,6 +525,7 @@ async def test_iob_region(dut,region_def=REGIONS[2]):
         assert tb.pend_queue.empty()
 
     await tb.clkcycle(100)
+
     ## issue reads for entire memory range to do a final check
     print("readback")
     for _ in range(region.base,region.end_addr,4):
