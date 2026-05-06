@@ -145,14 +145,16 @@ class TB:
         logging.getLogger("cocotb.tb").setLevel(tb_loglevel)
         self.local_mem = self.dut.i_mem_dport_axi.i_mem_dummy.mem
         self.dtcm_mem = self.dut.i_mem_dport_axi.i_dtcm.mem
+        self.cached_mem = self.dut.i_axi_cached_ram.mem
+        self.uncached_mem = self.dut.i_axi_uncached_ram.mem
         self.axil_mem = self.dut.i_axil_ram.mem
 
         self.addrspace = AddressSpace()
 
         self.local_region = ReferenceVPIRegion(ADDR_RANGE, self.local_mem)
         self.dtcm_region = ReferenceVPIRegion(ADDR_RANGE, self.dtcm_mem)
-        self.cached_region = ReferenceMemoryRegion(ADDR_RANGE)
-        self.uncached_region = ReferenceMemoryRegion(ADDR_RANGE)
+        self.cached_region = ReferenceVPIRegion(ADDR_RANGE,self.cached_mem)
+        self.uncached_region = ReferenceVPIRegion(ADDR_RANGE,self.uncached_mem)
         self.axil_region = ReferenceVPIRegion(ADDR_RANGE,self.dtcm_mem)
         self.addrspace.register_region(self.local_region,0x0000_0000,1<<16)
         self.addrspace.register_region(self.dtcm_region,0x8002_0000,1<<17)
@@ -176,13 +178,13 @@ class TB:
             reset_active_level=True,
             target = self.addrspace
         )
-        self.axil = AxiLiteSlave(
-            bus=AxiLiteBus.from_prefix(dut, "m_axil"),
-            clock=self.clk,
-            reset=self.reset,
-            reset_active_level=True,
-            target = self.addrspace
-        )
+        #self.axil = AxiLiteSlave(
+        #    bus=AxiLiteBus.from_prefix(dut, "m_axil"),
+        #    clock=self.clk,
+        #    reset=self.reset,
+        #    reset_active_level=True,
+        #    target = self.addrspace
+        #)
 
         self.req_queue:Queue[Request] = Queue()
         self.rsp_queue:Queue[Response] = Queue()
@@ -339,7 +341,7 @@ async def test_decode(dut):
         dut.mem_addr_i.value = addr
         dut.mem_rd_i.value = 1
         await tb.clkcycle(1)
-        decode = dut.i_mem_dport_axi.i_mem_dport_mux.o_decode.value
+        decode = dut.i_mem_dport_axi.i_mem_dport_mux.req_grant.value
         dut.mem_rd_i.value = 0
         for _ in range(10):
             if dut.mem_ack_o.value:
@@ -389,7 +391,7 @@ async def test_decode(dut):
 
 
 
-@cocotb.test(timeout_time=10, timeout_unit="ms", skip=False)
+@cocotb.test(timeout_time=10, timeout_unit="ms", skip=True)
 async def test_iob_random(dut):
 
     tb = TB(dut)

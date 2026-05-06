@@ -58,6 +58,7 @@ module mem_dport_mux #(
     output logic        axil_rd_o,
     output logic [ 3:0] axil_wr_o
 );
+    localparam int NS = 5;
 
     logic        dummy_accept;
     logic        dummy_ack;
@@ -79,11 +80,11 @@ module mem_dport_mux #(
     logic             decode_valid;
     logic             decode_stall_o;
     logic      [31:0] decode_addr;
-    logic      [ 5:0] o_decode;
+    logic      [NS:0] req_grant;
 
 
     addrdecode #(
-        .NS            (5),
+        .NS            (NS),
         .AW            (32),
         .DW            ($size(mem_data_t)),
         .SLAVE_ADDR    ({32'hB000_0000, 32'hA000_0000, 32'h9000_0000, 32'h8002_0000, 32'h0000_0000}),
@@ -105,7 +106,7 @@ module mem_dport_mux #(
         .o_addr  (decode_addr),
         .o_data  (decode_data),
         //
-        .o_decode(o_decode)
+        .o_decode(req_grant)
     );
 
     always_comb begin : proc_decode
@@ -134,7 +135,7 @@ module mem_dport_mux #(
         dummy_rd           = 0;
         dummy_wr           = 0;
         decode_stall       = 0;
-        case (o_decode)
+        case (req_grant)
             6'b000001: begin
                 periph_addr_o    = decode_addr;
                 periph_data_wr_o = decode_data.data_wr;
@@ -207,7 +208,7 @@ module mem_dport_mux #(
         endcase
     end
 
-    always_ff @(posedge i_clk) begin : proc_
+    always_ff @(posedge i_clk) begin : proc_dummy
         dummy_accept  <= 1;
         dummy_error   <= 1;
         dummy_data_rd <= 0;
@@ -218,10 +219,45 @@ module mem_dport_mux #(
         end
     end
 
+    localparam int LGRSP = 3;
+
+    typedef struct packed {logic [NS:0] decode;} rsp_data_t;
+
+    rsp_data_t           rsp_data_out;
+    logic      [LGRSP:0] rsp_fill;
+    logic                rsp_empty;
+    logic                rsp_full;
+    logic                rsp_push;
+    logic                rsp_pop;
+
+    assign rsp_push = decode_valid;
+    assign rsp_pop  = |(rsp_ack & rsp_grant);
+
+    ringbuffer_sfifo #(
+        .BW               ($size(rsp_data_t)),
+        .LGFLEN           (LGRSP),
+        .OPT_ASYNC_READ   (1),
+        .OPT_WRITE_ON_FULL(0),
+        .OPT_READ_ON_EMPTY(0)
+    ) i_rsp_fifo (
+        .i_clk  (i_clk),
+        .i_reset(i_reset),
+        .i_data ({req_grant}),
+        .i_wr   (rsp_push),
+        .i_rd   (rsp_pop),
+        .o_full (rsp_full),
+        .o_fill (rsp_fill),
+        .o_data (rsp_data_out),
+        .o_empty(rsp_empty)
+    );
+
+    logic [NS:0] rsp_ack;
+    logic [NS:0] rsp_grant;
+    assign rsp_ack   = {dummy_ack, axil_ack_i, uncached_ack_i, cached_ack_i, dtcm_ack_i, periph_ack_i};
+    assign rsp_grant = rsp_data_out.decode;
+
     always_comb begin : proc_ack
-        case ({
-            dummy_ack, axil_ack_i, uncached_ack_i, cached_ack_i, dtcm_ack_i, periph_ack_i
-        })
+        case (rsp_ack & rsp_grant)
             6'b000001: begin
                 mem_data_rd_o = periph_data_rd_i;
                 mem_ack_o     = periph_ack_i;
@@ -258,6 +294,10 @@ module mem_dport_mux #(
                 mem_error_o   = 0;
             end
         endcase
+    end
+
+    always_ff @(posedge i_clk) begin : proc_assert
+        assert ((decode_valid && |req_grant) || ~decode_valid);
     end
 
 endmodule : mem_dport_mux

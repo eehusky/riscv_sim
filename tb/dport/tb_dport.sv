@@ -68,6 +68,7 @@ module tb_dport ();
     logic [     AXI_ADDR_W-1:0] m_axi_cached_araddr;
     logic [              2-1:0] m_axi_cached_arburst;
     logic [              4-1:0] m_axi_cached_arcache;
+    logic [                2:0] m_axi_cached_arprot;
     logic [       AXI_ID_W-1:0] m_axi_cached_arid;
     logic [      AXI_LEN_W-1:0] m_axi_cached_arlen;
     logic                       m_axi_cached_arlock;
@@ -78,6 +79,7 @@ module tb_dport ();
     logic [     AXI_ADDR_W-1:0] m_axi_cached_awaddr;
     logic [              2-1:0] m_axi_cached_awburst;
     logic [              4-1:0] m_axi_cached_awcache;
+    logic [                2:0] m_axi_cached_awprot;
     logic [       AXI_ID_W-1:0] m_axi_cached_awid;
     logic [      AXI_LEN_W-1:0] m_axi_cached_awlen;
     logic                       m_axi_cached_awlock;
@@ -103,6 +105,7 @@ module tb_dport ();
     logic [     AXI_ADDR_W-1:0] m_axi_uncached_araddr;
     logic [              2-1:0] m_axi_uncached_arburst;
     logic [              4-1:0] m_axi_uncached_arcache;
+    logic [                2:0] m_axi_uncached_arprot;
     logic [       AXI_ID_W-1:0] m_axi_uncached_arid;
     logic [      AXI_LEN_W-1:0] m_axi_uncached_arlen;
     logic                       m_axi_uncached_arlock;
@@ -113,6 +116,7 @@ module tb_dport ();
     logic [     AXI_ADDR_W-1:0] m_axi_uncached_awaddr;
     logic [              2-1:0] m_axi_uncached_awburst;
     logic [              4-1:0] m_axi_uncached_awcache;
+    logic [                2:0] m_axi_uncached_awprot;
     logic [       AXI_ID_W-1:0] m_axi_uncached_awid;
     logic [      AXI_LEN_W-1:0] m_axi_uncached_awlen;
     logic                       m_axi_uncached_awlock;
@@ -307,33 +311,120 @@ module tb_dport ();
         .m_axil_wvalid         (m_axil_wvalid)
     );
 
+    localparam CACHED_ADDR_W = 17;
+    localparam UNCACHED_ADDR_W = 17;
+    localparam AXIL_ADDR_W = 16;
 
-    axil_ram #(
-        .ADDR_WIDTH(16),
-        .PIPELINE_OUTPUT(0)
-    )i_axil_ram (
-        .clk(clk_i),
-        .rst(rst_i),
-        .s_axil_awaddr(m_axil_awaddr[15:0]),
-        .s_axil_awprot(m_axil_awprot),
-        .s_axil_awvalid(m_axil_awvalid),
-        .s_axil_awready(m_axil_awready),
-        .s_axil_wdata(m_axil_wdata),
-        .s_axil_wstrb(m_axil_wstrb),
-        .s_axil_wvalid(m_axil_wvalid),
-        .s_axil_wready(m_axil_wready),
-        .s_axil_bresp(m_axil_bresp),
-        .s_axil_bvalid(m_axil_bvalid),
-        .s_axil_bready(m_axil_bready),
-        .s_axil_araddr(m_axil_araddr[15:0]),
-        .s_axil_arprot(m_axil_arprot),
-        .s_axil_arvalid(m_axil_arvalid),
-        .s_axil_arready(m_axil_arready),
-        .s_axil_rdata(m_axil_rdata),
-        .s_axil_rresp(m_axil_rresp),
-        .s_axil_rvalid(m_axil_rvalid),
-        .s_axil_rready(m_axil_rready)
+    axi_ram #(
+        .ADDR_WIDTH(CACHED_ADDR_W),
+        .ID_WIDTH  (AXI_ID_W)
+    ) i_axi_cached_ram (
+        .clk          (clk_i),
+        .rst          (rst_i),
+        .s_axi_awid   (m_axi_cached_awid),
+        .s_axi_awaddr (m_axi_cached_awaddr[CACHED_ADDR_W-1:0]),
+        .s_axi_awlen  (m_axi_cached_awlen),
+        .s_axi_awsize (m_axi_cached_awsize),
+        .s_axi_awburst(m_axi_cached_awburst),
+        .s_axi_awlock (m_axi_cached_awlock),
+        .s_axi_awcache(m_axi_cached_awcache),
+        .s_axi_awprot (m_axi_cached_awprot),
+        .s_axi_awvalid(m_axi_cached_awvalid),
+        .s_axi_awready(m_axi_cached_awready),
+        .s_axi_wdata  (m_axi_cached_wdata),
+        .s_axi_wstrb  (m_axi_cached_wstrb),
+        .s_axi_wlast  (m_axi_cached_wlast),
+        .s_axi_wvalid (m_axi_cached_wvalid),
+        .s_axi_wready (m_axi_cached_wready),
+        .s_axi_bid    (m_axi_cached_bid),
+        .s_axi_bresp  (m_axi_cached_bresp),
+        .s_axi_bvalid (m_axi_cached_bvalid),
+        .s_axi_bready (m_axi_cached_bready),
+        .s_axi_arid   (m_axi_cached_arid),
+        .s_axi_araddr (m_axi_cached_araddr[CACHED_ADDR_W-1:0]),
+        .s_axi_arlen  (m_axi_cached_arlen),
+        .s_axi_arsize (m_axi_cached_arsize),
+        .s_axi_arburst(m_axi_cached_arburst),
+        .s_axi_arlock (m_axi_cached_arlock),
+        .s_axi_arcache(m_axi_cached_arcache),
+        .s_axi_arprot (m_axi_cached_arprot),
+        .s_axi_arvalid(m_axi_cached_arvalid),
+        .s_axi_arready(m_axi_cached_arready),
+        .s_axi_rid    (m_axi_cached_rid),
+        .s_axi_rdata  (m_axi_cached_rdata),
+        .s_axi_rresp  (m_axi_cached_rresp),
+        .s_axi_rlast  (m_axi_cached_rlast),
+        .s_axi_rvalid (m_axi_cached_rvalid),
+        .s_axi_rready (m_axi_cached_rready)
     );
 
+    axi_ram #(
+        .ADDR_WIDTH(UNCACHED_ADDR_W),
+        .ID_WIDTH  (AXI_ID_W)
+    ) i_axi_uncached_ram (
+        .clk          (clk_i),
+        .rst          (rst_i),
+        .s_axi_awid   (m_axi_uncached_awid),
+        .s_axi_awaddr (m_axi_uncached_awaddr[UNCACHED_ADDR_W-1:0]),
+        .s_axi_awlen  (m_axi_uncached_awlen),
+        .s_axi_awsize (m_axi_uncached_awsize),
+        .s_axi_awburst(m_axi_uncached_awburst),
+        .s_axi_awlock (m_axi_uncached_awlock),
+        .s_axi_awcache(m_axi_uncached_awcache),
+        .s_axi_awprot (m_axi_uncached_awprot),
+        .s_axi_awvalid(m_axi_uncached_awvalid),
+        .s_axi_awready(m_axi_uncached_awready),
+        .s_axi_wdata  (m_axi_uncached_wdata),
+        .s_axi_wstrb  (m_axi_uncached_wstrb),
+        .s_axi_wlast  (m_axi_uncached_wlast),
+        .s_axi_wvalid (m_axi_uncached_wvalid),
+        .s_axi_wready (m_axi_uncached_wready),
+        .s_axi_bid    (m_axi_uncached_bid),
+        .s_axi_bresp  (m_axi_uncached_bresp),
+        .s_axi_bvalid (m_axi_uncached_bvalid),
+        .s_axi_bready (m_axi_uncached_bready),
+        .s_axi_arid   (m_axi_uncached_arid),
+        .s_axi_araddr (m_axi_uncached_araddr[UNCACHED_ADDR_W-1:0]),
+        .s_axi_arlen  (m_axi_uncached_arlen),
+        .s_axi_arsize (m_axi_uncached_arsize),
+        .s_axi_arburst(m_axi_uncached_arburst),
+        .s_axi_arlock (m_axi_uncached_arlock),
+        .s_axi_arcache(m_axi_uncached_arcache),
+        .s_axi_arprot (m_axi_uncached_arprot),
+        .s_axi_arvalid(m_axi_uncached_arvalid),
+        .s_axi_arready(m_axi_uncached_arready),
+        .s_axi_rid    (m_axi_uncached_rid),
+        .s_axi_rdata  (m_axi_uncached_rdata),
+        .s_axi_rresp  (m_axi_uncached_rresp),
+        .s_axi_rlast  (m_axi_uncached_rlast),
+        .s_axi_rvalid (m_axi_uncached_rvalid),
+        .s_axi_rready (m_axi_uncached_rready)
+    );
 
+    axil_ram #(
+        .ADDR_WIDTH     (AXIL_ADDR_W),
+        .PIPELINE_OUTPUT(0)
+    ) i_axil_ram (
+        .clk           (clk_i),
+        .rst           (rst_i),
+        .s_axil_awaddr (m_axil_awaddr[AXIL_ADDR_W-1:0]),
+        .s_axil_awprot (m_axil_awprot),
+        .s_axil_awvalid(m_axil_awvalid),
+        .s_axil_awready(m_axil_awready),
+        .s_axil_wdata  (m_axil_wdata),
+        .s_axil_wstrb  (m_axil_wstrb),
+        .s_axil_wvalid (m_axil_wvalid),
+        .s_axil_wready (m_axil_wready),
+        .s_axil_bresp  (m_axil_bresp),
+        .s_axil_bvalid (m_axil_bvalid),
+        .s_axil_bready (m_axil_bready),
+        .s_axil_araddr (m_axil_araddr[AXIL_ADDR_W-1:0]),
+        .s_axil_arprot (m_axil_arprot),
+        .s_axil_arvalid(m_axil_arvalid),
+        .s_axil_arready(m_axil_arready),
+        .s_axil_rdata  (m_axil_rdata),
+        .s_axil_rresp  (m_axil_rresp),
+        .s_axil_rvalid (m_axil_rvalid),
+        .s_axil_rready (m_axil_rready)
+    );
 endmodule : tb_dport
