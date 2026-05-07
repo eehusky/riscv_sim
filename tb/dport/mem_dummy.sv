@@ -4,7 +4,7 @@ module mem_dummy #(
     input logic clk_i,
     input logic rst_i,
 
-    mem_if.slave dport
+    dport_if.slave dport
 );
     localparam WORD_ADDR_WIDTH = ADDR_WIDTH - $clog2(4);
 

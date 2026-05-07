@@ -8,7 +8,7 @@ module mem2axi_glue #(
     input logic clk_i,
     input logic rst_i,
 
-    mem_if.slave dport,
+    dport_if.slave dport,
 
     input  logic                    axi_arready_i,
     output logic                    axi_arvalid_o,

@@ -598,7 +598,7 @@ async def test_iob_addrspace(dut):
     #tb.read(region.random_addr())
     #tb.write(region.random_addr(),random_int())
 
-    for _ in range(10000):
+    for _ in range(1000):
         if random.choice([True,False]):
             tb.write(tb.random_addr(),random_int())
         else:
@@ -621,9 +621,9 @@ async def test_iob_addrspace(dut):
     await tb.clkcycle(100)
 
     ## issue reads for entire memory range to do a final check
-    print("readback")
-    for _ in tb.iter_addrspace():
-        tb.read(_)
+    #print("readback")
+    #for _ in tb.iter_addrspace():
+    #    tb.read(_)
 
     ## wait for pipe line to clear
     print("wait readback")

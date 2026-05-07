@@ -2,16 +2,16 @@ module mem_dport_mux (
     input logic clk_i,
     input logic rst_i,
 
-    mem_if.slave  cpu,
-    mem_if.master periph,
-    mem_if.master dtcm,
-    mem_if.master cached,
-    mem_if.master uncached,
-    mem_if.master axil
+    dport_if.slave  cpu,
+    dport_if.master periph,
+    dport_if.master dtcm,
+    dport_if.master cached,
+    dport_if.master uncached,
+    dport_if.master axil
 );
     localparam int NS = 5;
 
-    mem_if dummy ();
+    dport_if dummy ();
 
     typedef struct packed {
         logic [31:0] data_wr;
@@ -243,11 +243,11 @@ module mem_dport_mux (
         endcase
     end
 
-    mem_if periph_rsp ();
-    mem_if dtcm_rsp ();
-    mem_if cached_rsp ();
-    mem_if uncached_rsp ();
-    mem_if axil_rsp ();
+    dport_if periph_rsp ();
+    dport_if dtcm_rsp ();
+    dport_if cached_rsp ();
+    dport_if uncached_rsp ();
+    dport_if axil_rsp ();
 
     mem_rsp_queue i_mem_rsp_periph (
         .clk_i    (clk_i),

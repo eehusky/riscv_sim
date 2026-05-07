@@ -155,12 +155,12 @@ module mem_dport_axi #(
     output logic [             3:0] m_axil_wstrb,
     output logic                    m_axil_wvalid
 );
-    mem_if cpu ();
-    mem_if periph ();
-    mem_if dtcm ();
-    mem_if cached ();
-    mem_if uncached ();
-    mem_if axil ();
+    dport_if cpu ();
+    dport_if periph ();
+    dport_if dtcm ();
+    dport_if cached ();
+    dport_if uncached ();
+    dport_if axil ();
 
     assign mem_accept_o  = cpu.accept;
     assign mem_ack_o     = cpu.ack;

@@ -45,7 +45,7 @@ module dtcm #(
     input wire a_clk,
     input wire a_rst,
 
-    mem_if.slave dport,
+    dport_if.slave dport,
 
     input  wire [  ID_WIDTH-1:0] s_axi_b_awid,
     input  wire [ADDR_WIDTH-1:0] s_axi_b_awaddr,

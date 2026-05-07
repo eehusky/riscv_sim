@@ -5,7 +5,7 @@ module mem2axil_glue #(
     input logic clk_i,
     input logic rst_i,
 
-    mem_if.slave dport,
+    dport_if.slave dport,
 
     output logic [ADDR_WIDTH-1:0] araddr,
     output logic [           2:0] arprot,
