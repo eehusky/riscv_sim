@@ -81,7 +81,7 @@ verilate(Vtop
         dport2iob.sv
         dport2axi.sv
         dport2axil.sv
-        addrdecode.sv
+        dport_addrdecode.sv
         dport_mux.sv
         dport.sv
         dport_ram.sv

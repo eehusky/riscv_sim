@@ -65,7 +65,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-module addrdecode #(
+module dport_addrdecode #(
     parameter NS = 8,
     parameter AW = 32,
     parameter DW = 32 + 32 / 8 + 1 + 1,
@@ -232,4 +232,4 @@ module addrdecode #(
         end
     endgenerate
 
-endmodule
+endmodule : dport_addrdecode
