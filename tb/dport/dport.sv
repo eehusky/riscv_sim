@@ -11,21 +11,21 @@ module dport #(
     input  logic                    rst_i,
     input  logic                    clk_i,
     //
-    output logic                    mem_accept_o,
-    output logic                    mem_ack_o,
-    input  logic [            31:0] mem_addr_i,
-    output logic [            31:0] mem_data_rd_o,
-    input  logic [            31:0] mem_data_wr_i,
-    output logic                    mem_error_o,
-    input  logic                    mem_rd_i,
-    input  logic [             3:0] mem_wr_i,
+    output logic                    dport_accept_o,
+    output logic                    dport_ack_o,
+    input  logic [            31:0] dport_addr_i,
+    output logic [            31:0] dport_data_rd_o,
+    input  logic [            31:0] dport_data_wr_i,
+    output logic                    dport_error_o,
+    input  logic                    dport_rd_i,
+    input  logic [             3:0] dport_wr_i,
     //
-    input  logic [            10:0] mem_req_tag_i,
-    output logic [            10:0] mem_resp_tag_o,
-    input  logic                    mem_cacheable_i,
-    input  logic                    mem_invalidate_i,
-    input  logic                    mem_writeback_i,
-    input  logic                    mem_flush_i,
+    input  logic [            10:0] dport_req_tag_i,
+    output logic [            10:0] dport_resp_tag_o,
+    input  logic                    dport_cacheable_i,
+    input  logic                    dport_invalidate_i,
+    input  logic                    dport_writeback_i,
+    input  logic                    dport_flush_i,
     //
     input  logic [  AXI_ADDR_W-1:0] s_axi_dtcm_araddr,
     input  logic [             1:0] s_axi_dtcm_arburst,
@@ -162,14 +162,14 @@ module dport #(
     dport_if uncached ();
     dport_if axil ();
 
-    assign mem_accept_o  = cpu.accept;
-    assign mem_ack_o     = cpu.ack;
-    assign mem_data_rd_o = cpu.data_rd;
-    assign mem_error_o   = cpu.error;
-    assign cpu.addr      = mem_addr_i;
-    assign cpu.data_wr   = mem_data_wr_i;
-    assign cpu.rd        = mem_rd_i;
-    assign cpu.wr        = mem_wr_i;
+    assign dport_accept_o  = cpu.accept;
+    assign dport_ack_o     = cpu.ack;
+    assign dport_data_rd_o = cpu.data_rd;
+    assign dport_error_o   = cpu.error;
+    assign cpu.addr        = dport_addr_i;
+    assign cpu.data_wr     = dport_data_wr_i;
+    assign cpu.rd          = dport_rd_i;
+    assign cpu.wr          = dport_wr_i;
 
     dport_mux i_dport_mux (
         .clk_i   (clk_i),
