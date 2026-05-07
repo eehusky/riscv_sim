@@ -160,7 +160,7 @@ module tb_dport ();
     logic                       m_axil_wvalid;
 
 
-    mem_dport_axi i_mem_dport_axi (
+    dport i_dport (
         .rst_i                 (rst_i),
         .clk_i                 (clk_i),
         .mem_accept_o          (mem_accept_o),

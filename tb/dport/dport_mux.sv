@@ -1,4 +1,4 @@
-module mem_dport_mux (
+module dport_mux (
     input logic clk_i,
     input logic rst_i,
 
@@ -311,7 +311,7 @@ module mem_dport_mux (
         assert ((decode_valid && |req_grant) || ~decode_valid);
     end
 
-endmodule : mem_dport_mux
+endmodule : dport_mux
 
 
 module mem_rsp_queue #(

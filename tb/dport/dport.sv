@@ -1,4 +1,4 @@
-module mem_dport_axi #(
+module dport #(
     parameter int AXI_ADDR_W      = 32,
     parameter int AXI_DATA_W      = 32,
     parameter int AXI_ID_W        = 4,
@@ -171,7 +171,7 @@ module mem_dport_axi #(
     assign cpu.rd        = mem_rd_i;
     assign cpu.wr        = mem_wr_i;
 
-    mem_dport_mux i_mem_dport_mux (
+    dport_mux i_dport_mux (
         .clk_i   (clk_i),
         .rst_i   (rst_i),
         .cpu     (cpu),
@@ -182,18 +182,18 @@ module mem_dport_axi #(
         .axil    (axil)
     );
 
-    mem_dummy i_mem_dummy (
+    dport_ram i_dport_ram (
         .clk_i(clk_i),
         .rst_i(rst_i),
         .dport(periph)
     );
 
-    dtcm #(
+    dport_dtcm #(
         .DATA_WIDTH(32),
         .ADDR_WIDTH(DTCM_ADDR_W),
         .STRB_WIDTH(4),
         .ID_WIDTH  (AXI_ID_W)
-    ) i_dtcm (
+    ) i_dport_dtcm (
         .a_clk          (clk_i),
         .a_rst          (rst_i),
         .dport          (dtcm),
@@ -352,4 +352,4 @@ module mem_dport_axi #(
         .wstrb  (m_axil_wstrb),
         .wvalid (m_axil_wvalid)
     );
-endmodule : mem_dport_axi
+endmodule : dport

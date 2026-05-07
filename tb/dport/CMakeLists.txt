@@ -82,11 +82,11 @@ verilate(Vtop
         mem2axi_glue.sv
         mem2axil_glue.sv
         addrdecode.sv
-        mem_dport_mux.sv
-        mem_dport_axi.sv
-        mem_dummy.sv
+        dport_mux.sv
+        dport.sv
+        dport_ram.sv
         dport_if.sv
-        dtcm.sv
+        dport_dtcm.sv
         tb_dport.sv
         #
         ${COCOTB_SHARE}/lib/verilator/verilator.cpp

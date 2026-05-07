@@ -1,4 +1,4 @@
-module mem_dummy #(
+module dport_ram #(
     parameter int ADDR_WIDTH = 16
 ) (
     input logic clk_i,
@@ -38,4 +38,4 @@ module mem_dummy #(
             end
         end
     end
-endmodule : mem_dummy
+endmodule : dport_ram
