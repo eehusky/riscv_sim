@@ -495,9 +495,9 @@ async def test_iob_random(dut):
     await tb.clkcycle(1000)
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
 @cocotb.parametrize(region_def=REGIONS)
-async def test_iob_region(dut,region_def=REGIONS[2]):
+async def test_iob_region(dut,region_def=REGIONS[0]):
     tb = TB(dut)
     cocotb.start_soon(tb.proc_req())
     cocotb.start_soon(tb.proc_rsp())
@@ -510,14 +510,18 @@ async def test_iob_region(dut,region_def=REGIONS[2]):
     print("seed")
     for _ in range(region.base,region.end_addr,4):
         v = random_int()
-        await tb.write_ref(_,v)
-        await tb.write_pool(_,v)
+        #await tb.write_ref(_,v)
+        #await tb.write_pool(_,v)
+        await tb.write_ref(_,_)
+        await tb.write_pool(_,_)
 
     print("random")
 
     #tb.write(region.random_addr(),random_int())
     #tb.read(region.random_addr())
     #tb.write(region.random_addr(),random_int())
+    #for _ in range(10):
+    #    tb.read(_*4)
 
     for _ in range(1000):
         if random.choice([True,False]):
@@ -569,7 +573,7 @@ async def test_iob_region(dut,region_def=REGIONS[2]):
     await tb.clkcycle(1000)
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
 async def test_iob_addrspace(dut):
     tb = TB(dut)
     cocotb.start_soon(tb.proc_req())
@@ -594,15 +598,15 @@ async def test_iob_addrspace(dut):
     #tb.read(region.random_addr())
     #tb.write(region.random_addr(),random_int())
 
-    for _ in range(1000):
-        #if random.choice([True,False]):
-        #    tb.write(tb.random_addr(),random_int())
-        #else:
-        tb.read(tb.random_addr())
+    for _ in range(10000):
+        if random.choice([True,False]):
+            tb.write(tb.random_addr(),random_int())
+        else:
+            tb.read(tb.random_addr())
         #await tb.clkcycle(2)
 
     print("wait random")
-    for _ in range(1000):
+    for _ in range(5000):
         if tb.rsp_queue.empty() and tb.req_queue.empty() and tb.pend_queue.empty():
             break
         await tb.clkcycle(100)
@@ -617,9 +621,9 @@ async def test_iob_addrspace(dut):
     await tb.clkcycle(100)
 
     ## issue reads for entire memory range to do a final check
-    #print("readback")
-    #for _ in tb.iter_addrspace():
-    #    tb.read(_)
+    print("readback")
+    for _ in tb.iter_addrspace():
+        tb.read(_)
 
     ## wait for pipe line to clear
     print("wait readback")

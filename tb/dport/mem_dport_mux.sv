@@ -1,8 +1,6 @@
-module mem_dport_mux #(
-
-) (
-    input logic i_reset,
-    input logic i_clk,
+module mem_dport_mux (
+    input logic clk_i,
+    input logic rst_i,
 
     mem_if.slave  cpu,
     mem_if.master periph,
@@ -39,8 +37,8 @@ module mem_dport_mux #(
         .OPT_REGISTERED(0),
         .OPT_LOWPOWER  (1)
     ) i_addrdecode (
-        .i_clk   (i_clk),
-        .i_reset (i_reset),
+        .i_clk   (clk_i),
+        .i_reset (rst_i),
         //
         .i_valid (cpu.rd || |cpu.wr),
         .o_stall (cpu.accept),
@@ -154,7 +152,7 @@ module mem_dport_mux #(
         endcase
     end
 
-    always_ff @(posedge i_clk) begin : proc_dummy
+    always_ff @(posedge clk_i) begin : proc_dummy
         dummy.accept  <= 1;
         dummy.error   <= 1;
         dummy.data_rd <= 0;
@@ -186,8 +184,8 @@ module mem_dport_mux #(
         .OPT_WRITE_ON_FULL(0),
         .OPT_READ_ON_EMPTY(0)
     ) i_rsp_fifo (
-        .i_clk  (i_clk),
-        .i_reset(i_reset),
+        .i_clk  (clk_i),
+        .i_reset(rst_i),
         .i_data ({req_grant}),
         .i_wr   (rsp_push),
         .i_rd   (rsp_pop),
@@ -201,54 +199,181 @@ module mem_dport_mux #(
     logic [NS:0] rsp_ack;
     logic [NS:0] rsp_grant;
 
-    assign rsp_ready = {dummy.ack, axil.ack, uncached.ack, cached.ack, dtcm.ack, periph.ack};
+    assign rsp_ready = {dummy.ack, axil_rsp.ack, uncached_rsp.ack, cached_rsp.ack, dtcm_rsp.ack, periph_rsp.ack};
     assign rsp_grant = rsp_data_out.decode;
     assign rsp_ack   = rsp_ready & rsp_grant;
 
     always_comb begin : proc_ack
         case (rsp_ack)
             6'b000001: begin
-                cpu.data_rd = periph.data_rd;
-                cpu.ack     = periph.ack;
-                cpu.error   = periph.error;
+                cpu.ack     = periph_rsp.ack;
+                cpu.data_rd = periph_rsp.data_rd;
+                cpu.error   = periph_rsp.error;
             end
             6'b000010: begin
-                cpu.data_rd = dtcm.data_rd;
-                cpu.ack     = dtcm.ack;
-                cpu.error   = dtcm.error;
+                cpu.ack     = dtcm_rsp.ack;
+                cpu.data_rd = dtcm_rsp.data_rd;
+                cpu.error   = dtcm_rsp.error;
             end
             6'b000100: begin
-                cpu.data_rd = cached.data_rd;
-                cpu.ack     = cached.ack;
-                cpu.error   = cached.error;
+                cpu.ack     = cached_rsp.ack;
+                cpu.data_rd = cached_rsp.data_rd;
+                cpu.error   = cached_rsp.error;
             end
             6'b001000: begin
-                cpu.data_rd = uncached.data_rd;
-                cpu.ack     = uncached.ack;
-                cpu.error   = uncached.error;
+                cpu.ack     = uncached_rsp.ack;
+                cpu.data_rd = uncached_rsp.data_rd;
+                cpu.error   = uncached_rsp.error;
             end
             6'b010000: begin
-                cpu.data_rd = axil.data_rd;
-                cpu.ack     = axil.ack;
-                cpu.error   = axil.error;
+                cpu.ack     = axil_rsp.ack;
+                cpu.data_rd = axil_rsp.data_rd;
+                cpu.error   = axil_rsp.error;
             end
             6'b100000: begin
-                cpu.data_rd = dummy.data_rd;
                 cpu.ack     = dummy.ack;
+                cpu.data_rd = dummy.data_rd;
                 cpu.error   = dummy.error;
             end
             default: begin
-                cpu.data_rd = 0;
                 cpu.ack     = 0;
+                cpu.data_rd = 0;
                 cpu.error   = 0;
             end
         endcase
     end
 
-    always_ff @(posedge i_clk) begin : proc_assert
+    mem_if periph_rsp ();
+    mem_if dtcm_rsp ();
+    mem_if cached_rsp ();
+    mem_if uncached_rsp ();
+    mem_if axil_rsp ();
+
+    mem_rsp_queue i_mem_rsp_periph (
+        .clk_i    (clk_i),
+        .rst_i    (rst_i),
+        .pop_i    (rsp_ack[0]),
+        .ack_i    (periph.ack),
+        .data_rd_i(periph.data_rd),
+        .error_i  (periph.error),
+        .ack_o    (periph_rsp.ack),
+        .data_rd_o(periph_rsp.data_rd),
+        .error_o  (periph_rsp.error)
+    );
+    mem_rsp_queue i_mem_rsp_dtcm (
+        .clk_i    (clk_i),
+        .rst_i    (rst_i),
+        .pop_i    (rsp_ack[1]),
+        .ack_i    (dtcm.ack),
+        .data_rd_i(dtcm.data_rd),
+        .error_i  (dtcm.error),
+        .ack_o    (dtcm_rsp.ack),
+        .data_rd_o(dtcm_rsp.data_rd),
+        .error_o  (dtcm_rsp.error)
+    );
+    mem_rsp_queue i_mem_rsp_cached (
+        .clk_i    (clk_i),
+        .rst_i    (rst_i),
+        .pop_i    (rsp_ack[2]),
+        .ack_i    (cached.ack),
+        .data_rd_i(cached.data_rd),
+        .error_i  (cached.error),
+        .ack_o    (cached_rsp.ack),
+        .data_rd_o(cached_rsp.data_rd),
+        .error_o  (cached_rsp.error)
+    );
+    mem_rsp_queue i_mem_rsp_uncached (
+        .clk_i    (clk_i),
+        .rst_i    (rst_i),
+        .pop_i    (rsp_ack[3]),
+        .ack_i    (uncached.ack),
+        .data_rd_i(uncached.data_rd),
+        .error_i  (uncached.error),
+        .ack_o    (uncached_rsp.ack),
+        .data_rd_o(uncached_rsp.data_rd),
+        .error_o  (uncached_rsp.error)
+    );
+    mem_rsp_queue i_mem_rsp_axil (
+        .clk_i    (clk_i),
+        .rst_i    (rst_i),
+        .pop_i    (rsp_ack[4]),
+        .ack_i    (axil.ack),
+        .data_rd_i(axil.data_rd),
+        .error_i  (axil.error),
+        .ack_o    (axil_rsp.ack),
+        .data_rd_o(axil_rsp.data_rd),
+        .error_o  (axil_rsp.error)
+    );
+
+    always_ff @(posedge clk_i) begin : proc_assert
         assert (~(rsp_push && rsp_full));
         assert (~(rsp_pop && rsp_empty));
         assert ((decode_valid && |req_grant) || ~decode_valid);
     end
 
 endmodule : mem_dport_mux
+
+
+module mem_rsp_queue #(
+    parameter int LGDEPTH = 3
+) (
+    input  logic        clk_i,
+    input  logic        rst_i,
+    //
+    input  logic        ack_i,
+    input  logic [31:0] data_rd_i,
+    input  logic        error_i,
+    //
+    input  logic        pop_i,
+    //
+    output logic        ack_o,
+    output logic [31:0] data_rd_o,
+    output logic        error_o
+);
+
+    typedef struct packed {
+        logic        ack;
+        logic [31:0] data_rd;
+        logic        error;
+    } rsp_data_t;
+
+    rsp_data_t             rsp_data_out;
+    logic      [LGDEPTH:0] rsp_fill;
+    logic                  rsp_empty;
+    logic                  rsp_full;
+    logic                  rsp_push;
+    logic                  rsp_pop;
+
+    assign rsp_push = ack_i;
+    assign rsp_pop  = pop_i && ~rsp_empty;
+
+    ringbuffer_sfifo #(
+        .BW               ($size(rsp_data_t)),
+        .LGFLEN           (LGDEPTH),
+        .OPT_ASYNC_READ   (1),
+        .OPT_WRITE_ON_FULL(0),
+        .OPT_READ_ON_EMPTY(1)
+    ) i_rsp_fifo (
+        .i_clk  (clk_i),
+        .i_reset(rst_i),
+        .i_data ({ack_i, data_rd_i, error_i}),
+        .i_wr   (rsp_push),
+        .i_rd   (rsp_pop),
+        .o_full (rsp_full),
+        .o_fill (rsp_fill),
+        .o_data (rsp_data_out),
+        .o_empty(rsp_empty)
+    );
+
+    assign ack_o     = rsp_data_out.ack && ~rsp_empty;
+    assign data_rd_o = rsp_data_out.data_rd;
+    assign error_o   = rsp_data_out.error;
+
+    always_ff @(posedge clk_i) begin : proc_assert
+        assert (~(rsp_push && rsp_full));
+        assert (~(rsp_pop && rsp_empty));
+    end
+
+
+endmodule : mem_rsp_queue
+

@@ -172,8 +172,8 @@ module mem_dport_axi #(
     assign cpu.wr        = mem_wr_i;
 
     mem_dport_mux i_mem_dport_mux (
-        .i_reset (rst_i),
-        .i_clk   (clk_i),
+        .clk_i   (clk_i),
+        .rst_i   (rst_i),
         .cpu     (cpu),
         .periph  (periph),
         .dtcm    (dtcm),
