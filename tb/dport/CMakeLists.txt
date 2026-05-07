@@ -86,6 +86,7 @@ verilate(Vtop
         dport.sv
         dport_ram.sv
         dport_if.sv
+        dport_rsp_queue.sv
         dport_dtcm.sv
         tb_dport.sv
         #
