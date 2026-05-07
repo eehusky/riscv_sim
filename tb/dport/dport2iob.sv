@@ -1,5 +1,4 @@
-
-module mem2iob_glue #(
+module dport2iob #(
     parameter int ADDR_W,
     parameter int DATA_W
 ) (
@@ -114,6 +113,6 @@ module mem2iob_glue #(
     assign iob_addr_o    = mem_req_data_out.addr[24:0];
     assign iob_wdata_o   = mem_req_data_out.data_wr;
     assign iob_wstrb_o   = mem_req_data_out.wr;
-endmodule : mem2iob_glue
+endmodule : dport2iob
 
 

@@ -1,5 +1,4 @@
-
-module mem2axi_glue #(
+module dport2axi #(
     parameter int AXI_ADDR_W,
     parameter int AXI_DATA_W,
     parameter int AXI_ID_W,
@@ -215,4 +214,4 @@ module mem2axi_glue #(
         assert (~(mem_rsp_pop && mem_rsp_empty));
     end
 
-endmodule : mem2axi_glue
+endmodule : dport2axi

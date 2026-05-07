@@ -1,5 +1,4 @@
-
-module mem2axil_glue #(
+module dport2axil #(
     parameter int ADDR_WIDTH = 32
 ) (
     input logic clk_i,
@@ -28,12 +27,12 @@ module mem2axil_glue #(
     output logic                  wvalid
 );
 
-    mem2axi_glue #(
+    dport2axi #(
         .AXI_ADDR_W(ADDR_WIDTH),
         .AXI_DATA_W(32),
         .AXI_ID_W  (1),
         .AXI_LEN_W (1)
-    ) i_mem2axil_convert (
+    ) i_dport2axil (
         .clk_i        (clk_i),
         .rst_i        (rst_i),
         .dport        (dport),
@@ -82,4 +81,4 @@ module mem2axil_glue #(
     assign arprot = 0;
     assign awprot = 0;
 
-endmodule : mem2axil_glue
+endmodule : dport2axil

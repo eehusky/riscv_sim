@@ -234,12 +234,12 @@ module dport #(
         .s_axi_b_rready (s_axi_dtcm_rready)
     );
 
-    mem2axi_glue #(
+    dport2axi #(
         .AXI_ID_W  (AXI_ID_W),
         .AXI_LEN_W (AXI_LEN_W),
         .AXI_ADDR_W(AXI_ADDR_W),
         .AXI_DATA_W(AXI_DATA_W)
-    ) i_mem2axi_glue_cached (
+    ) i_dport2axi_cached (
         .clk_i        (clk_i),
         .rst_i        (rst_i),
         .dport        (cached),
@@ -280,12 +280,12 @@ module dport #(
         .axi_bid_i    (m_axi_cached_bid)
     );
 
-    mem2axi_glue #(
+    dport2axi #(
         .AXI_ID_W  (AXI_ID_W),
         .AXI_LEN_W (AXI_LEN_W),
         .AXI_ADDR_W(AXI_ADDR_W),
         .AXI_DATA_W(AXI_DATA_W)
-    ) i_mem2axi_glue_uncached (
+    ) i_dport2axi_uncached (
         .clk_i        (clk_i),
         .rst_i        (rst_i),
         .dport        (uncached),
@@ -326,9 +326,9 @@ module dport #(
         .axi_bid_i    (m_axi_uncached_bid)
     );
 
-    mem2axil_glue #(
+    dport2axil #(
         .ADDR_WIDTH(AXI_ADDR_W)
-    ) i_mem2axil_glue (
+    ) i_dport2axil (
         .clk_i  (clk_i),
         .rst_i  (rst_i),
         .dport  (axil),

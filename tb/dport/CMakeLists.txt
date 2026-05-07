@@ -78,9 +78,9 @@ verilate(Vtop
         #
         ${REPO_DIR}/cores/ringbuffer/ringbuffer_sfifo.v
         tb_dport.vlt
-        mem2iob_glue.sv
-        mem2axi_glue.sv
-        mem2axil_glue.sv
+        dport2iob.sv
+        dport2axi.sv
+        dport2axil.sv
         addrdecode.sv
         dport_mux.sv
         dport.sv
