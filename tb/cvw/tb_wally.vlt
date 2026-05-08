@@ -1,0 +1,8 @@
+`verilator_config
+
+//public_flat_rw -scope "tb_wally.i_riscv_top_wrapper"
+//tracing_off -scope "tb_biriscv_idcache_top.i_riscv_top_wrapper"
+//tracing_on  -scope "tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_dcache"
+//tracing_on  -scope "tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_csr"
+//tracing_on  -scope "tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_issue.u_pipe0_dec0_verif"
+//tracing_on  -scope "tb_biriscv_idcache_top.i_riscv_top_wrapper.i_riscv_tcm_top.u_core.u_issue.u_pipe0_dec1_verif"

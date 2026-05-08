@@ -4,10 +4,7 @@ This is a collection of odds and ends to make a up a full RISCV RTL simulation e
 
 Below is a list of various projects being used
 
-* AXI xbar/RAM/AXIL converter: https://github.com/alexforencich/verilog-axi
-* Simulator: https://github.com/verilator/verilator
-* RISCV GCC Toolchain: https://github.com/riscv-collab/riscv-gnu-toolchain
-* FreeRTOS: https://github.com/FreeRTOS/FreeRTOS
+
 
 ## Opensource RISCV Cores/Odds And Ends
 
@@ -38,7 +35,6 @@ Below is a list of various projects being used
 | [CV32E41P](https://github.com/openhwgroup/cv32e41p)   | 4-stage, embedded-class core prototyping Zfinx and Zce at TRL3                 |
 
 
-
 ### Cachii
 
 * https://github.com/pulp-platform/axi_llc
@@ -49,6 +45,46 @@ Below is a list of various projects being used
 
 * https://github.com/AngeloJacobo/UberDDR3
 
+### AXI Plumbing
+
+* https://github.com/ZipCPU/wb2axip
+* https://github.com/alexforencich/verilog-axi
+* https://github.com/pulp-platform/axi
+
+### Software
+
+* Simulator: https://github.com/verilator/verilator
+* RISCV GCC Toolchain: https://github.com/riscv-collab/riscv-gnu-toolchain
+* FreeRTOS: https://github.com/FreeRTOS/FreeRTOS
+
+
+## Errata
+
+Notes and observations made in the pursuit of finding the perfect RISCV core
+
+* CVW
+    * uses AHB...i hate using AHB buses
+    * Something in the Mult/Div extensions blows the verilation process up so it takes ~15 minutes to finish
+* biriscv
+    * Cache AXI interfaces are only 32 bit
+    * Vector Interrupts dont work
+    * wfi doesnt wait for anything
+    * mtime is csr based instead of mm and isnt 64 bits
+    * the dcache line invalidate extension doesnt seem to work correctly
+        * ```asm volatile("csrw pmpcfg2, %0" : : "r"(addr));```
+        * this means when something is DMA'd into a cacheable region of ram you need to do a full dcache flush inorder to retrieve the contents instead of just invalidating the region of interest.
+* rsd
+    * integration with external modules is sort of a hot mess.  spent an afternoon trying to do memory accesses outside of RAM and gave up on this one.
+
+
+## FreeRTOS QEMU notes
+
+
+export PATH=/opt/riscv/bin:$PATH
+qemu-system-riscv32 -nographic -machine virt -net none \
+  -chardev stdio,id=con,mux=on -serial chardev:con \
+  -mon chardev=con,mode=readline -bios none \
+  -smp 4 -kernel ./build/RTOSDemo.axf
 
 
 ## BIRISCV
@@ -82,33 +118,3 @@ Memory: 0x80004150 - 0x8000a3e7 (Size=24KB) [.bss]
 483619: 0: Rx: Blink2
 488855: 0: Tx: Transfer1
 ```
-
-
-
-## Errata
-
-Notes and observations made in the pursuit of finding the perfect RISCV core
-
-* CVW
-    * uses AHB...i hate using AHB buses
-    * Something in the Mult/Div extensions blows the verilation process up so it takes ~15 minutes to finish
-* biriscv
-    * Cache AXI interfaces are only 32 bit
-    * Vector Interrupts dont work
-    * wfi doesnt wait for anything
-    * mtime is csr based instead of mm and isnt 64 bits
-    * the dcache line invalidate extension doesnt seem to work correctly
-        * ```asm volatile("csrw pmpcfg2, %0" : : "r"(addr));```
-        * this means when something is DMA'd into a cacheable region of ram you need to do a full dcache flush inorder to retrieve the contents instead of just invalidating the region of interest.
-* rsd
-    * integration with external modules is sort of a hot mess.  spent an afternoon trying to do memory accesses outside of RAM and gave up on this one.
-
-
-## FreeRTOS QEMU notes
-
-
-export PATH=/opt/riscv/bin:$PATH
-qemu-system-riscv32 -nographic -machine virt -net none \
-  -chardev stdio,id=con,mux=on -serial chardev:con \
-  -mon chardev=con,mode=readline -bios none \
-  -smp 4 -kernel ./build/RTOSDemo.axf

@@ -1,3 +1,6 @@
 [submodule "cores/biriscv"]
 	path = cores/biriscv
 	url = git@github.com:ultraembedded/biriscv.git
+[submodule "cores/cv32e40p"]
+	path = cores/cv32e40p
+	url = git@github.com:openhwgroup/cv32e40p.git
