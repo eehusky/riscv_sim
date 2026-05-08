@@ -4,11 +4,10 @@ This is a collection of odds and ends to make a up a full RISCV RTL simulation e
 
 Below is a list of various projects being used
 
-RISCV Core:
-AXI xbar/RAM/AXIL converter: https://github.com/alexforencich/verilog-axi
-Simulator: https://github.com/verilator/verilator
-RISCV GCC Toolchain: https://github.com/riscv-collab/riscv-gnu-toolchain
-FreeRTOS: https://github.com/FreeRTOS/FreeRTOS
+* AXI xbar/RAM/AXIL converter: https://github.com/alexforencich/verilog-axi
+* Simulator: https://github.com/verilator/verilator
+* RISCV GCC Toolchain: https://github.com/riscv-collab/riscv-gnu-toolchain
+* FreeRTOS: https://github.com/FreeRTOS/FreeRTOS
 
 ## Opensource RISCV Cores/Odds And Ends
 
@@ -35,7 +34,6 @@ FreeRTOS: https://github.com/FreeRTOS/FreeRTOS
 | CV32E40PV2    | 4-stage, embedded-class core extending CV32E40Pv1 with FPU and PULP extensions |
 | CV32E40S      | 4-stage, embedded-class core with security focus                               |
 | CV32E20       | 2-stage, embedded-class microcontroller core and core complex                  |
-
 | CV32E40P      | 4-stage, embedded-class core implementing PULP extensions at TRL5              |
 | CVA5          | 5-stage, FPGA-optimized application-class core at TRL3                         |
 | CV32E41P      | 4-stage, embedded-class core prototyping Zfinx and Zce at TRL3                 |
@@ -43,13 +41,13 @@ FreeRTOS: https://github.com/FreeRTOS/FreeRTOS
 
 ### Cachii
 
-    * https://github.com/pulp-platform/axi_llc
-    * https://github.com/pulp-platform/ace
-    * https://github.com/IObundle/iob-cache
+* https://github.com/pulp-platform/axi_llc
+* https://github.com/pulp-platform/ace
+* https://github.com/IObundle/iob-cache
 
 ### DDR
 
-    * https://github.com/AngeloJacobo/UberDDR3
+* https://github.com/AngeloJacobo/UberDDR3
 
 
 
