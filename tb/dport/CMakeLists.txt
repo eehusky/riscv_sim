@@ -77,17 +77,18 @@ verilate(Vtop
         ${VERILOG_AXI}/rtl/axi_ram.v
         #
         ${REPO_DIR}/cores/ringbuffer/ringbuffer_sfifo.v
+        ${REPO_DIR}/rtl/dport/dport2iob.sv
+        ${REPO_DIR}/rtl/dport/dport2axi.sv
+        ${REPO_DIR}/rtl/dport/dport2axil.sv
+        ${REPO_DIR}/rtl/dport/dport_addrdecode.sv
+        ${REPO_DIR}/rtl/dport/dport_mux.sv
+        ${REPO_DIR}/rtl/dport/dport.sv
+        ${REPO_DIR}/rtl/dport/dport_ram.sv
+        ${REPO_DIR}/rtl/dport/dport_if.sv
+        ${REPO_DIR}/rtl/dport/dport_rsp_queue.sv
+        ${REPO_DIR}/rtl/dport/dport_dtcm.sv
+        #
         tb_dport.vlt
-        dport2iob.sv
-        dport2axi.sv
-        dport2axil.sv
-        dport_addrdecode.sv
-        dport_mux.sv
-        dport.sv
-        dport_ram.sv
-        dport_if.sv
-        dport_rsp_queue.sv
-        dport_dtcm.sv
         tb_dport.sv
         #
         ${COCOTB_SHARE}/lib/verilator/verilator.cpp

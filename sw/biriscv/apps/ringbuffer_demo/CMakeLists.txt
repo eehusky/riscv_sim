@@ -58,8 +58,6 @@ target_link_libraries(${TARGET}.elf
 
 set(PROJECT_C_FLAGS
     -Os
-    -Wall
-    -Wno-format
     -nostartfiles
     -fno-exceptions
     -ffunction-sections
@@ -69,9 +67,9 @@ set(PROJECT_C_FLAGS
     -MD
     -mcmodel=medany
     -mstrict-align
-    -D__riscv_float_abi_soft
 )
 set(PROJECT_LINKER_FLAGS
+    --entry _start
     -nostdlib
     -T${LINKER_SCRIPT}
     -Wl,-Map=${TARGET}.map
@@ -80,6 +78,7 @@ set(PROJECT_LINKER_FLAGS
     -Wl,-Arv32im
     -Wl,-belf32-littleriscv
 )
+
 
 
 ## ----------------------------------------------------------------------------
