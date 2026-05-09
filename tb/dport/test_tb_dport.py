@@ -495,7 +495,7 @@ async def test_iob_random(dut):
     await tb.clkcycle(1000)
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
 @cocotb.parametrize(region_def=REGIONS)
 async def test_iob_region(dut,region_def=REGIONS[0]):
     tb = TB(dut)
@@ -573,7 +573,7 @@ async def test_iob_region(dut,region_def=REGIONS[0]):
     await tb.clkcycle(1000)
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
 async def test_iob_addrspace(dut):
     tb = TB(dut)
     cocotb.start_soon(tb.proc_req())

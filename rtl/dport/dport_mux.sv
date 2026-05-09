@@ -2,21 +2,22 @@ module dport_mux (
     input logic clk_i,
     input logic rst_i,
 
-    dport_if.slave  cpu,
-    dport_if.master periph,
-    dport_if.master dtcm,
-    dport_if.master cached,
-    dport_if.master uncached,
-    dport_if.master axil
+    obi_if.slave  cpu,
+    obi_if.master periph,
+    obi_if.master dtcm,
+    obi_if.master cached,
+    obi_if.master uncached,
+    obi_if.master axil
 );
     localparam int NS = 5;
 
-    dport_if dummy ();
+    obi_if dummy ();
 
     typedef struct packed {
-        logic [31:0] data_wr;
-        logic        rd;
-        logic [3:0]  wr;
+        logic                      we;
+        logic [cpu.STRB_WIDTH-1:0] be;
+        logic [cpu.DATA_WIDTH-1:0] wdata;
+        logic [cpu.ID_WIDTH-1:0]   aid;
     } mem_data_t;
 
     mem_data_t        decode_data;
@@ -25,7 +26,6 @@ module dport_mux (
     logic             decode_stall_o;
     logic      [31:0] decode_addr;
     logic      [NS:0] req_grant;
-
 
     dport_addrdecode #(
         .NS            (NS),
@@ -40,10 +40,10 @@ module dport_mux (
         .i_clk   (clk_i),
         .i_reset (rst_i),
         //
-        .i_valid (cpu.rd || |cpu.wr),
-        .o_stall (cpu.accept),
+        .i_valid (cpu.req),
+        .o_stall (cpu.gnt),
         .i_addr  (cpu.addr),
-        .i_data  ({cpu.data_wr, cpu.rd, cpu.wr}),
+        .i_data  ({cpu.we, cpu.be, cpu.wdata, cpu.aid}),
         //
         .o_valid (decode_valid),
         .i_stall (decode_stall),
@@ -54,112 +54,148 @@ module dport_mux (
     );
 
     always_comb begin : proc_decode
-        periph.addr      = 0;
-        periph.data_wr   = 0;
-        periph.rd        = 0;
-        periph.wr        = 0;
-        dtcm.addr        = 0;
-        dtcm.data_wr     = 0;
-        dtcm.rd          = 0;
-        dtcm.wr          = 0;
-        cached.addr      = 0;
-        cached.data_wr   = 0;
-        cached.rd        = 0;
-        cached.wr        = 0;
-        uncached.addr    = 0;
-        uncached.data_wr = 0;
-        uncached.rd      = 0;
-        uncached.wr      = 0;
-        axil.addr        = 0;
-        axil.data_wr     = 0;
-        axil.rd          = 0;
-        axil.wr          = 0;
-        dummy.addr       = 0;
-        dummy.data_wr    = 0;
-        dummy.rd         = 0;
-        dummy.wr         = 0;
-        decode_stall     = 0;
+        periph.req     = 0;
+        periph.addr    = 0;
+        periph.we      = 0;
+        periph.be      = 0;
+        periph.wdata   = 0;
+        periph.aid     = 0;
+        dtcm.req       = 0;
+        dtcm.addr      = 0;
+        dtcm.we        = 0;
+        dtcm.be        = 0;
+        dtcm.wdata     = 0;
+        dtcm.aid       = 0;
+        cached.req     = 0;
+        cached.addr    = 0;
+        cached.we      = 0;
+        cached.be      = 0;
+        cached.wdata   = 0;
+        cached.aid     = 0;
+        uncached.req   = 0;
+        uncached.addr  = 0;
+        uncached.we    = 0;
+        uncached.be    = 0;
+        uncached.wdata = 0;
+        uncached.aid   = 0;
+        axil.req       = 0;
+        axil.addr      = 0;
+        axil.we        = 0;
+        axil.be        = 0;
+        axil.wdata     = 0;
+        axil.aid       = 0;
+        dummy.req      = 0;
+        dummy.addr     = 0;
+        dummy.we       = 0;
+        dummy.be       = 0;
+        dummy.wdata    = 0;
+        dummy.aid      = 0;
+        decode_stall   = 0;
         case (req_grant)
             6'b000001: begin
-                periph.addr    = decode_addr;
-                periph.data_wr = decode_data.data_wr;
-                periph.rd      = decode_data.rd;
-                periph.wr      = decode_data.wr;
-                decode_stall   = periph.accept;
+                periph.req   = decode_valid;
+                periph.addr  = decode_addr;
+                periph.we    = decode_data.we;
+                periph.be    = decode_data.be;
+                periph.wdata = decode_data.wdata;
+                periph.aid   = decode_data.aid;
+                decode_stall = periph.gnt;
             end
             6'b000010: begin
+                dtcm.req     = decode_valid;
                 dtcm.addr    = decode_addr;
-                dtcm.data_wr = decode_data.data_wr;
-                dtcm.rd      = decode_data.rd;
-                dtcm.wr      = decode_data.wr;
-                decode_stall = dtcm.accept;
+                dtcm.we      = decode_data.we;
+                dtcm.be      = decode_data.be;
+                dtcm.wdata   = decode_data.wdata;
+                dtcm.aid     = decode_data.aid;
+                decode_stall = dtcm.gnt;
             end
             6'b000100: begin
-                cached.addr    = decode_addr;
-                cached.data_wr = decode_data.data_wr;
-                cached.rd      = decode_data.rd;
-                cached.wr      = decode_data.wr;
-                decode_stall   = cached.accept;
+                cached.req   = decode_valid;
+                cached.addr  = decode_addr;
+                cached.we    = decode_data.we;
+                cached.be    = decode_data.be;
+                cached.wdata = decode_data.wdata;
+                cached.aid   = decode_data.aid;
+                decode_stall = cached.gnt;
             end
             6'b001000: begin
-                uncached.addr    = decode_addr;
-                uncached.data_wr = decode_data.data_wr;
-                uncached.rd      = decode_data.rd;
-                uncached.wr      = decode_data.wr;
-                decode_stall     = uncached.accept;
+                uncached.req   = decode_valid;
+                uncached.addr  = decode_addr;
+                uncached.we    = decode_data.we;
+                uncached.be    = decode_data.be;
+                uncached.wdata = decode_data.wdata;
+                uncached.aid   = decode_data.aid;
+                decode_stall   = uncached.gnt;
             end
             6'b010000: begin
+                axil.req     = decode_valid;
                 axil.addr    = decode_addr;
-                axil.data_wr = decode_data.data_wr;
-                axil.rd      = decode_data.rd;
-                axil.wr      = decode_data.wr;
-                decode_stall = axil.accept;
+                axil.we      = decode_data.we;
+                axil.be      = decode_data.be;
+                axil.wdata   = decode_data.wdata;
+                axil.aid     = decode_data.aid;
+                decode_stall = axil.gnt;
             end
             6'b100000: begin
-                dummy.addr    = decode_addr;
-                dummy.data_wr = decode_data.data_wr;
-                dummy.rd      = decode_data.rd;
-                dummy.wr      = decode_data.wr;
-                decode_stall  = dummy.accept;
+                dummy.req    = decode_valid;
+                dummy.addr   = decode_addr;
+                dummy.we     = decode_data.we;
+                dummy.be     = decode_data.be;
+                dummy.wdata  = decode_data.wdata;
+                dummy.aid    = decode_data.aid;
+                decode_stall = dummy.gnt;
             end
             default: begin
-                periph.addr      = 0;
-                periph.data_wr   = 0;
-                periph.rd        = 0;
-                periph.wr        = 0;
-                dtcm.addr        = 0;
-                dtcm.data_wr     = 0;
-                dtcm.rd          = 0;
-                dtcm.wr          = 0;
-                cached.addr      = 0;
-                cached.data_wr   = 0;
-                cached.rd        = 0;
-                cached.wr        = 0;
-                uncached.addr    = 0;
-                uncached.data_wr = 0;
-                uncached.rd      = 0;
-                uncached.wr      = 0;
-                axil.addr        = 0;
-                axil.data_wr     = 0;
-                axil.rd          = 0;
-                axil.wr          = 0;
-                dummy.addr       = 0;
-                dummy.data_wr    = 0;
-                dummy.rd         = 0;
-                dummy.wr         = 0;
-                decode_stall     = 0;
+                periph.req     = 0;
+                periph.addr    = 0;
+                periph.we      = 0;
+                periph.be      = 0;
+                periph.wdata   = 0;
+                periph.aid     = 0;
+                dtcm.req       = 0;
+                dtcm.addr      = 0;
+                dtcm.we        = 0;
+                dtcm.be        = 0;
+                dtcm.wdata     = 0;
+                dtcm.aid       = 0;
+                cached.req     = 0;
+                cached.addr    = 0;
+                cached.we      = 0;
+                cached.be      = 0;
+                cached.wdata   = 0;
+                cached.aid     = 0;
+                uncached.req   = 0;
+                uncached.addr  = 0;
+                uncached.we    = 0;
+                uncached.be    = 0;
+                uncached.wdata = 0;
+                uncached.aid   = 0;
+                axil.req       = 0;
+                axil.addr      = 0;
+                axil.we        = 0;
+                axil.be        = 0;
+                axil.wdata     = 0;
+                axil.aid       = 0;
+                dummy.req      = 0;
+                dummy.addr     = 0;
+                dummy.we       = 0;
+                dummy.be       = 0;
+                dummy.wdata    = 0;
+                dummy.aid      = 0;
+                decode_stall   = 0;
             end
         endcase
     end
 
     always_ff @(posedge clk_i) begin : proc_dummy
-        dummy.accept  <= 1;
-        dummy.error   <= 1;
-        dummy.data_rd <= 0;
-        if (dummy.rd || |dummy.wr) begin
-            dummy.ack <= 1;
+        dummy.gnt   <= 1;
+        dummy.err   <= 1;
+        dummy.rdata <= 0;
+        if (dummy.req) begin
+            dummy.rvalid <= 1;
         end else begin
-            dummy.ack <= 0;
+            dummy.rvalid <= 0;
         end
     end
 
@@ -199,110 +235,112 @@ module dport_mux (
     logic [NS:0] rsp_ack;
     logic [NS:0] rsp_grant;
 
-    assign rsp_ready = {dummy.ack, axil_rsp.ack, uncached_rsp.ack, cached_rsp.ack, dtcm_rsp.ack, periph_rsp.ack};
+    assign rsp_ready = {
+        dummy.rvalid, axil_rsp.rvalid, uncached_rsp.rvalid, cached_rsp.rvalid, dtcm_rsp.rvalid, periph_rsp.rvalid
+    };
     assign rsp_grant = rsp_data_out.decode;
-    assign rsp_ack   = rsp_ready & rsp_grant;
+    assign rsp_ack = rsp_ready & rsp_grant;
 
     always_comb begin : proc_ack
         case (rsp_ack)
             6'b000001: begin
-                cpu.ack     = periph_rsp.ack;
-                cpu.data_rd = periph_rsp.data_rd;
-                cpu.error   = periph_rsp.error;
+                cpu.rvalid = periph_rsp.rvalid;
+                cpu.rdata  = periph_rsp.rdata;
+                cpu.err    = periph_rsp.err;
             end
             6'b000010: begin
-                cpu.ack     = dtcm_rsp.ack;
-                cpu.data_rd = dtcm_rsp.data_rd;
-                cpu.error   = dtcm_rsp.error;
+                cpu.rvalid = dtcm_rsp.rvalid;
+                cpu.rdata  = dtcm_rsp.rdata;
+                cpu.err    = dtcm_rsp.err;
             end
             6'b000100: begin
-                cpu.ack     = cached_rsp.ack;
-                cpu.data_rd = cached_rsp.data_rd;
-                cpu.error   = cached_rsp.error;
+                cpu.rvalid = cached_rsp.rvalid;
+                cpu.rdata  = cached_rsp.rdata;
+                cpu.err    = cached_rsp.err;
             end
             6'b001000: begin
-                cpu.ack     = uncached_rsp.ack;
-                cpu.data_rd = uncached_rsp.data_rd;
-                cpu.error   = uncached_rsp.error;
+                cpu.rvalid = uncached_rsp.rvalid;
+                cpu.rdata  = uncached_rsp.rdata;
+                cpu.err    = uncached_rsp.err;
             end
             6'b010000: begin
-                cpu.ack     = axil_rsp.ack;
-                cpu.data_rd = axil_rsp.data_rd;
-                cpu.error   = axil_rsp.error;
+                cpu.rvalid = axil_rsp.rvalid;
+                cpu.rdata  = axil_rsp.rdata;
+                cpu.err    = axil_rsp.err;
             end
             6'b100000: begin
-                cpu.ack     = dummy.ack;
-                cpu.data_rd = dummy.data_rd;
-                cpu.error   = dummy.error;
+                cpu.rvalid = dummy.rvalid;
+                cpu.rdata  = dummy.rdata;
+                cpu.err    = dummy.err;
             end
             default: begin
-                cpu.ack     = 0;
-                cpu.data_rd = 0;
-                cpu.error   = 0;
+                cpu.rvalid = 0;
+                cpu.rdata  = 0;
+                cpu.err    = 0;
             end
         endcase
     end
 
-    dport_if periph_rsp ();
-    dport_if dtcm_rsp ();
-    dport_if cached_rsp ();
-    dport_if uncached_rsp ();
-    dport_if axil_rsp ();
+    obi_if periph_rsp ();
+    obi_if dtcm_rsp ();
+    obi_if cached_rsp ();
+    obi_if uncached_rsp ();
+    obi_if axil_rsp ();
 
     dport_rsp_queue i_dport_rsp_queue_periph (
         .clk_i    (clk_i),
         .rst_i    (rst_i),
         .pop_i    (rsp_ack[0]),
-        .ack_i    (periph.ack),
-        .data_rd_i(periph.data_rd),
-        .error_i  (periph.error),
-        .ack_o    (periph_rsp.ack),
-        .data_rd_o(periph_rsp.data_rd),
-        .error_o  (periph_rsp.error)
+        .ack_i    (periph.rvalid),
+        .data_rd_i(periph.rdata),
+        .error_i  (periph.err),
+        .ack_o    (periph_rsp.rvalid),
+        .data_rd_o(periph_rsp.rdata),
+        .error_o  (periph_rsp.err)
     );
     dport_rsp_queue i_dport_rsp_queue_dtcm (
         .clk_i    (clk_i),
         .rst_i    (rst_i),
         .pop_i    (rsp_ack[1]),
-        .ack_i    (dtcm.ack),
-        .data_rd_i(dtcm.data_rd),
-        .error_i  (dtcm.error),
-        .ack_o    (dtcm_rsp.ack),
-        .data_rd_o(dtcm_rsp.data_rd),
-        .error_o  (dtcm_rsp.error)
+        .ack_i    (dtcm.rvalid),
+        .data_rd_i(dtcm.rdata),
+        .error_i  (dtcm.err),
+        .ack_o    (dtcm_rsp.rvalid),
+        .data_rd_o(dtcm_rsp.rdata),
+        .error_o  (dtcm_rsp.err)
     );
     dport_rsp_queue i_dport_rsp_queue_cached (
         .clk_i    (clk_i),
         .rst_i    (rst_i),
         .pop_i    (rsp_ack[2]),
-        .ack_i    (cached.ack),
-        .data_rd_i(cached.data_rd),
-        .error_i  (cached.error),
-        .ack_o    (cached_rsp.ack),
-        .data_rd_o(cached_rsp.data_rd),
-        .error_o  (cached_rsp.error)
+        .ack_i    (cached.rvalid),
+        .data_rd_i(cached.rdata),
+        .error_i  (cached.err),
+        .ack_o    (cached_rsp.rvalid),
+        .data_rd_o(cached_rsp.rdata),
+        .error_o  (cached_rsp.err)
     );
     dport_rsp_queue i_dport_rsp_queue_uncached (
         .clk_i    (clk_i),
         .rst_i    (rst_i),
         .pop_i    (rsp_ack[3]),
-        .ack_i    (uncached.ack),
-        .data_rd_i(uncached.data_rd),
-        .error_i  (uncached.error),
-        .ack_o    (uncached_rsp.ack),
-        .data_rd_o(uncached_rsp.data_rd),
-        .error_o  (uncached_rsp.error)
+        .ack_i    (uncached.rvalid),
+        .data_rd_i(uncached.rdata),
+        .error_i  (uncached.err),
+        .ack_o    (uncached_rsp.rvalid),
+        .data_rd_o(uncached_rsp.rdata),
+        .error_o  (uncached_rsp.err)
     );
     dport_rsp_queue i_dport_rsp_queue_axil (
         .clk_i    (clk_i),
         .rst_i    (rst_i),
         .pop_i    (rsp_ack[4]),
-        .ack_i    (axil.ack),
-        .data_rd_i(axil.data_rd),
-        .error_i  (axil.error),
-        .ack_o    (axil_rsp.ack),
-        .data_rd_o(axil_rsp.data_rd),
-        .error_o  (axil_rsp.error)
+        .ack_i    (axil.rvalid),
+        .data_rd_i(axil.rdata),
+        .error_i  (axil.err),
+        .ack_o    (axil_rsp.rvalid),
+        .data_rd_o(axil_rsp.rdata),
+        .error_o  (axil_rsp.err)
     );
 
     always_ff @(posedge clk_i) begin : proc_assert

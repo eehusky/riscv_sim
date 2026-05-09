@@ -45,44 +45,8 @@ module dport_dtcm #(
     input wire a_clk,
     input wire a_rst,
 
-    dport_if.slave dport,
-    axi_if.slave  s_axi
-
-    //input  wire [  ID_WIDTH-1:0] s_axi_b_awid,
-    //input  wire [ADDR_WIDTH-1:0] s_axi_b_awaddr,
-    //input  wire [           7:0] s_axi_b_awlen,
-    //input  wire [           2:0] s_axi_b_awsize,
-    //input  wire [           1:0] s_axi_b_awburst,
-    //input  wire                  s_axi_b_awlock,
-    //input  wire [           3:0] s_axi_b_awcache,
-    //input  wire [           2:0] s_axi_b_awprot,
-    //input  wire                  s_axi_b_awvalid,
-    //output wire                  s_axi_b_awready,
-    //input  wire [DATA_WIDTH-1:0] s_axi_b_wdata,
-    //input  wire [STRB_WIDTH-1:0] s_axi_b_wstrb,
-    //input  wire                  s_axi_b_wlast,
-    //input  wire                  s_axi_b_wvalid,
-    //output wire                  s_axi_b_wready,
-    //output wire [  ID_WIDTH-1:0] s_axi_b_bid,
-    //output wire [           1:0] s_axi_b_bresp,
-    //output wire                  s_axi_b_bvalid,
-    //input  wire                  s_axi_b_bready,
-    //input  wire [  ID_WIDTH-1:0] s_axi_b_arid,
-    //input  wire [ADDR_WIDTH-1:0] s_axi_b_araddr,
-    //input  wire [           7:0] s_axi_b_arlen,
-    //input  wire [           2:0] s_axi_b_arsize,
-    //input  wire [           1:0] s_axi_b_arburst,
-    //input  wire                  s_axi_b_arlock,
-    //input  wire [           3:0] s_axi_b_arcache,
-    //input  wire [           2:0] s_axi_b_arprot,
-    //input  wire                  s_axi_b_arvalid,
-    //output wire                  s_axi_b_arready,
-    //output wire [  ID_WIDTH-1:0] s_axi_b_rid,
-    //output wire [DATA_WIDTH-1:0] s_axi_b_rdata,
-    //output wire [           1:0] s_axi_b_rresp,
-    //output wire                  s_axi_b_rlast,
-    //output wire                  s_axi_b_rvalid,
-    //input  wire                  s_axi_b_rready
+    obi_if.slave dport,
+    axi_if.slave s_axi
 );
 
     parameter VALID_ADDR_WIDTH = ADDR_WIDTH - $clog2(STRB_WIDTH);
@@ -237,25 +201,25 @@ module dport_dtcm #(
 
     always_ff @(posedge a_clk) begin : proc_
         if (a_rst) begin
-            dport.accept  <= 0;
-            dport.ack     <= 0;
-            dport.data_rd <= 0;
+            dport.gnt    <= 0;
+            dport.rvalid <= 0;
+            dport.rdata  <= 0;
         end else begin
-            dport.accept <= 1;
-            if (dport.rd) begin
-                dport.ack     <= 1;
-                dport.data_rd <= mem[word_addr_a];
-            end else if (|dport.wr) begin
-                dport.ack     <= 1;
-                dport.data_rd <= 0;
+            dport.gnt <= 1;
+            if (dport.req && ~dport.we) begin
+                dport.rvalid <= 1;
+                dport.rdata  <= mem[word_addr_a];
+            end else if (dport.req && dport.we) begin
+                dport.rvalid <= 1;
+                dport.rdata  <= 0;
                 for (i = 0; i < 4; i = i + 1) begin
-                    if (dport.wr[i]) begin
-                        mem[word_addr_a][8*i+:8] <= dport.data_wr[8*i+:8];
+                    if (dport.be[i]) begin
+                        mem[word_addr_a][8*i+:8] <= dport.wdata[8*i+:8];
                     end
                 end
             end else begin
-                dport.ack     <= 0;
-                dport.data_rd <= 0;
+                dport.rvalid <= 0;
+                dport.rdata  <= 0;
             end
         end
     end

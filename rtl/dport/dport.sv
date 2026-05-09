@@ -10,17 +10,17 @@ module dport #(
 ) (
     input logic          rst_i,
     input logic          clk_i,
-          dport_if.slave cpu,
+          obi_if.slave   cpu,
           axi_if.slave   s_axi_dtcm,
           axi_if.master  m_axi_cached,
           axi_if.master  m_axi_uncached,
           axil_if.master m_axil
 );
-    dport_if periph ();
-    dport_if dtcm ();
-    dport_if cached ();
-    dport_if uncached ();
-    dport_if axil ();
+    obi_if periph ();
+    obi_if dtcm ();
+    obi_if cached ();
+    obi_if uncached ();
+    obi_if axil ();
 
     dport_mux i_dport_mux (
         .clk_i   (clk_i),
@@ -51,24 +51,14 @@ module dport #(
         .s_axi(s_axi_dtcm)
     );
 
-    dport2axi #(
-        //.AXI_ID_W  (AXI_ID_W),
-        //.AXI_LEN_W (AXI_LEN_W),
-        //.AXI_ADDR_W(AXI_ADDR_W),
-        //.AXI_DATA_W(AXI_DATA_W)
-    ) i_dport2axi_cached (
+    dport2axi i_dport2axi_cached (
         .clk_i(clk_i),
         .rst_i(rst_i),
         .dport(cached),
         .m_axi(m_axi_cached)
     );
 
-    dport2axi #(
-        //.AXI_ID_W  (AXI_ID_W),
-        //.AXI_LEN_W (AXI_LEN_W),
-        //.AXI_ADDR_W(AXI_ADDR_W),
-        //.AXI_DATA_W(AXI_DATA_W)
-    ) i_dport2axi_uncached (
+    dport2axi i_dport2axi_uncached (
         .clk_i(clk_i),
         .rst_i(rst_i),
         .dport(uncached),

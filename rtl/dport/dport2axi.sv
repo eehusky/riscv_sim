@@ -1,14 +1,10 @@
 module dport2axi #(
-    //parameter int DATA_WIDTH = 32,
-    //parameter int ADDR_WIDTH = 16,
-    //parameter int STRB_WIDTH = (DATA_WIDTH / 8),
-    //parameter int ID_WIDTH   = 4
 ) (
     input logic clk_i,
     input logic rst_i,
 
-    dport_if.slave dport,
-    axi_if.master  m_axi
+    obi_if.slave  dport,
+    axi_if.master m_axi
 );
     localparam int LGREQ = 1;
     localparam int LGRSP = LGREQ + 1;
@@ -30,9 +26,11 @@ module dport2axi #(
     // ------------------------------------------------------------------------
 
     typedef struct packed {
-        logic [31:0] addr;
-        logic        rd;
-        logic        wr;
+        logic [dport.ADDR_WIDTH-1:0] addr;
+        logic                        we;
+        logic [dport.STRB_WIDTH-1:0] be;
+        logic [dport.DATA_WIDTH-1:0] wdata;
+        logic [dport.ID_WIDTH-1:0]   aid;
     } mem_req_t;
 
     mem_req_t           mem_req_data_out;
@@ -42,7 +40,7 @@ module dport2axi #(
     logic               mem_req_push;
     logic               mem_req_pop;
 
-    assign mem_req_push = (dport.rd || |dport.wr) && dport.accept;
+    assign mem_req_push = dport.req && dport.gnt;
     assign mem_req_pop  = ar_ack || aw_ack;
 
     ringbuffer_sfifo #(
@@ -54,7 +52,7 @@ module dport2axi #(
     ) i_mem_req_fifo (
         .i_clk  (clk_i),
         .i_reset(rst_i),
-        .i_data ({dport.addr, dport.rd, |dport.wr}),
+        .i_data ({dport.addr, dport.we, dport.be, dport.wdata, dport.aid}),
         .i_wr   (mem_req_push),
         .o_full (mem_req_full),
         .o_fill (mem_req_fill),
@@ -66,8 +64,8 @@ module dport2axi #(
     // ------------------------------------------------------------------------
 
     typedef struct packed {
-        logic [31:0] data_wr;
-        logic [3:0]  wr;
+        logic [dport.STRB_WIDTH-1:0] be;
+        logic [dport.DATA_WIDTH-1:0] wdata;
     } wdata_t;
 
     wdata_t           wdata_data_out;
@@ -77,7 +75,7 @@ module dport2axi #(
     logic             wdata_push;
     logic             wdata_pop;
 
-    assign wdata_push = |dport.wr && dport.accept;
+    assign wdata_push = dport.we && dport.req && dport.gnt;
     assign wdata_pop  = w_ack;
 
     ringbuffer_sfifo #(
@@ -89,7 +87,7 @@ module dport2axi #(
     ) i_wdata_fifo (
         .i_clk  (clk_i),
         .i_reset(rst_i),
-        .i_data ({dport.data_wr, dport.wr}),
+        .i_data ({dport.be, dport.wdata}),
         .i_wr   (wdata_push),
         .o_full (wdata_full),
         .o_fill (wdata_fill),
@@ -100,10 +98,7 @@ module dport2axi #(
 
     // ------------------------------------------------------------------------
 
-    typedef struct packed {
-        logic rd;
-        logic wr;
-    } mem_rsp_t;
+    typedef struct packed {logic we;} mem_rsp_t;
 
     mem_rsp_t           mem_rsp_data_out;
     logic     [LGRSP:0] mem_rsp_fill;
@@ -124,7 +119,7 @@ module dport2axi #(
     ) i_mem_rsp_fifo (
         .i_clk  (clk_i),
         .i_reset(rst_i),
-        .i_data ({mem_req_data_out.rd, mem_req_data_out.wr}),
+        .i_data ({mem_req_data_out.we}),
         .i_wr   (mem_rsp_push),
         .o_full (mem_rsp_full),
         .o_fill (mem_rsp_fill),
@@ -136,22 +131,22 @@ module dport2axi #(
     // ------------------------------------------------------------------------
 
     assign m_axi.araddr  = m_axi.arvalid ? mem_req_data_out.addr : 0;
-    assign m_axi.arvalid = ~mem_req_empty && mem_req_data_out.rd;
-    assign m_axi.rready  = ~mem_rsp_empty && mem_rsp_data_out.rd;
+    assign m_axi.arvalid = ~mem_req_empty && ~mem_req_data_out.we;
+    assign m_axi.rready  = ~mem_rsp_empty && ~mem_rsp_data_out.we;
 
     assign m_axi.awaddr  = m_axi.awvalid ? mem_req_data_out.addr : 0;
-    assign m_axi.awvalid = ~mem_req_empty && mem_req_data_out.wr;
+    assign m_axi.awvalid = ~mem_req_empty && mem_req_data_out.we;
 
-    assign m_axi.wvalid  = ~wdata_empty && |wdata_data_out.wr;
+    assign m_axi.wvalid  = ~wdata_empty;
     assign m_axi.wlast   = m_axi.wvalid;
-    assign m_axi.wdata   = m_axi.wvalid ? wdata_data_out.data_wr : 0;
-    assign m_axi.wstrb   = m_axi.wvalid ? wdata_data_out.wr : 0;
-    assign m_axi.bready  = ~mem_rsp_empty && mem_rsp_data_out.wr;
+    assign m_axi.wdata   = m_axi.wvalid ? wdata_data_out.wdata : 0;
+    assign m_axi.wstrb   = m_axi.wvalid ? wdata_data_out.be : 0;
+    assign m_axi.bready  = ~mem_rsp_empty && mem_rsp_data_out.we;
 
-    assign dport.data_rd = (r_ack && mem_rsp_data_out.rd) ? m_axi.rdata : 0;
-    assign dport.accept  = ~mem_req_full && ~wdata_full && ~mem_rsp_full;
-    assign dport.ack     = mem_rsp_pop;
-    assign dport.error   = mem_rsp_pop && (m_axi.rresp[1] || m_axi.bresp[1]);
+    assign dport.rdata   = (r_ack && ~mem_rsp_data_out.we) ? m_axi.rdata : 0;
+    assign dport.gnt     = ~mem_req_full && ~wdata_full && ~mem_rsp_full;
+    assign dport.rvalid  = mem_rsp_pop;
+    assign dport.err     = mem_rsp_pop && (m_axi.rresp[1] || m_axi.bresp[1]);
 
     // constants
     assign m_axi.arid    = 0;

@@ -4,7 +4,7 @@ module dport_ram #(
     input logic clk_i,
     input logic rst_i,
 
-    dport_if.slave dport
+    obi_if.slave dport
 );
     localparam WORD_ADDR_WIDTH = ADDR_WIDTH - $clog2(4);
 
@@ -16,25 +16,25 @@ module dport_ram #(
 
     always_ff @(posedge clk_i) begin : proc_
         if (rst_i) begin
-            dport.accept  <= 0;
-            dport.ack     <= 0;
-            dport.data_rd <= 0;
+            dport.gnt    <= 0;
+            dport.rvalid <= 0;
+            dport.rdata  <= 0;
         end else begin
-            dport.accept <= 1;
-            if (dport.rd) begin
-                dport.ack     <= 1;
-                dport.data_rd <= mem[word_addr];
-            end else if (|dport.wr) begin
-                dport.ack     <= 1;
-                dport.data_rd <= 0;
+            dport.gnt <= 1;
+            if (dport.req && ~dport.we) begin
+                dport.rvalid <= 1;
+                dport.rdata  <= mem[word_addr];
+            end else if (dport.req && dport.we) begin
+                dport.rvalid <= 1;
+                dport.rdata  <= 0;
                 for (i = 0; i < 4; i = i + 1) begin
-                    if (dport.wr[i]) begin
-                        mem[word_addr][8*i+:8] <= dport.data_wr[8*i+:8];
+                    if (dport.be[i]) begin
+                        mem[word_addr][8*i+:8] <= dport.wdata[8*i+:8];
                     end
                 end
             end else begin
-                dport.ack     <= 0;
-                dport.data_rd <= 0;
+                dport.rvalid <= 0;
+                dport.rdata  <= 0;
             end
         end
     end

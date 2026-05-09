@@ -23,20 +23,21 @@ module tb_dport ();
     logic        mem_writeback_i;
     logic        mem_flush_i;
 
-    dport_if cpu ();
+    obi_if cpu ();
     axi_if s_axi_dtcm ();
     axi_if m_axi_cached ();
     axi_if m_axi_uncached ();
     axil_if m_axil ();
 
-    assign mem_accept_o  = cpu.accept;
-    assign mem_ack_o     = cpu.ack;
-    assign mem_data_rd_o = cpu.data_rd;
-    assign mem_error_o   = cpu.error;
-    assign cpu.addr      = mem_addr_i;
-    assign cpu.data_wr   = mem_data_wr_i;
-    assign cpu.rd        = mem_rd_i;
-    assign cpu.wr        = mem_wr_i;
+    assign mem_accept_o  = cpu.gnt;
+    assign mem_ack_o     = cpu.rvalid;
+    assign mem_data_rd_o = cpu.rdata;
+    assign mem_error_o   = cpu.err;
+    assign cpu.addr      = cpu.req ? mem_addr_i : 0;
+    assign cpu.wdata     = cpu.req ? mem_data_wr_i : 0;
+    assign cpu.be        = cpu.req ? mem_wr_i : 0;
+    assign cpu.we        = cpu.req && |mem_wr_i;
+    assign cpu.req       = |mem_wr_i || mem_rd_i;
 
     dport i_dport (
         .rst_i         (rst_i),
