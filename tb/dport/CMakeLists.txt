@@ -77,6 +77,7 @@ verilate(Vtop
         ${VERILOG_AXI}/rtl/axi_ram.v
         #
         ${REPO_DIR}/cores/ringbuffer/ringbuffer_sfifo.v
+        ${REPO_DIR}/rtl/dport/dport_pkg.sv
         ${REPO_DIR}/rtl/dport/dport2iob.sv
         ${REPO_DIR}/rtl/dport/dport2axi.sv
         ${REPO_DIR}/rtl/dport/dport2axil.sv

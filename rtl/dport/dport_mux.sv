@@ -9,7 +9,8 @@ module dport_mux (
     obi_if.master uncached,
     obi_if.master axil
 );
-    localparam int NS = 5;
+    import dport_pkg::*;
+    localparam int NS = N_SEGMENTS;
 
     obi_if dummy ();
 
@@ -28,11 +29,14 @@ module dport_mux (
     logic      [NS:0] req_grant;
 
     dport_addrdecode #(
-        .NS            (NS),
         .AW            (32),
         .DW            ($size(mem_data_t)),
-        .SLAVE_ADDR    ({32'hB000_0000, 32'hA000_0000, 32'h9000_0000, 32'h8002_0000, 32'h0000_0000}),
-        .SLAVE_MASK    ({32'hFFFE_0000, 32'hFFFE_0000, 32'hFFFE_0000, 32'hFFFE_0000, 32'hFFFF_0000}),
+        //.NS            (NS),
+        //.SLAVE_ADDR    ({32'hB000_0000, 32'hA000_0000, 32'h9000_0000, 32'h8002_0000, 32'h0000_0000}),
+        //.SLAVE_MASK    ({32'hFFFE_0000, 32'hFFFE_0000, 32'hFFFE_0000, 32'hFFFE_0000, 32'hFFFF_0000}),
+        .NS(N_SEGMENTS),
+        .SLAVE_ADDR(SLAVE_ADDR),
+        .SLAVE_MASK(SLAVE_MASK),
         .ACCESS_ALLOWED(-1),
         .OPT_REGISTERED(0),
         .OPT_LOWPOWER  (1)
@@ -234,6 +238,11 @@ module dport_mux (
     logic [NS:0] rsp_ready;
     logic [NS:0] rsp_ack;
     logic [NS:0] rsp_grant;
+    obi_if periph_rsp ();
+    obi_if dtcm_rsp ();
+    obi_if cached_rsp ();
+    obi_if uncached_rsp ();
+    obi_if axil_rsp ();
 
     assign rsp_ready = {
         dummy.rvalid, axil_rsp.rvalid, uncached_rsp.rvalid, cached_rsp.rvalid, dtcm_rsp.rvalid, periph_rsp.rvalid
@@ -241,107 +250,89 @@ module dport_mux (
     assign rsp_grant = rsp_data_out.decode;
     assign rsp_ack = rsp_ready & rsp_grant;
 
+    assign periph_rsp.rready = rsp_ack[0];
+    assign dtcm_rsp.rready = rsp_ack[1];
+    assign cached_rsp.rready = rsp_ack[2];
+    assign uncached_rsp.rready = rsp_ack[3];
+    assign axil_rsp.rready = rsp_ack[4];
+
+    dport_rsp_queue i_dport_rsp_queue_periph (
+        .clk_i(clk_i),
+        .rst_i(rst_i),
+        .in   (periph),
+        .out  (periph_rsp)
+    );
+    dport_rsp_queue i_dport_rsp_queue_dtcm (
+        .clk_i(clk_i),
+        .rst_i(rst_i),
+        .in   (dtcm),
+        .out  (dtcm_rsp)
+    );
+    dport_rsp_queue i_dport_rsp_queue_cached (
+        .clk_i(clk_i),
+        .rst_i(rst_i),
+        .in   (cached),
+        .out  (cached_rsp)
+    );
+    dport_rsp_queue i_dport_rsp_queue_uncached (
+        .clk_i(clk_i),
+        .rst_i(rst_i),
+        .in   (uncached),
+        .out  (uncached_rsp)
+    );
+    dport_rsp_queue i_dport_rsp_queue_axil (
+        .clk_i(clk_i),
+        .rst_i(rst_i),
+        .in   (axil),
+        .out  (axil_rsp)
+    );
+
     always_comb begin : proc_ack
         case (rsp_ack)
             6'b000001: begin
                 cpu.rvalid = periph_rsp.rvalid;
                 cpu.rdata  = periph_rsp.rdata;
                 cpu.err    = periph_rsp.err;
+                cpu.rid    = periph_rsp.rid;
             end
             6'b000010: begin
                 cpu.rvalid = dtcm_rsp.rvalid;
                 cpu.rdata  = dtcm_rsp.rdata;
                 cpu.err    = dtcm_rsp.err;
+                cpu.rid    = dtcm_rsp.rid;
             end
             6'b000100: begin
                 cpu.rvalid = cached_rsp.rvalid;
                 cpu.rdata  = cached_rsp.rdata;
                 cpu.err    = cached_rsp.err;
+                cpu.rid    = cached_rsp.rid;
             end
             6'b001000: begin
                 cpu.rvalid = uncached_rsp.rvalid;
                 cpu.rdata  = uncached_rsp.rdata;
                 cpu.err    = uncached_rsp.err;
+                cpu.rid    = uncached_rsp.rid;
             end
             6'b010000: begin
                 cpu.rvalid = axil_rsp.rvalid;
                 cpu.rdata  = axil_rsp.rdata;
                 cpu.err    = axil_rsp.err;
+                cpu.rid    = axil_rsp.rid;
             end
             6'b100000: begin
                 cpu.rvalid = dummy.rvalid;
                 cpu.rdata  = dummy.rdata;
                 cpu.err    = dummy.err;
+                cpu.rid    = dummy.rid;
             end
             default: begin
                 cpu.rvalid = 0;
                 cpu.rdata  = 0;
                 cpu.err    = 0;
+                cpu.rid    = 0;
             end
         endcase
     end
-
-    obi_if periph_rsp ();
-    obi_if dtcm_rsp ();
-    obi_if cached_rsp ();
-    obi_if uncached_rsp ();
-    obi_if axil_rsp ();
-
-    dport_rsp_queue i_dport_rsp_queue_periph (
-        .clk_i    (clk_i),
-        .rst_i    (rst_i),
-        .pop_i    (rsp_ack[0]),
-        .ack_i    (periph.rvalid),
-        .data_rd_i(periph.rdata),
-        .error_i  (periph.err),
-        .ack_o    (periph_rsp.rvalid),
-        .data_rd_o(periph_rsp.rdata),
-        .error_o  (periph_rsp.err)
-    );
-    dport_rsp_queue i_dport_rsp_queue_dtcm (
-        .clk_i    (clk_i),
-        .rst_i    (rst_i),
-        .pop_i    (rsp_ack[1]),
-        .ack_i    (dtcm.rvalid),
-        .data_rd_i(dtcm.rdata),
-        .error_i  (dtcm.err),
-        .ack_o    (dtcm_rsp.rvalid),
-        .data_rd_o(dtcm_rsp.rdata),
-        .error_o  (dtcm_rsp.err)
-    );
-    dport_rsp_queue i_dport_rsp_queue_cached (
-        .clk_i    (clk_i),
-        .rst_i    (rst_i),
-        .pop_i    (rsp_ack[2]),
-        .ack_i    (cached.rvalid),
-        .data_rd_i(cached.rdata),
-        .error_i  (cached.err),
-        .ack_o    (cached_rsp.rvalid),
-        .data_rd_o(cached_rsp.rdata),
-        .error_o  (cached_rsp.err)
-    );
-    dport_rsp_queue i_dport_rsp_queue_uncached (
-        .clk_i    (clk_i),
-        .rst_i    (rst_i),
-        .pop_i    (rsp_ack[3]),
-        .ack_i    (uncached.rvalid),
-        .data_rd_i(uncached.rdata),
-        .error_i  (uncached.err),
-        .ack_o    (uncached_rsp.rvalid),
-        .data_rd_o(uncached_rsp.rdata),
-        .error_o  (uncached_rsp.err)
-    );
-    dport_rsp_queue i_dport_rsp_queue_axil (
-        .clk_i    (clk_i),
-        .rst_i    (rst_i),
-        .pop_i    (rsp_ack[4]),
-        .ack_i    (axil.rvalid),
-        .data_rd_i(axil.rdata),
-        .error_i  (axil.err),
-        .ack_o    (axil_rsp.rvalid),
-        .data_rd_o(axil_rsp.rdata),
-        .error_o  (axil_rsp.err)
-    );
 
     always_ff @(posedge clk_i) begin : proc_assert
         assert (~(rsp_push && rsp_full));

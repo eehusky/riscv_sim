@@ -162,8 +162,8 @@ class Response(NamedTuple):
     req: Request
 
 REGIONS = [
-    ("local",    0x0000_0000, "i_dport.i_dport_ram.mem"),
-    ("dtcm",     0x8002_0000, "i_dport.i_dport_dtcm.mem"),
+    ("local",    0x0000_0000, "i_dport_ram.mem"),
+    ("dtcm",     0x8002_0000, "i_dport_dtcm.mem"),
     ("cached",   0x9000_0000, "i_axi_cached_ram.mem"),
     ("uncached", 0xA000_0000, "i_axi_uncached_ram.mem"),
     ("axil",     0xB000_0000, "i_axil_ram.mem"),
@@ -182,55 +182,12 @@ class TB:
         self.clk = self.dut.clk_i
         cocotb.start_soon(Clock(self.clk, CLK_PERIOD, unit="ns", impl="gpi").start())
 
-        #logging.getLogger("cocotb.tb_dport.m_axi_cached").setLevel(logging.WARNING)
-        #logging.getLogger("cocotb.tb_dport.m_axi_uncached").setLevel(logging.WARNING)
-        #logging.getLogger("cocotb.tb_dport.m_axil").setLevel(logging.WARNING)
-
-
-        #self.local_mem = self.dut.i_mem_dport_axi.i_mem_dummy.mem
-        #self.dtcm_mem = self.dut.i_mem_dport_axi.i_dtcm.mem
-        #self.cached_mem = self.dut.i_axi_cached_ram.mem
-        #self.uncached_mem = self.dut.i_axi_uncached_ram.mem
-        #self.axil_mem = self.dut.i_axil_ram.mem
 
         self.addrspace = AddressSpace()
         self.regions = dict[str,ReferenceVPIRegion]()
         for name, base, vpi in REGIONS:
             self.regions[name] = ReferenceVPIRegion(getattr(dut,vpi))
             self.addrspace.register_region(self.regions[name],base)
-
-
-        #self.local_region = ReferenceVPIRegion(self.local_mem)
-        #self.dtcm_region = ReferenceVPIRegion(self.dtcm_mem)
-        #self.cached_region = ReferenceVPIRegion(self.cached_mem)
-        #self.uncached_region = ReferenceVPIRegion(self.uncached_mem)
-        #self.axil_region = ReferenceVPIRegion(self.axil_mem)
-        #self.addrspace.register_region(self.local_region,0x0000_0000)
-        #self.addrspace.register_region(self.dtcm_region,0x8002_0000)
-        #self.addrspace.register_region(self.cached_region,0x9000_0000)
-        #self.addrspace.register_region(self.uncached_region,0xA000_0000)
-        #self.addrspace.register_region(self.axil_region,0xB000_0000)
-        #self.axi_cached = AxiSlave(
-        #    bus=AxiBus.from_prefix(dut, "m_axi_cached"),
-        #    clock=self.clk,
-        #    reset=self.reset,
-        #    reset_active_level=True,
-        #    target = self.addrspace
-        #)
-        #self.axi_uncached = AxiSlave(
-        #    bus=AxiBus.from_prefix(dut, "m_axi_uncached"),
-        #    clock=self.clk,
-        #    reset=self.reset,
-        #    reset_active_level=True,
-        #    target = self.addrspace
-        #)
-        #self.axil = AxiLiteSlave(
-        #    bus=AxiLiteBus.from_prefix(dut, "m_axil"),
-        #    clock=self.clk,
-        #    reset=self.reset,
-        #    reset_active_level=True,
-        #    target = self.addrspace
-        #)
 
         self.req_queue:Queue[Request] = Queue()
         self.rsp_queue:Queue[Response] = Queue()

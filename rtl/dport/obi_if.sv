@@ -12,8 +12,8 @@ interface obi_if #(
     logic [DATA_WIDTH-1:0] wdata;
     logic [  ID_WIDTH-1:0] aid;
 
-    logic                  rvalid;
     logic                  rready;
+    logic                  rvalid;
     logic [DATA_WIDTH-1:0] rdata;
     logic                  err;
     logic [  ID_WIDTH-1:0] rid;

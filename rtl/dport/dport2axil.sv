@@ -1,6 +1,4 @@
-module dport2axil #(
-    parameter int ADDR_WIDTH = 32
-) (
+module dport2axil (
     input logic clk_i,
     input logic rst_i,
 

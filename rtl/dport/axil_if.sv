@@ -1,6 +1,7 @@
 interface axil_if #(
     parameter DATA_WIDTH = 32,
-    parameter ADDR_WIDTH = 32
+    parameter ADDR_WIDTH = 32,
+    parameter STRB_WIDTH = DATA_WIDTH/8
 );
     logic                    awready;
     logic                    awvalid;
@@ -9,7 +10,7 @@ interface axil_if #(
     logic                    wready;
     logic                    wvalid;
     logic [  DATA_WIDTH-1:0] wdata;
-    logic [DATA_WIDTH/8-1:0] wstrb;
+    logic [STRB_WIDTH-1:0] wstrb;
     logic                    bready;
     logic                    bvalid;
     logic [             1:0] bresp;

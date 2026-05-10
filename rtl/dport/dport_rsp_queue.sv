@@ -1,24 +1,17 @@
 module dport_rsp_queue #(
     parameter int LGDEPTH = 3
 ) (
-    input  logic        clk_i,
-    input  logic        rst_i,
-    //
-    input  logic        ack_i,
-    input  logic [31:0] data_rd_i,
-    input  logic        error_i,
-    //
-    input  logic        pop_i,
-    //
-    output logic        ack_o,
-    output logic [31:0] data_rd_o,
-    output logic        error_o
+    input logic         clk_i,
+    input logic         rst_i,
+          obi_if.master in,
+          obi_if.slave  out
 );
 
     typedef struct packed {
-        logic        ack;
-        logic [31:0] data_rd;
-        logic        error;
+        logic                     rvalid;
+        logic [in.DATA_WIDTH-1:0] rdata;
+        logic                     err;
+        logic [in.ID_WIDTH-1:0]   rid;
     } rsp_data_t;
 
     rsp_data_t             rsp_data_out;
@@ -28,8 +21,8 @@ module dport_rsp_queue #(
     logic                  rsp_push;
     logic                  rsp_pop;
 
-    assign rsp_push = ack_i;
-    assign rsp_pop  = pop_i && ~rsp_empty;
+    assign rsp_push = in.rvalid;
+    assign rsp_pop  = out.rready && ~rsp_empty;
 
     ringbuffer_sfifo #(
         .BW               ($size(rsp_data_t)),
@@ -40,7 +33,7 @@ module dport_rsp_queue #(
     ) i_rsp_fifo (
         .i_clk  (clk_i),
         .i_reset(rst_i),
-        .i_data ({ack_i, data_rd_i, error_i}),
+        .i_data ({in.rvalid, in.rdata, in.err, in.rid}),
         .i_wr   (rsp_push),
         .i_rd   (rsp_pop),
         .o_full (rsp_full),
@@ -49,9 +42,11 @@ module dport_rsp_queue #(
         .o_empty(rsp_empty)
     );
 
-    assign ack_o     = rsp_data_out.ack && ~rsp_empty;
-    assign data_rd_o = rsp_data_out.data_rd;
-    assign error_o   = rsp_data_out.error;
+    assign out.rvalid = rsp_data_out.rvalid && ~rsp_empty;
+    assign out.rdata  = rsp_data_out.rdata;
+    assign out.err    = rsp_data_out.err;
+    assign out.rid    = rsp_data_out.rid;
+    assign in.rready  = ~rsp_full;
 
     always_ff @(posedge clk_i) begin : proc_assert
         assert (~(rsp_push && rsp_full));

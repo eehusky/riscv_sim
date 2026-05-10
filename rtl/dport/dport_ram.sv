@@ -19,14 +19,19 @@ module dport_ram #(
             dport.gnt    <= 0;
             dport.rvalid <= 0;
             dport.rdata  <= 0;
+            dport.rid    <= 0;
+            dport.err    <= 0;
         end else begin
             dport.gnt <= 1;
+            dport.err <= 0;
             if (dport.req && ~dport.we) begin
                 dport.rvalid <= 1;
+                dport.rid    <= dport.aid;
                 dport.rdata  <= mem[word_addr];
             end else if (dport.req && dport.we) begin
                 dport.rvalid <= 1;
                 dport.rdata  <= 0;
+                dport.rid    <= dport.aid;
                 for (i = 0; i < 4; i = i + 1) begin
                     if (dport.be[i]) begin
                         mem[word_addr][8*i+:8] <= dport.wdata[8*i+:8];
@@ -35,6 +40,7 @@ module dport_ram #(
             end else begin
                 dport.rvalid <= 0;
                 dport.rdata  <= 0;
+                dport.rid    <= 0;
             end
         end
     end

@@ -28,8 +28,6 @@ module dport2axi #(
     typedef struct packed {
         logic [dport.ADDR_WIDTH-1:0] addr;
         logic                        we;
-        logic [dport.STRB_WIDTH-1:0] be;
-        logic [dport.DATA_WIDTH-1:0] wdata;
         logic [dport.ID_WIDTH-1:0]   aid;
     } mem_req_t;
 
@@ -52,7 +50,7 @@ module dport2axi #(
     ) i_mem_req_fifo (
         .i_clk  (clk_i),
         .i_reset(rst_i),
-        .i_data ({dport.addr, dport.we, dport.be, dport.wdata, dport.aid}),
+        .i_data ({dport.addr, dport.we, dport.aid}),
         .i_wr   (mem_req_push),
         .o_full (mem_req_full),
         .o_fill (mem_req_fill),
@@ -98,7 +96,10 @@ module dport2axi #(
 
     // ------------------------------------------------------------------------
 
-    typedef struct packed {logic we;} mem_rsp_t;
+    typedef struct packed {
+        logic we;
+        logic [dport.ID_WIDTH-1:0]   aid;
+    } mem_rsp_t;
 
     mem_rsp_t           mem_rsp_data_out;
     logic     [LGRSP:0] mem_rsp_fill;
@@ -119,7 +120,7 @@ module dport2axi #(
     ) i_mem_rsp_fifo (
         .i_clk  (clk_i),
         .i_reset(rst_i),
-        .i_data ({mem_req_data_out.we}),
+        .i_data ({mem_req_data_out.we, mem_req_data_out.aid}),
         .i_wr   (mem_rsp_push),
         .o_full (mem_rsp_full),
         .o_fill (mem_rsp_fill),
@@ -146,6 +147,7 @@ module dport2axi #(
     assign dport.rdata   = (r_ack && ~mem_rsp_data_out.we) ? m_axi.rdata : 0;
     assign dport.gnt     = ~mem_req_full && ~wdata_full && ~mem_rsp_full;
     assign dport.rvalid  = mem_rsp_pop;
+    assign dport.rid     = mem_rsp_pop ? mem_rsp_data_out.aid : 0;
     assign dport.err     = mem_rsp_pop && (m_axi.rresp[1] || m_axi.bresp[1]);
 
     // constants
