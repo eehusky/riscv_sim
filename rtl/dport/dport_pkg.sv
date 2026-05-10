@@ -49,12 +49,17 @@ package dport_pkg;
     //    dport_config segments[5] = {local_cfg, dtcm_cfg, cached_cfg, uncached_cfg, axil_cfg};
     //    addrspace_config addr_cfg = new(segments);
 
-    localparam int N_SEGMENTS = 5;
+    localparam int N_SEGMENTS = 6;
     //
-    localparam bit [31:0] LOCAL_ADDR = 32'h0000_0000;
-    localparam bit [31:0] LOCAL_SIZE = 32'h0001_0000;
-    localparam bit [31:0] LOCAL_WIDTH = $clog2(LOCAL_SIZE);
-    localparam bit [31:0] LOCAL_MASK = ~(LOCAL_SIZE - 1);
+    localparam bit [31:0] MTIME_ADDR = 32'h0000_0000;
+    localparam bit [31:0] MTIME_SIZE = 32'h0000_1000;
+    localparam bit [31:0] MTIME_WIDTH = $clog2(MTIME_SIZE);
+    localparam bit [31:0] MTIME_MASK = ~(MTIME_SIZE - 1);
+    //
+    localparam bit [31:0] SIMCTRL_ADDR = 32'h0000_1000;
+    localparam bit [31:0] SIMCTRL_SIZE = 32'h0000_1000;
+    localparam bit [31:0] SIMCTRL_WIDTH = $clog2(SIMCTRL_SIZE);
+    localparam bit [31:0] SIMCTRL_MASK = ~(SIMCTRL_SIZE - 1);
     //
     localparam bit [31:0] DTCM_ADDR = 32'h8002_0000;
     localparam bit [31:0] DTCM_SIZE = 32'h0002_0000;
@@ -77,10 +82,10 @@ package dport_pkg;
     localparam bit [31:0] AXIL_MASK = ~(AXIL_SIZE - 1);
     //
     localparam bit [N_SEGMENTS*32-1:0] SLAVE_ADDR = {
-        AXIL_ADDR, UNCACHED_ADDR, CACHED_ADDR, DTCM_ADDR, LOCAL_ADDR
+        AXIL_ADDR, UNCACHED_ADDR, CACHED_ADDR, DTCM_ADDR, SIMCTRL_ADDR, MTIME_ADDR
     };
     localparam bit [N_SEGMENTS*32-1:0] SLAVE_MASK = {
-        AXIL_MASK, UNCACHED_MASK, CACHED_MASK, DTCM_MASK, LOCAL_MASK
+        AXIL_MASK, UNCACHED_MASK, CACHED_MASK, DTCM_MASK, SIMCTRL_MASK, MTIME_MASK
     };
 
 

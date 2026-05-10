@@ -1,14 +1,21 @@
 //import dport_pkg::*;
 module tb_dport ();
     localparam bit[31:0] N_SEGMENTS = dport_pkg::N_SEGMENTS;
-    localparam bit[31:0] LOCAL_ADDR = dport_pkg::LOCAL_ADDR;
-    localparam bit[31:0] LOCAL_SIZE = dport_pkg::LOCAL_SIZE;
-    localparam bit[31:0] LOCAL_WIDTH = dport_pkg::LOCAL_WIDTH;
-    localparam bit[31:0] LOCAL_MASK = dport_pkg::LOCAL_MASK;
+    //
+    localparam bit[31:0] MTIME_ADDR = dport_pkg::MTIME_ADDR;
+    localparam bit[31:0] MTIME_SIZE = dport_pkg::MTIME_SIZE;
+    localparam bit[31:0] MTIME_WIDTH = dport_pkg::MTIME_WIDTH;
+    localparam bit[31:0] MTIME_MASK = dport_pkg::MTIME_MASK;
+    localparam bit[31:0] SIMCTRL_ADDR = dport_pkg::SIMCTRL_ADDR;
+    localparam bit[31:0] SIMCTRL_SIZE = dport_pkg::SIMCTRL_SIZE;
+    localparam bit[31:0] SIMCTRL_WIDTH = dport_pkg::SIMCTRL_WIDTH;
+    localparam bit[31:0] SIMCTRL_MASK = dport_pkg::SIMCTRL_MASK;
+    //
     localparam bit[31:0] DTCM_ADDR = dport_pkg::DTCM_ADDR;
     localparam bit[31:0] DTCM_SIZE = dport_pkg::DTCM_SIZE;
     localparam bit[31:0] DTCM_WIDTH = dport_pkg::DTCM_WIDTH;
     localparam bit[31:0] DTCM_MASK = dport_pkg::DTCM_MASK;
+    //
     localparam bit[31:0] CACHED_ADDR = dport_pkg::CACHED_ADDR;
     localparam bit[31:0] CACHED_SIZE = dport_pkg::CACHED_SIZE;
     localparam bit[31:0] CACHED_WIDTH = dport_pkg::CACHED_WIDTH;
@@ -40,12 +47,6 @@ module tb_dport ();
     logic        mem_flush_i;
 
     obi_if cpu ();
-    obi_if periph ();
-    obi_if dtcm ();
-    axi_if s_axi_dtcm ();
-    axi_if m_axi_cached ();
-    axi_if m_axi_uncached ();
-    axil_if m_axil ();
 
     assign mem_accept_o  = cpu.gnt;
     assign mem_ack_o     = cpu.rvalid;
@@ -56,26 +57,40 @@ module tb_dport ();
     assign cpu.be        = cpu.req ? mem_wr_i : 0;
     assign cpu.we        = cpu.req && |mem_wr_i;
     assign cpu.req       = |mem_wr_i || mem_rd_i;
+    assign cpu.rready    = 1;
 
-    dport i_dport (
-        .rst_i         (rst_i),
-        .clk_i         (clk_i),
-        .cpu           (cpu),
-        .periph        (periph),
-        .dtcm          (dtcm),
-        .m_axi_cached  (m_axi_cached),
-        .m_axi_uncached(m_axi_uncached),
-        .m_axil        (m_axil)
+    obi_if segments [N_SEGMENTS] ();
+
+    dport_mux2 i_dport_mux (
+        .clk_i   (clk_i),
+        .rst_i   (rst_i),
+        .cpu     (cpu),
+        .segments(segments)
     );
+
+    // ------------------------------------------------------------------------
 
     dport_ram #(
-        .ADDR_WIDTH(dport_pkg::LOCAL_WIDTH)
-    )i_dport_ram (
+        .ADDR_WIDTH(dport_pkg::MTIME_WIDTH)
+    )i_dport_mtime (
         .clk_i(clk_i),
         .rst_i(rst_i),
-        .dport(periph)
+        .dport(segments[0])
     );
 
+    // ------------------------------------------------------------------------
+
+    dport_ram #(
+        .ADDR_WIDTH(dport_pkg::SIMCTRL_WIDTH)
+    )i_dport_simctrl (
+        .clk_i(clk_i),
+        .rst_i(rst_i),
+        .dport(segments[1])
+    );
+
+    // ------------------------------------------------------------------------
+
+    axi_if s_axi_dtcm ();
     dport_dtcm #(
         .DATA_WIDTH(s_axi_dtcm.DATA_WIDTH),
         .ADDR_WIDTH(dport_pkg::DTCM_WIDTH),
@@ -86,8 +101,18 @@ module tb_dport ();
     ) i_dport_dtcm (
         .a_clk(clk_i),
         .a_rst(rst_i),
-        .dport(dtcm),
+        .dport(segments[2]),
         .s_axi(s_axi_dtcm)
+    );
+
+    // ------------------------------------------------------------------------
+
+    axi_if m_axi_cached ();
+    dport2axi i_dport2axi_cached (
+        .clk_i(clk_i),
+        .rst_i(rst_i),
+        .dport(segments[3]),
+        .m_axi(m_axi_cached)
     );
 
     axi_ram #(
@@ -135,6 +160,16 @@ module tb_dport ();
         .s_axi_rready (m_axi_cached.rready)
     );
 
+    // ------------------------------------------------------------------------
+
+    axi_if m_axi_uncached ();
+    dport2axi i_dport2axi_uncached (
+        .clk_i(clk_i),
+        .rst_i(rst_i),
+        .dport(segments[4]),
+        .m_axi(m_axi_uncached)
+    );
+
     axi_ram #(
         .DATA_WIDTH(m_axi_uncached.DATA_WIDTH),
         .ADDR_WIDTH(dport_pkg::UNCACHED_WIDTH),
@@ -178,6 +213,16 @@ module tb_dport ();
         .s_axi_rlast  (m_axi_uncached.rlast),
         .s_axi_rvalid (m_axi_uncached.rvalid),
         .s_axi_rready (m_axi_uncached.rready)
+    );
+
+    // ------------------------------------------------------------------------
+
+    axil_if m_axil ();
+    dport2axil i_dport2axil (
+        .clk_i (clk_i),
+        .rst_i (rst_i),
+        .dport (segments[5]),
+        .m_axil(m_axil)
     );
 
     axil_ram #(

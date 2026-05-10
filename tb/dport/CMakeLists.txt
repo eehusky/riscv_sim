@@ -83,8 +83,10 @@ verilate(Vtop
         ${REPO_DIR}/rtl/dport/dport2axil.sv
         ${REPO_DIR}/rtl/dport/dport_addrdecode.sv
         ${REPO_DIR}/rtl/dport/dport_mux.sv
+        ${REPO_DIR}/rtl/dport/dport_mux2.sv
         ${REPO_DIR}/rtl/dport/dport.sv
         ${REPO_DIR}/rtl/dport/dport_ram.sv
+        ${REPO_DIR}/rtl/dport/dport_dummy.sv
         ${REPO_DIR}/rtl/dport/obi_if.sv
         ${REPO_DIR}/rtl/dport/axi_if.sv
         ${REPO_DIR}/rtl/dport/axil_if.sv
