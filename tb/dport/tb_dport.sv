@@ -1,4 +1,4 @@
-import dport_pkg::*;
+//import dport_pkg::*;
 module tb_dport ();
     localparam bit[31:0] N_SEGMENTS = dport_pkg::N_SEGMENTS;
     localparam bit[31:0] LOCAL_ADDR = dport_pkg::LOCAL_ADDR;
@@ -69,7 +69,7 @@ module tb_dport ();
     );
 
     dport_ram #(
-        .ADDR_WIDTH(LOCAL_CFG.WIDTH)
+        .ADDR_WIDTH(dport_pkg::LOCAL_WIDTH)
     )i_dport_ram (
         .clk_i(clk_i),
         .rst_i(rst_i),
@@ -78,7 +78,7 @@ module tb_dport ();
 
     dport_dtcm #(
         .DATA_WIDTH(s_axi_dtcm.DATA_WIDTH),
-        .ADDR_WIDTH(DTCM_CFG.WIDTH),
+        .ADDR_WIDTH(dport_pkg::DTCM_WIDTH),
         .STRB_WIDTH(s_axi_dtcm.STRB_WIDTH),
         .ID_WIDTH(s_axi_dtcm.ID_WIDTH),
         .B_PIPELINE_OUTPUT(0),
@@ -92,14 +92,14 @@ module tb_dport ();
 
     axi_ram #(
         .DATA_WIDTH(m_axi_cached.DATA_WIDTH),
-        .ADDR_WIDTH(CACHED_CFG.WIDTH),
+        .ADDR_WIDTH(dport_pkg::CACHED_WIDTH),
         .STRB_WIDTH(m_axi_cached.STRB_WIDTH),
         .ID_WIDTH  (m_axi_cached.ID_WIDTH)
     ) i_axi_cached_ram (
         .clk          (clk_i),
         .rst          (rst_i),
         .s_axi_awid   (m_axi_cached.awid),
-        .s_axi_awaddr (m_axi_cached.awaddr[CACHED_CFG.WIDTH-1:0]),
+        .s_axi_awaddr (m_axi_cached.awaddr[dport_pkg::CACHED_WIDTH-1:0]),
         .s_axi_awlen  (m_axi_cached.awlen),
         .s_axi_awsize (m_axi_cached.awsize),
         .s_axi_awburst(m_axi_cached.awburst),
@@ -118,7 +118,7 @@ module tb_dport ();
         .s_axi_bvalid (m_axi_cached.bvalid),
         .s_axi_bready (m_axi_cached.bready),
         .s_axi_arid   (m_axi_cached.arid),
-        .s_axi_araddr (m_axi_cached.araddr[CACHED_CFG.WIDTH-1:0]),
+        .s_axi_araddr (m_axi_cached.araddr[dport_pkg::CACHED_WIDTH-1:0]),
         .s_axi_arlen  (m_axi_cached.arlen),
         .s_axi_arsize (m_axi_cached.arsize),
         .s_axi_arburst(m_axi_cached.arburst),
@@ -137,14 +137,14 @@ module tb_dport ();
 
     axi_ram #(
         .DATA_WIDTH(m_axi_uncached.DATA_WIDTH),
-        .ADDR_WIDTH(UNCACHED_CFG.WIDTH),
+        .ADDR_WIDTH(dport_pkg::UNCACHED_WIDTH),
         .STRB_WIDTH(m_axi_uncached.STRB_WIDTH),
         .ID_WIDTH  (m_axi_uncached.ID_WIDTH)
     ) i_axi_uncached_ram (
         .clk          (clk_i),
         .rst          (rst_i),
         .s_axi_awid   (m_axi_uncached.awid),
-        .s_axi_awaddr (m_axi_uncached.awaddr[UNCACHED_CFG.WIDTH-1:0]),
+        .s_axi_awaddr (m_axi_uncached.awaddr[dport_pkg::UNCACHED_WIDTH-1:0]),
         .s_axi_awlen  (m_axi_uncached.awlen),
         .s_axi_awsize (m_axi_uncached.awsize),
         .s_axi_awburst(m_axi_uncached.awburst),
@@ -163,7 +163,7 @@ module tb_dport ();
         .s_axi_bvalid (m_axi_uncached.bvalid),
         .s_axi_bready (m_axi_uncached.bready),
         .s_axi_arid   (m_axi_uncached.arid),
-        .s_axi_araddr (m_axi_uncached.araddr[UNCACHED_CFG.WIDTH-1:0]),
+        .s_axi_araddr (m_axi_uncached.araddr[dport_pkg::UNCACHED_WIDTH-1:0]),
         .s_axi_arlen  (m_axi_uncached.arlen),
         .s_axi_arsize (m_axi_uncached.arsize),
         .s_axi_arburst(m_axi_uncached.arburst),
@@ -182,13 +182,13 @@ module tb_dport ();
 
     axil_ram #(
         .DATA_WIDTH     (m_axil.DATA_WIDTH),
-        .ADDR_WIDTH     (AXIL_CFG.WIDTH),
+        .ADDR_WIDTH     (dport_pkg::AXIL_WIDTH),
         .STRB_WIDTH     (m_axil.STRB_WIDTH),
         .PIPELINE_OUTPUT(0)
     ) i_axil_ram (
         .clk           (clk_i),
         .rst           (rst_i),
-        .s_axil_awaddr (m_axil.awaddr[AXIL_CFG.WIDTH-1:0]),
+        .s_axil_awaddr (m_axil.awaddr[dport_pkg::AXIL_WIDTH-1:0]),
         .s_axil_awprot (m_axil.awprot),
         .s_axil_awvalid(m_axil.awvalid),
         .s_axil_awready(m_axil.awready),
@@ -199,7 +199,7 @@ module tb_dport ();
         .s_axil_bresp  (m_axil.bresp),
         .s_axil_bvalid (m_axil.bvalid),
         .s_axil_bready (m_axil.bready),
-        .s_axil_araddr (m_axil.araddr[AXIL_CFG.WIDTH-1:0]),
+        .s_axil_araddr (m_axil.araddr[dport_pkg::AXIL_WIDTH-1:0]),
         .s_axil_arprot (m_axil.arprot),
         .s_axil_arvalid(m_axil.arvalid),
         .s_axil_arready(m_axil.arready),

@@ -50,6 +50,7 @@ package dport_pkg;
     //    addrspace_config addr_cfg = new(segments);
 
     localparam int N_SEGMENTS = 5;
+    //
     localparam bit [31:0] LOCAL_ADDR = 32'h0000_0000;
     localparam bit [31:0] LOCAL_SIZE = 32'h0001_0000;
     localparam bit [31:0] LOCAL_WIDTH = $clog2(LOCAL_SIZE);
@@ -74,58 +75,12 @@ package dport_pkg;
     localparam bit [31:0] AXIL_SIZE = 32'h0002_0000;
     localparam bit [31:0] AXIL_WIDTH = $clog2(AXIL_SIZE);
     localparam bit [31:0] AXIL_MASK = ~(AXIL_SIZE - 1);
-
-    typedef struct packed {
-        bit [31:0] ADDR;
-        bit [31:0] SIZE;
-        bit [31:0] WIDTH;
-        bit [31:0] MASK;
-    } segcfg_t;
-
-    localparam segcfg_t LOCAL_CFG = '{
-    ADDR: LOCAL_ADDR,
-    SIZE: LOCAL_SIZE,
-    WIDTH: $clog2(LOCAL_SIZE),
-    MASK: ~(LOCAL_SIZE - 1)
-    };
-    localparam segcfg_t DTCM_CFG = '{
-    ADDR: DTCM_ADDR,
-    SIZE: DTCM_SIZE,
-    WIDTH: $clog2(DTCM_SIZE),
-    MASK: ~(DTCM_SIZE - 1)
-    };
-    localparam segcfg_t CACHED_CFG = '{
-    ADDR: CACHED_ADDR,
-    SIZE: CACHED_SIZE,
-    WIDTH: $clog2(CACHED_SIZE),
-    MASK: ~(CACHED_SIZE - 1)
-    };
-    localparam segcfg_t UNCACHED_CFG = '{
-    ADDR: UNCACHED_ADDR,
-    SIZE: UNCACHED_SIZE,
-    WIDTH: $clog2(UNCACHED_SIZE),
-    MASK: ~(UNCACHED_SIZE - 1)
-    };
-    localparam segcfg_t AXIL_CFG = '{
-    ADDR: AXIL_ADDR,
-    SIZE: AXIL_SIZE,
-    WIDTH: $clog2(AXIL_SIZE),
-    MASK: ~(AXIL_SIZE - 1)
-    };
-
-    localparam segcfg_t _SEGMENTS[N_SEGMENTS] = {
-        LOCAL_CFG,
-        DTCM_CFG,
-        CACHED_CFG,
-        UNCACHED_CFG,
-        AXIL_CFG
-    };
-
+    //
     localparam bit [N_SEGMENTS*32-1:0] SLAVE_ADDR = {
-        AXIL_CFG.ADDR, UNCACHED_CFG.ADDR, CACHED_CFG.ADDR, DTCM_CFG.ADDR, LOCAL_CFG.ADDR
+        AXIL_ADDR, UNCACHED_ADDR, CACHED_ADDR, DTCM_ADDR, LOCAL_ADDR
     };
     localparam bit [N_SEGMENTS*32-1:0] SLAVE_MASK = {
-        AXIL_CFG.MASK, UNCACHED_CFG.MASK, CACHED_CFG.MASK, DTCM_CFG.MASK, LOCAL_CFG.MASK
+        AXIL_MASK, UNCACHED_MASK, CACHED_MASK, DTCM_MASK, LOCAL_MASK
     };
 
 

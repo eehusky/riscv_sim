@@ -9,8 +9,7 @@ module dport_mux (
     obi_if.master uncached,
     obi_if.master axil
 );
-    import dport_pkg::*;
-    localparam int NS = N_SEGMENTS;
+    localparam int NS = dport_pkg::N_SEGMENTS;
 
     obi_if dummy ();
 
@@ -34,9 +33,9 @@ module dport_mux (
         //.NS            (NS),
         //.SLAVE_ADDR    ({32'hB000_0000, 32'hA000_0000, 32'h9000_0000, 32'h8002_0000, 32'h0000_0000}),
         //.SLAVE_MASK    ({32'hFFFE_0000, 32'hFFFE_0000, 32'hFFFE_0000, 32'hFFFE_0000, 32'hFFFF_0000}),
-        .NS(N_SEGMENTS),
-        .SLAVE_ADDR(SLAVE_ADDR),
-        .SLAVE_MASK(SLAVE_MASK),
+        .NS(NS),
+        .SLAVE_ADDR(dport_pkg::SLAVE_ADDR),
+        .SLAVE_MASK(dport_pkg::SLAVE_MASK),
         .ACCESS_ALLOWED(-1),
         .OPT_REGISTERED(0),
         .OPT_LOWPOWER  (1)
