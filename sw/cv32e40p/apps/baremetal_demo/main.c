@@ -6,38 +6,34 @@
 #include <string.h>
 #include <strings.h>
 
+#include "riscv_csr.h"
+#include "riscv_interrupts.h"
 
+#include "prj_nanoprintf.h"
 #include "riscv_io.h"
-
-
+#include "sim_extensions.h"
+#include "vector_table.h"
 
 int main(void)
 {
-    uint32_t base = 0x80000000|(1<<16);
-    //volatile uint32_t *data = (uint32_t*)(1<<16);
+    sim_putstring("Main\n");
 
-    write32(base,0xDEADBEEF);
-    read32(base);
-    //read32(base+4);
-    //write32(0x10000000,0xDEADBEEF);
-    //write32(0x10000000,0xDEADBEEF);
-    //write32(base+4,0xCAFEBABE);
+    nprintf("%s %.2f\n", "pi is", 3.14f);
 
-    //volatile float x = 3.14159;
-    //x= x*2;
-    //write32(base+8,*((uint32_t*)&x));
+    uint64_t mtime = mtime_get();
+    mtimecmp_set(mtime + 2048);
 
-    //volatile int blah =0;
-    //for (int i = 0; i < 10; ++i)
-    //{
-    //    blah+=1;
-    //}
-    //uint32_t terminate = 0x1A110800;
+    asm volatile("wfi");
+    asm volatile("wfi");
+    asm volatile("wfi");
+    asm volatile("wfi");
 
+    return 0;
+}
 
-    //asm volatile("j    %0"
-    //             :            /* output: none */
-    //             : "r"(terminate) /* input : register */
-    //             : /* clobbers: none */);
-
+void riscv_mtvec_mti(void)
+{
+    sim_putstring("riscv_mtvec_mti\n");
+    uint64_t mtimecmp = mtimecmp_get();
+    mtimecmp_set(mtimecmp + 2048);
 }

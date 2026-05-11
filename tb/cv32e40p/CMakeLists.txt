@@ -3,7 +3,7 @@ project(tb_cv32e40p)
 
 set(REPO_DIR                  ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 set(CV32E40P                  ${REPO_DIR}/cores/cv32e40p)
-#set(VERILOG_AXI $ENV{HOME}/github/alexforencich/verilog-axi/)
+set(VERILOG_AXI $ENV{HOME}/github/alexforencich/verilog-axi/)
 
 find_package(verilator
     NO_DEFAULT_PATH
@@ -154,16 +154,10 @@ verilate(tb_cv32e40p
         ${CV32E40P}/rtl/vendor/pulp_platform_fpnew/vendor/opene906/E906_RTL_FACTORY/gen_rtl/fpu/rtl/pa_fpu_dp.v
         ${CV32E40P}/rtl/vendor/pulp_platform_fpnew/vendor/opene906/E906_RTL_FACTORY/gen_rtl/fpu/rtl/pa_fpu_frbus.v
         ${CV32E40P}/rtl/vendor/pulp_platform_fpnew/vendor/opene906/E906_RTL_FACTORY/gen_rtl/fpu/rtl/pa_fpu_src_type.v
-
-
-
-
         #
         ${CV32E40P}/rtl/vendor/pulp_platform_common_cells/src/cf_math_pkg.sv
         ${CV32E40P}/rtl/vendor/pulp_platform_common_cells/src/lzc.sv
         ${CV32E40P}/rtl/vendor/pulp_platform_common_cells/src/rr_arb_tree.sv
-
-
         #
         ${CV32E40P}/rtl/cv32e40p_aligner.sv
         ${CV32E40P}/rtl/cv32e40p_alu_div.sv
@@ -192,10 +186,33 @@ verilate(tb_cv32e40p
         ${CV32E40P}/rtl/cv32e40p_sleep_unit.sv
         ${CV32E40P}/rtl/cv32e40p_top.sv
         #
-        ${REPO_DIR}/rtl/dport/dport_if.sv
-        ${REPO_DIR}/rtl/dport/dport_ram.sv
+        ${VERILOG_AXI}/rtl/axi_dp_ram.v
+        ${VERILOG_AXI}/rtl/axi_ram_wr_rd_if.v
+        ${VERILOG_AXI}/rtl/axi_ram_wr_if.v
+        ${VERILOG_AXI}/rtl/axi_ram_rd_if.v
+        ${VERILOG_AXI}/rtl/axil_ram.v
+        ${VERILOG_AXI}/rtl/axi_ram.v
         #
-        obi_if.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_sfifo.v
+        ${REPO_DIR}/rtl/dport/dport_pkg.sv
+        ${REPO_DIR}/rtl/dport/dport2iob.sv
+        ${REPO_DIR}/rtl/dport/dport2axi.sv
+        ${REPO_DIR}/rtl/dport/dport2axil.sv
+        ${REPO_DIR}/rtl/dport/dport_addrdecode.sv
+        ${REPO_DIR}/rtl/dport/dport_mux.sv
+        ${REPO_DIR}/rtl/dport/dport_mux2.sv
+        ${REPO_DIR}/rtl/dport/dport.sv
+        ${REPO_DIR}/rtl/dport/dport_ram.sv
+        ${REPO_DIR}/rtl/dport/dport_dummy.sv
+        ${REPO_DIR}/rtl/dport/obi_if.sv
+        ${REPO_DIR}/rtl/dport/axi_if.sv
+        ${REPO_DIR}/rtl/dport/axil_if.sv
+        ${REPO_DIR}/rtl/dport/dport_rsp_queue.sv
+        ${REPO_DIR}/rtl/dport/dport_dtcm.sv
+        #
+        ${REPO_DIR}/rtl/dport/timer.sv
+        ${REPO_DIR}/rtl/dport/sim_ctrl.sv
+        #
         tb_cv32e40p.sv
         tb_cv32e40p.vlt
         #

@@ -48,15 +48,20 @@ package dport_pkg;
     //    dport_config axil_cfg = new("axil", 32'hB000_0000, 32'h0002_0000);
     //    dport_config segments[5] = {local_cfg, dtcm_cfg, cached_cfg, uncached_cfg, axil_cfg};
     //    addrspace_config addr_cfg = new(segments);
+    //
+    localparam bit [31:0] ITCM_ADDR = 32'h8000_0000;
+    localparam bit [31:0] ITCM_SIZE = 32'h0002_0000;
+    localparam bit [31:0] ITCM_WIDTH = $clog2(ITCM_SIZE);
+    localparam bit [31:0] ITCM_MASK = ~(ITCM_SIZE - 1);
 
     localparam int N_SEGMENTS = 6;
     //
-    localparam bit [31:0] MTIME_ADDR = 32'h0000_0000;
+    localparam bit [31:0] MTIME_ADDR = 32'h0000_2000;
     localparam bit [31:0] MTIME_SIZE = 32'h0000_1000;
     localparam bit [31:0] MTIME_WIDTH = $clog2(MTIME_SIZE);
     localparam bit [31:0] MTIME_MASK = ~(MTIME_SIZE - 1);
     //
-    localparam bit [31:0] SIMCTRL_ADDR = 32'h0000_1000;
+    localparam bit [31:0] SIMCTRL_ADDR = 32'h0000_3000;
     localparam bit [31:0] SIMCTRL_SIZE = 32'h0000_1000;
     localparam bit [31:0] SIMCTRL_WIDTH = $clog2(SIMCTRL_SIZE);
     localparam bit [31:0] SIMCTRL_MASK = ~(SIMCTRL_SIZE - 1);

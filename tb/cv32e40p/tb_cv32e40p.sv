@@ -4,6 +4,7 @@ module tb_cv32e40p (
 );
 
     logic        clk_i;
+    logic        rst_i;
     logic        rst_ni;
     logic        pulp_clock_en_i;
     logic        scan_cg_en_i;
@@ -34,13 +35,19 @@ module tb_cv32e40p (
     logic        debug_halted_o;
     logic        fetch_enable_i;
     logic        core_sleep_o;
+    logic        irq_mei;
+    logic        irq_msi;
+    logic        irq_mti;
+    logic        irq_mti_clear;
+    logic        irq_msi_clear;
+    logic        irq_mei_clear;
 
     initial begin
         pulp_clock_en_i     = 0;  // PULP clock enable (only used if COREV_CLUSTER = 1)
         scan_cg_en_i        = 1;  // Enable all clock gates for testing
         boot_addr_i         = 32'h8000_0000;
-        mtvec_addr_i        = 0;
-        dm_halt_addr_i      = 32'h1A110800;
+        mtvec_addr_i        = 32'h8000_1000;
+        dm_halt_addr_i      = 32'h1A11_0800;
         hart_id_i           = 0;
         dm_exception_addr_i = 0;
         irq_i               = 0;
@@ -48,13 +55,25 @@ module tb_cv32e40p (
         fetch_enable_i      = 1;  // make the core start fetching instruction immediately
     end
 
-    assign clk_i  = i_clk;
-    assign rst_ni = ~i_rst;
+    assign clk_i         = i_clk;
+    assign rst_ni        = ~i_rst;
+    assign rst_i         = i_rst;
+    assign irq_i[2:0]    = 3'b0;
+    assign irq_i[3]      = irq_msi;
+    assign irq_i[6:4]    = 3'b0;
+    assign irq_i[7]      = irq_mti;
+    assign irq_i[10:8]   = 3'b0;
+    assign irq_i[11]     = irq_mei;
+    assign irq_i[15:12]  = 3'b0;
+
+    assign irq_mti_clear = irq_ack_o && irq_id_o == 3;
+    assign irq_msi_clear = irq_ack_o && irq_id_o == 7;
+    assign irq_mei_clear = irq_ack_o && irq_id_o == 11;
 
     cv32e40p_top #(
         .COREV_PULP      (0),  // PULP ISA Extension (incl. custom CSRs and hardware loop, excl. cv.elw)
         .COREV_CLUSTER   (0),  // PULP Cluster interface (incl. cv.elw)
-        .FPU             (0),  // Floating Point Unit (interfaced via APU interface)
+        .FPU             (1),  // Floating Point Unit (interfaced via APU interface)
         .FPU_ADDMUL_LAT  (0),  // Floating-Point ADDition/MULtiplication computing lane pipeline registers number
         .FPU_OTHERS_LAT  (0),  // Floating-Point COMParison/CONVersion computing lanes pipeline registers number
         .ZFINX           (0),  // Float-in-General Purpose registers
@@ -93,6 +112,28 @@ module tb_cv32e40p (
         .core_sleep_o       (core_sleep_o)
     );
 
+
+
+
+    /*
+    Level sensistive active high interrupt inputs.
+    Not all interrupt inputs can be used on CV32E40P.
+    Specifically
+        irq_i[15:12]
+        irq_i[10:8]
+        irq_i[6:4]
+        irq_i[2:0]
+    shall be tied to 0 externally as they are reserved for future standard use
+    (or for cores which are not Machine mode only) in the RISC-V Privileged specification.
+
+    MEI: irq_i[11]
+    MTI: irq_i[7]
+    MSI: irq_i[3]
+    correspond to the Machine External Interrupt (MEI), Machine Timer Interrupt (MTI), and Machine Software Interrupt (MSI) respectively.
+
+    The irq_i[31:16] interrupts are a CV32E40P specific extension to the RISC-V Basic (a.k.a. CLINT) interrupt scheme.
+    */
+
     // req         Master Slave    Address transfer request. req=1 signals the availability of valid address phase signals.
     // gnt         Slave  Master   Grant. Ready to accept address transfer. Address transfer is accepted on rising clk with req=1 and gnt=1.
     // addr[]      Master Slave    Address
@@ -100,90 +141,286 @@ module tb_cv32e40p (
     // be[]        Master Slave    Byte Enable. Is set for the bytes to write/read.
     // wdata[]     Master Slave    Write data. Only valid for write transactions. Undefined for read transactions
 
-    dport_if instr_dport ();
-    obi_if instr_obi ();
-    obi2dport i_instr_cnvt (
-        .obi  (instr_obi),
-        .dport(instr_dport)
-    );
-    assign instr_obi.req   = instr_req_o;
-    assign instr_obi.we    = 0;
-    assign instr_obi.wdata = 0;
-    assign instr_obi.be    = 0;
-    assign instr_obi.addr  = instr_addr_o;
-    assign instr_gnt_i     = instr_obi.gnt;
-    assign instr_rvalid_i  = instr_obi.rvalid;
-    assign instr_rdata_i   = instr_obi.rdata;
-
-    dport_ram i_instr_ram (
+    obi_if instr_dport ();
+    assign instr_gnt_i        = instr_dport.gnt;
+    assign instr_dport.req    = instr_req_o;
+    assign instr_dport.addr   = instr_addr_o;
+    assign instr_dport.we     = 0;
+    assign instr_dport.be     = 0;
+    assign instr_dport.wdata  = 0;
+    assign instr_dport.aid    = 0;
+    assign instr_dport.rready = 1;
+    assign instr_rvalid_i     = instr_dport.rvalid;
+    assign instr_rdata_i      = instr_dport.rdata;
+    dport_ram #(
+        .ADDR_WIDTH(17)
+    ) i_instr_ram (
         .clk_i(i_clk),
         .rst_i(i_rst),
         .dport(instr_dport)
     );
 
-    dport_if data_dport ();
-    obi_if data_obi ();
-    obi2dport i_data_cnvt (
-        .obi  (data_obi),
-        .dport(data_dport)
-    );
-    assign data_obi.req   = data_req_o;
-    assign data_obi.we    = data_we_o;
-    assign data_obi.wdata = data_wdata_o;
-    assign data_obi.be    = data_be_o;
-    assign data_obi.addr  = data_addr_o;
-    assign data_gnt_i     = data_obi.gnt;
-    assign data_rvalid_i  = data_obi.rvalid;
-    assign data_rdata_i   = data_obi.rdata;
+    obi_if data_dport ();
+    assign data_gnt_i        = data_dport.gnt;
+    assign data_dport.req    = data_req_o;
+    assign data_dport.addr   = data_req_o ? data_addr_o : 0;
+    assign data_dport.we     = data_req_o ? data_we_o : 0;
+    assign data_dport.be     = data_req_o ? data_be_o : 0;
+    assign data_dport.wdata  = data_req_o ? data_wdata_o : 0;
+    assign data_dport.aid    = data_req_o ? 0 : 0;
+    assign data_dport.rready = 1;
+    assign data_rvalid_i     = data_dport.rvalid;
+    assign data_rdata_i      = data_dport.rvalid ? data_dport.rdata : 0;
+    //data_dport.err;
+    //data_dport.rid;
 
-    dport_ram i_data_ram (
-        .clk_i(i_clk),
-        .rst_i(i_rst),
-        .dport(data_dport)
+    obi_if segments[dport_pkg::N_SEGMENTS] ();
+
+    dport_mux2 i_dport_mux (
+        .clk_i   (clk_i),
+        .rst_i   (rst_i),
+        .cpu     (data_dport),
+        .segments(segments)
     );
 
-`ifdef verilator
-    //-------------------------------------------------------------
-    // write: Write byte into memory
-    //-------------------------------------------------------------
-    function write;  /*verilator public*/
+    // ------------------------------------------------------------------------
+
+    timer i_mtime (
+        .clk_i       (clk_i),
+        .rst_i       (rst_i),
+        .dport       (segments[0]),
+        .intr_o      (irq_mti),
+        .clear_intr_i(irq_mti_clear)
+    );
+
+    // ------------------------------------------------------------------------
+
+    sim_ctrl i_sim_ctrl (
+        .clk_i(clk_i),
+        .rst_i(rst_i),
+        .dport(segments[1])
+    );
+
+    // ------------------------------------------------------------------------
+
+    axi_if s_axi_dtcm ();
+    dport_dtcm #(
+        .DATA_WIDTH       (s_axi_dtcm.DATA_WIDTH),
+        .ADDR_WIDTH       (dport_pkg::DTCM_WIDTH),
+        .STRB_WIDTH       (s_axi_dtcm.STRB_WIDTH),
+        .ID_WIDTH         (s_axi_dtcm.ID_WIDTH),
+        .B_PIPELINE_OUTPUT(0),
+        .B_INTERLEAVE     (0)
+    ) i_dport_dtcm (
+        .a_clk(clk_i),
+        .a_rst(rst_i),
+        .dport(segments[2]),
+        .s_axi(s_axi_dtcm)
+    );
+
+    // ------------------------------------------------------------------------
+
+    axi_if m_axi_cached ();
+    dport2axi i_dport2axi_cached (
+        .clk_i(clk_i),
+        .rst_i(rst_i),
+        .dport(segments[3]),
+        .m_axi(m_axi_cached)
+    );
+
+    axi_ram #(
+        .DATA_WIDTH(m_axi_cached.DATA_WIDTH),
+        .ADDR_WIDTH(dport_pkg::CACHED_WIDTH),
+        .STRB_WIDTH(m_axi_cached.STRB_WIDTH),
+        .ID_WIDTH  (m_axi_cached.ID_WIDTH)
+    ) i_axi_cached_ram (
+        .clk          (clk_i),
+        .rst          (rst_i),
+        .s_axi_awid   (m_axi_cached.awid),
+        .s_axi_awaddr (m_axi_cached.awaddr[dport_pkg::CACHED_WIDTH-1:0]),
+        .s_axi_awlen  (m_axi_cached.awlen),
+        .s_axi_awsize (m_axi_cached.awsize),
+        .s_axi_awburst(m_axi_cached.awburst),
+        .s_axi_awlock (m_axi_cached.awlock),
+        .s_axi_awcache(m_axi_cached.awcache),
+        .s_axi_awprot (m_axi_cached.awprot),
+        .s_axi_awvalid(m_axi_cached.awvalid),
+        .s_axi_awready(m_axi_cached.awready),
+        .s_axi_wdata  (m_axi_cached.wdata),
+        .s_axi_wstrb  (m_axi_cached.wstrb),
+        .s_axi_wlast  (m_axi_cached.wlast),
+        .s_axi_wvalid (m_axi_cached.wvalid),
+        .s_axi_wready (m_axi_cached.wready),
+        .s_axi_bid    (m_axi_cached.bid),
+        .s_axi_bresp  (m_axi_cached.bresp),
+        .s_axi_bvalid (m_axi_cached.bvalid),
+        .s_axi_bready (m_axi_cached.bready),
+        .s_axi_arid   (m_axi_cached.arid),
+        .s_axi_araddr (m_axi_cached.araddr[dport_pkg::CACHED_WIDTH-1:0]),
+        .s_axi_arlen  (m_axi_cached.arlen),
+        .s_axi_arsize (m_axi_cached.arsize),
+        .s_axi_arburst(m_axi_cached.arburst),
+        .s_axi_arlock (m_axi_cached.arlock),
+        .s_axi_arcache(m_axi_cached.arcache),
+        .s_axi_arprot (m_axi_cached.arprot),
+        .s_axi_arvalid(m_axi_cached.arvalid),
+        .s_axi_arready(m_axi_cached.arready),
+        .s_axi_rid    (m_axi_cached.rid),
+        .s_axi_rdata  (m_axi_cached.rdata),
+        .s_axi_rresp  (m_axi_cached.rresp),
+        .s_axi_rlast  (m_axi_cached.rlast),
+        .s_axi_rvalid (m_axi_cached.rvalid),
+        .s_axi_rready (m_axi_cached.rready)
+    );
+
+    // ------------------------------------------------------------------------
+
+    axi_if m_axi_uncached ();
+    dport2axi i_dport2axi_uncached (
+        .clk_i(clk_i),
+        .rst_i(rst_i),
+        .dport(segments[4]),
+        .m_axi(m_axi_uncached)
+    );
+
+    axi_ram #(
+        .DATA_WIDTH(m_axi_uncached.DATA_WIDTH),
+        .ADDR_WIDTH(dport_pkg::UNCACHED_WIDTH),
+        .STRB_WIDTH(m_axi_uncached.STRB_WIDTH),
+        .ID_WIDTH  (m_axi_uncached.ID_WIDTH)
+    ) i_axi_uncached_ram (
+        .clk          (clk_i),
+        .rst          (rst_i),
+        .s_axi_awid   (m_axi_uncached.awid),
+        .s_axi_awaddr (m_axi_uncached.awaddr[dport_pkg::UNCACHED_WIDTH-1:0]),
+        .s_axi_awlen  (m_axi_uncached.awlen),
+        .s_axi_awsize (m_axi_uncached.awsize),
+        .s_axi_awburst(m_axi_uncached.awburst),
+        .s_axi_awlock (m_axi_uncached.awlock),
+        .s_axi_awcache(m_axi_uncached.awcache),
+        .s_axi_awprot (m_axi_uncached.awprot),
+        .s_axi_awvalid(m_axi_uncached.awvalid),
+        .s_axi_awready(m_axi_uncached.awready),
+        .s_axi_wdata  (m_axi_uncached.wdata),
+        .s_axi_wstrb  (m_axi_uncached.wstrb),
+        .s_axi_wlast  (m_axi_uncached.wlast),
+        .s_axi_wvalid (m_axi_uncached.wvalid),
+        .s_axi_wready (m_axi_uncached.wready),
+        .s_axi_bid    (m_axi_uncached.bid),
+        .s_axi_bresp  (m_axi_uncached.bresp),
+        .s_axi_bvalid (m_axi_uncached.bvalid),
+        .s_axi_bready (m_axi_uncached.bready),
+        .s_axi_arid   (m_axi_uncached.arid),
+        .s_axi_araddr (m_axi_uncached.araddr[dport_pkg::UNCACHED_WIDTH-1:0]),
+        .s_axi_arlen  (m_axi_uncached.arlen),
+        .s_axi_arsize (m_axi_uncached.arsize),
+        .s_axi_arburst(m_axi_uncached.arburst),
+        .s_axi_arlock (m_axi_uncached.arlock),
+        .s_axi_arcache(m_axi_uncached.arcache),
+        .s_axi_arprot (m_axi_uncached.arprot),
+        .s_axi_arvalid(m_axi_uncached.arvalid),
+        .s_axi_arready(m_axi_uncached.arready),
+        .s_axi_rid    (m_axi_uncached.rid),
+        .s_axi_rdata  (m_axi_uncached.rdata),
+        .s_axi_rresp  (m_axi_uncached.rresp),
+        .s_axi_rlast  (m_axi_uncached.rlast),
+        .s_axi_rvalid (m_axi_uncached.rvalid),
+        .s_axi_rready (m_axi_uncached.rready)
+    );
+
+    // ------------------------------------------------------------------------
+
+    axil_if m_axil ();
+    dport2axil i_dport2axil (
+        .clk_i (clk_i),
+        .rst_i (rst_i),
+        .dport (segments[5]),
+        .m_axil(m_axil)
+    );
+
+    axil_ram #(
+        .DATA_WIDTH     (m_axil.DATA_WIDTH),
+        .ADDR_WIDTH     (dport_pkg::AXIL_WIDTH),
+        .STRB_WIDTH     (m_axil.STRB_WIDTH),
+        .PIPELINE_OUTPUT(0)
+    ) i_axil_ram (
+        .clk           (clk_i),
+        .rst           (rst_i),
+        .s_axil_awaddr (m_axil.awaddr[dport_pkg::AXIL_WIDTH-1:0]),
+        .s_axil_awprot (m_axil.awprot),
+        .s_axil_awvalid(m_axil.awvalid),
+        .s_axil_awready(m_axil.awready),
+        .s_axil_wdata  (m_axil.wdata),
+        .s_axil_wstrb  (m_axil.wstrb),
+        .s_axil_wvalid (m_axil.wvalid),
+        .s_axil_wready (m_axil.wready),
+        .s_axil_bresp  (m_axil.bresp),
+        .s_axil_bvalid (m_axil.bvalid),
+        .s_axil_bready (m_axil.bready),
+        .s_axil_araddr (m_axil.araddr[dport_pkg::AXIL_WIDTH-1:0]),
+        .s_axil_arprot (m_axil.arprot),
+        .s_axil_arvalid(m_axil.arvalid),
+        .s_axil_arready(m_axil.arready),
+        .s_axil_rdata  (m_axil.rdata),
+        .s_axil_rresp  (m_axil.rresp),
+        .s_axil_rvalid (m_axil.rvalid),
+        .s_axil_rready (m_axil.rready)
+    );
+
+
+
+
+
+
+    function write_itcm;  /*verilator public*/
         input [31:0] addr;
         input [7:0] data;
         begin
+            //$display("ITCM: %08X: %08X", addr, data);
             case (addr[1:0])
                 2'd0: i_instr_ram.mem[addr/4][7:0] = data;
                 2'd1: i_instr_ram.mem[addr/4][15:8] = data;
                 2'd2: i_instr_ram.mem[addr/4][23:16] = data;
                 2'd3: i_instr_ram.mem[addr/4][31:24] = data;
-                //3'd4: i_uncore.ram.ram.memory.ram.RAM[addr/8][39:32] = data;
-                //3'd5: i_uncore.ram.ram.memory.ram.RAM[addr/8][47:40] = data;
-                //3'd6: i_uncore.ram.ram.memory.ram.RAM[addr/8][55:48] = data;
-                //3'd7: i_uncore.ram.ram.memory.ram.RAM[addr/8][63:56] = data;
             endcase
         end
     endfunction
-    //-------------------------------------------------------------
-    // read: Read byte from memory
-    //-------------------------------------------------------------
-    function [7:0] read;  /*verilator public*/
+    function [7:0] read_itcm;  /*verilator public*/
         input [31:0] addr;
         begin
             case (addr[1:0])
-                2'd0: read = i_instr_ram.mem[addr/4][7:0];
-                2'd1: read = i_instr_ram.mem[addr/4][15:8];
-                2'd2: read = i_instr_ram.mem[addr/4][23:16];
-                2'd3: read = i_instr_ram.mem[addr/4][31:24];
-                //3'd4: read = i_axi_ram.mem[addr/8][39:32];
-                //3'd5: read = i_axi_ram.mem[addr/8][47:40];
-                //3'd6: read = i_axi_ram.mem[addr/8][55:48];
-                //3'd7: read = i_axi_ram.mem[addr/8][63:56];
+                2'd0: read_itcm = i_instr_ram.mem[addr/4][7:0];
+                2'd1: read_itcm = i_instr_ram.mem[addr/4][15:8];
+                2'd2: read_itcm = i_instr_ram.mem[addr/4][23:16];
+                2'd3: read_itcm = i_instr_ram.mem[addr/4][31:24];
             endcase
         end
     endfunction
-`endif
 
-
-
+    function write_dtcm;  /*verilator public*/
+        input [31:0] addr;
+        input [7:0] data;
+        begin
+            //$display("DTCM: %08X: %08X", addr, data);
+            case (addr[1:0])
+                2'd0: i_dport_dtcm.mem[addr/4][7:0] = data;
+                2'd1: i_dport_dtcm.mem[addr/4][15:8] = data;
+                2'd2: i_dport_dtcm.mem[addr/4][23:16] = data;
+                2'd3: i_dport_dtcm.mem[addr/4][31:24] = data;
+            endcase
+        end
+    endfunction
+    function [7:0] read_dtcm;  /*verilator public*/
+        input [31:0] addr;
+        begin
+            case (addr[1:0])
+                2'd0: read_dtcm = i_dport_dtcm.mem[addr/4][7:0];
+                2'd1: read_dtcm = i_dport_dtcm.mem[addr/4][15:8];
+                2'd2: read_dtcm = i_dport_dtcm.mem[addr/4][23:16];
+                2'd3: read_dtcm = i_dport_dtcm.mem[addr/4][31:24];
+            endcase
+        end
+    endfunction
 
 
     initial begin

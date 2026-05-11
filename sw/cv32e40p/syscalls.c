@@ -1,3 +1,4 @@
+#include "sim_extensions.h"
 #include <stddef.h>
 #include <sys/reent.h>
 #include <sys/stat.h>
@@ -45,7 +46,7 @@ ssize_t _write_r(struct _reent *r, int fd, const void *ptr, size_t len)
 {
     unsigned int i;
     for (i = 0; i < len; i++) {
-        //biriscv_sim_putc(((char *)ptr)[i]);
+        sim_putc(((char *)ptr)[i]);
     }
     return i;
 }

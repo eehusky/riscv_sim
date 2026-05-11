@@ -1,9 +1,7 @@
-_stack_size = 4K;
-
 MEMORY
 {
-    ITCM (rwx) : ORIGIN = 0x80000000, LENGTH = 64K
-    DTCM (rwx) : ORIGIN = 0x80010000, LENGTH = 64K
+    ITCM (rwx) : ORIGIN = 0x80000000, LENGTH = 128K
+    DTCM (rw)  : ORIGIN = 0x80020000, LENGTH = 128K
 }
 
 SECTIONS
@@ -14,8 +12,6 @@ SECTIONS
         KEEP(*(.text.start))
         *(.text.start)
         *(.text*)
-        *(.rodata*)
-        *(.srodata*)
         _etext = .;
     } > ITCM
 
@@ -24,6 +20,8 @@ SECTIONS
         _data = .;
         *(.data*)
         *(.sdata*)
+        *(.rodata*)
+        *(.srodata*)
         _edata = .;
     } > DTCM
 
@@ -43,11 +41,10 @@ SECTIONS
     } > DTCM
 
     _heap_bottom = .;
-    _heap_top = ORIGIN(DTCM) + LENGTH(DTCM) - _stack_size;
+    _heap_top = ORIGIN(DTCM) + LENGTH(DTCM) - __stack_size;
 
     _stack_bottom = _heap_top;
     _stack_top = ORIGIN(DTCM) + LENGTH(DTCM);
-
 }
 
 

@@ -30,7 +30,6 @@ module dport_mux2 #(
     decode_data_t     decode_data;
     logic             decode_stall;
     logic             decode_valid;
-    logic             decode_stall_o;
     logic      [31:0] decode_addr;
     logic      [NS:0] req_grant;
 
@@ -88,6 +87,7 @@ module dport_mux2 #(
     assign dummy.be    = req_data[NS].be;
     assign dummy.wdata = req_data[NS].wdata;
     assign dummy.aid   = req_data[NS].aid;
+    assign req_data[NS].gnt   = dummy.gnt;
 
     always_comb begin
         decode_stall = 0;

@@ -11,7 +11,7 @@ enable_language(ASM)
 set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 
-set(STACK_SIZE    0xf00 )
+set(STACK_SIZE    0x1000 )
 set(TARGET        app1 )
 set(LINKER_SCRIPT ${CV32E40P}/baremetal/linker.ld)
 
@@ -19,32 +19,41 @@ set(LINKER_SCRIPT ${CV32E40P}/baremetal/linker.ld)
 
 add_executable(${TARGET}.elf
     main.c
+    prj_nanoprintf.c
     ${CV32E40P}/baremetal/start.s
     ${CV32E40P}/baremetal/entry.c
     ${CV32E40P}/syscalls.c
-    ${RISCV}/mtvec.c
-
+    ${CV32E40P}/vector_table.c
+    #${RISCV}/mtvec.c
 )
 target_include_directories(${TARGET}.elf
     PRIVATE
         ${RISCV}/
+        ${CV32E40P}/
 )
 target_link_libraries(${TARGET}.elf
     PRIVATE
-        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libc_nano.a
-        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libm_nano.a
+        /opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libc_nano.a
+        /opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libm_nano.a
+        /opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libg_nano.a
+        /opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libgloss_nano.a
+        #/opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libc_nano.a
+        #/opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libm_nano.a
+        #/opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libg_nano.a
+        #/opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libgloss_nano.a
 )
 
 set(PROJECT_C_FLAGS
-    -Og
+    -O3
     -nostartfiles
     -fno-exceptions
     -ffunction-sections
     -fdata-sections
-    -march=rv32imfc
-    -mabi=ilp32f
-    #-march=rv32icmf_zicsr_zifencei_zicntr
+    -Wall
+    #-march=rv32im
     #-mabi=ilp32
+    -march=rv32imf_zicsr_zifencei_zicntr
+    -mabi=ilp32f
     -MD
     -mcmodel=medany
     -mstrict-align
@@ -56,8 +65,8 @@ set(PROJECT_LINKER_FLAGS
     -Wl,-Map=${TARGET}.map
     -Wl,--gc-sections
     -Wl,--defsym=__stack_size=${STACK_SIZE}
-    #-Wl,-Arv32im
-    #-Wl,-belf32-littleriscv
+    -Wl,-Arv32imf
+    -Wl,-belf32-littleriscv
 )
 
 

@@ -14,6 +14,11 @@
 #define MEM_SIZE (1<<17)
 #define GETOPTS_ARGS "f:c:h"
 
+#define ITCM_BASE 0x80000000
+#define ITCM_SIZE 0x00020000
+#define DTCM_BASE 0x80020000
+#define DTCM_SIZE 0x00020000
+
 static struct option long_options[] =
 {
     {"elf",        required_argument, 0, 'f'},
@@ -49,28 +54,50 @@ public:
     bool create_memory(uint32_t base, uint32_t size, uint8_t *mem = NULL)
     {
         //printf("base=%08X size=%08X\n", base, size);
-        assert(base >= MEM_BASE && ((base + size) < (MEM_BASE + MEM_SIZE)));
+        //assert(base >= MEM_BASE && ((base + size) < (MEM_BASE + MEM_SIZE)));
         return true;
     }
     bool valid_addr(uint32_t addr) { return true; }
-    void write(uint32_t addr, uint8_t data)
+
+    void write_itcm(uint32_t addr, uint8_t data)
     {
-        addr = addr-MEM_BASE;
+        addr = addr-ITCM_BASE;
         lo_addr = addr<lo_addr ? addr : lo_addr;
         hi_addr = addr>hi_addr ? addr : hi_addr;
+        m_dut->tb_cv32e40p->vlSymsp->TOP__tb_cv32e40p.write_itcm(addr, data);
+    }
+    uint8_t read_itcm(uint32_t addr)
+    {
+        return m_dut->tb_cv32e40p->vlSymsp->TOP__tb_cv32e40p.read_itcm(addr);
+    }
+    void write_dtcm(uint32_t addr, uint8_t data)
+    {
+        addr = addr-DTCM_BASE;
+        m_dut->tb_cv32e40p->vlSymsp->TOP__tb_cv32e40p.write_dtcm(addr, data);
+    }
+    uint8_t read_dtcm(uint32_t addr)
+    {
+        addr = addr-DTCM_BASE;
+        return m_dut->tb_cv32e40p->vlSymsp->TOP__tb_cv32e40p.read_dtcm(addr);
+    }
 
-        m_dut->tb_cv32e40p->vlSymsp->TOP__tb_cv32e40p.write(addr, data);
 
-        //m_dut->tb_biriscv_idcache_top->vlSymsp->TOP__tb_biriscv_idcache_top.write(addr, data);
-        //auto mem = m_dut->tb_riscv_top->vlSymsp->TOP__tb_riscv_top.i_soc_mem->i_axi_ram->mem.data();
-        //auto offset = ((addr%4)*8);
-        //mem[addr/4] = (mem[addr/4] & ~(0xFF<<offset)) | (data<<offset);
+    void write(uint32_t addr, uint8_t data)
+    {
+        //printf("addr=%08X\n", addr);
+        if(addr >= DTCM_BASE && addr < DTCM_BASE+DTCM_SIZE){
+            write_dtcm(addr, data);
+        } else if(addr >= ITCM_BASE && addr < ITCM_BASE+ITCM_SIZE){
+            write_itcm(addr, data);
+        }
+
     }
     uint8_t read(uint32_t addr)
     {
-        addr = addr-MEM_BASE;
-        return m_dut->tb_cv32e40p->vlSymsp->TOP__tb_cv32e40p.read(addr);
+        return read_itcm(addr);
     }
+
+
     void dump()
     {
         printf("lo_addr = 0x%08X\n", lo_addr);
@@ -162,6 +189,10 @@ int main(int argc, char** argv) {
         top->i_clk = !top->i_clk;
         top->eval();
         cycles += 1;
+    }
+    if (!contextp->gotFinish()){
+
+        printf("\033[33m Reached Cycle Count Limit, Exiting \033[0m \n");
     }
 
 

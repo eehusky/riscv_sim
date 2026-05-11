@@ -158,12 +158,13 @@ class Request(NamedTuple):
 
 
 class Response(NamedTuple):
+    error: int
     rdata: int
     req: Request
 
 REGIONS = [
-    ("mtime",    0x0000_0000, "i_dport_mtime.mem"),
-    ("simctrl",  0x0000_1000, "i_dport_simctrl.mem"),
+    ("mtime",    0x0000_2000, "i_dport_mtime.mem"),
+    ("simctrl",  0x0000_3000, "i_dport_simctrl.mem"),
     ("dtcm",     0x8002_0000, "i_dport_dtcm.mem"),
     ("cached",   0x9000_0000, "i_axi_cached_ram.mem"),
     ("uncached", 0xA000_0000, "i_axi_uncached_ram.mem"),
@@ -216,6 +217,8 @@ class TB:
         while True:
             rsp:Response = await self.rsp_queue.get()
             req = rsp.req
+            if rsp.error:
+                continue
             if not req.wstrb:
                 ref = await self.read_ref(req.addr)
                 #print(f"{req.addr:04X}: {rsp.rdata:08X} == {self.read_ref(req.addr):08X}")
@@ -229,11 +232,12 @@ class TB:
         data_rd_o = self.dut.mem_data_rd_o
         accept_o = self.dut.mem_accept_o
         ack_o = self.dut.mem_ack_o
+        err_o = self.dut.mem_error_o
         while True:
             if ack_o.value:
                 req = self.pend_queue.get_nowait()
-                self.rsp_queue.put_nowait(Response(data_rd_o.value.to_unsigned(),req))
-                if req.is_write:
+                self.rsp_queue.put_nowait(Response(err_o.value,data_rd_o.value.to_unsigned(),req))
+                if not err_o.value and req.is_write:
                     await self.write_ref(req.addr,req.wdata)
             await self.clkcycle()
 
@@ -334,126 +338,8 @@ class Range(NamedTuple):
     def high(self):
         return self.low+self.size-1
 
-@cocotb.test(timeout_time=10, timeout_unit="ms", skip=True)
-async def test_decode(dut):
-    #print(walk_dut(dut))
-    tb = TB(dut)
-    await tb.cycle_reset()
-    dut.mem_data_wr_i.value = 0
-    dut.mem_wr_i.value = 0
-    dut.mem_addr_i.value = 0
-    dut.mem_rd_i.value = 0
-    await tb.clkcycle(10)
 
-    #for _ in range(0,ADDR_RANGE,4):
-    #    v = random_int()
-    #    tb.write_ref(_,v)
-    #    await tb.write_pool(_,v)
-
-    async def set_addr(addr):
-        error = False
-        ack = False
-        decode = 0
-        dut.mem_addr_i.value = addr
-        dut.mem_rd_i.value = 1
-        await tb.clkcycle(1)
-        decode = dut.i_mem_dport_axi.i_mem_dport_mux.req_grant.value
-        dut.mem_rd_i.value = 0
-        for _ in range(10):
-            if dut.mem_ack_o.value:
-                ack = True
-                if dut.mem_error_o.value:
-                    error = True
-                break
-            await tb.clkcycle(1)
-        return decode, ack, error
-
-    async def check_addr(addr:int,r:Range,expect_error:bool):
-        decode, ack, error = await set_addr(addr)
-        assert ack, f"{r.name}: {addr=:08X}, {decode=:b}, {ack=}, {error=}"
-        assert error == expect_error, f"{r.name}: {addr=:08X}, {decode=:b}, {ack=}, {error=}"
-        if expect_error:
-            assert decode != r.decode, f"{r.name}: {addr=:08X}, {decode=:b}, {ack=}, {error=}"
-        else:
-            assert decode == r.decode, f"{r.name}: {addr=:08X}, {decode=:b}, {ack=}, {error=}"
-
-    #tb.write_local_word(0x0000,0xDEADBEEF)
-    #tb.write_dtcm_word(0x0000,0xDEADBEEF)
-    await tb.addrspace.write(0x0000,0xDEADBEEF.to_bytes(4))
-    await tb.addrspace.read(0x0000,4)
-
-    ranges = [
-        Range("local",    0b000001, 0x0000_0000, 64*1024),
-        Range("dtcm",     0b000010, 0x8002_0000, 128*1024),
-        Range("cached",   0b000100, 0x9000_0000, 128*1024),
-        Range("uncached", 0b001000, 0xA000_0000, 128*1024),
-        Range("axil",     0b010000, 0xB000_0000, 128*1024),
-    ]
-
-    #await set_addr(0xA0000000)
-    #await set_addr(0x80000000)
-    #await set_addr(0x10000000)
-
-    for r in ranges:
-        if r.low >=4:
-            await check_addr(r.low-4,r,True)
-        await check_addr(r.low,r,False)
-        await check_addr(r.low+4,r,False)
-        await check_addr(r.high+1-4,r,False)
-        await check_addr(r.high+1+4,r,True)
-        await tb.clkcycle(10)
-
-    await tb.clkcycle(100)
-
-
-
-@cocotb.test(timeout_time=10, timeout_unit="ms", skip=True)
-async def test_iob_random(dut):
-
-    tb = TB(dut)
-    cocotb.start_soon(tb.proc_req())
-    cocotb.start_soon(tb.proc_rsp())
-    cocotb.start_soon(tb.proc_check())
-    await tb.cycle_reset()
-    dut.mem_data_wr_i.value = 0
-    dut.mem_wr_i.value = 0
-    dut.mem_addr_i.value = 0
-    dut.mem_rd_i.value = 0
-    await tb.clkcycle(10)
-
-    region = tb.local_region
-
-    # fill in memory and ref block with random data
-    for _ in range(0,(1<<16)-4,4):
-        v = random_int()
-        await tb.write_ref(_,v)
-        await tb.write_pool(_,v)
-
-
-    for _ in range((1<<16)//1):
-        if random.choice([True,False]):
-            tb.write(random_addr(),random_int())
-        else:
-            tb.read(random_addr())
-
-    # issue reads for entire memory range to do a final check
-    for _ in range(0,(1<<16)-4,4):
-        tb.read(_)
-
-    # wait for pipe line to clear
-    while not tb.rsp_queue.empty() or not tb.req_queue.empty() or not tb.pend_queue.empty():
-        await tb.clkcycle(10)
-
-    # check the memory pool against the reference pool
-    for _ in range(0,(1<<16)-4,4):
-        ref= await tb.read_ref(_)
-        pool = await tb.read_pool(_)
-        assert ref == pool, f"{_:04X}: {ref:08X} == {pool:08x}"
-
-    await tb.clkcycle(1000)
-
-
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
 @cocotb.parametrize(region_def=REGIONS)
 async def test_iob_region(dut,region_def=REGIONS[0]):
     tb = TB(dut)
@@ -605,3 +491,37 @@ async def test_iob_addrspace(dut):
         assert ref == pool, f"{_:04X}: {ref:08X} == {pool:08x}"
 
     await tb.clkcycle(1000)
+
+
+
+
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
+async def test_oob(dut):
+    tb = TB(dut)
+    cocotb.start_soon(tb.proc_req())
+    cocotb.start_soon(tb.proc_rsp())
+    cocotb.start_soon(tb.proc_check())
+    await tb.cycle_reset()
+
+    print("seed")
+    for _ in tb.iter_addrspace():
+        v = random_int()
+        await tb.write_ref(_,_)
+        await tb.write_pool(_,_)
+
+
+    tb.write(0,random_int())
+    tb.read(0)
+
+    print("wait readback")
+    for _ in range(5000):
+        if tb.rsp_queue.empty() and tb.req_queue.empty() and tb.pend_queue.empty():
+            break
+        await tb.clkcycle(100)
+    else:
+        print(f"{tb.rsp_queue.qsize()}")
+        print(f"{tb.req_queue.qsize()}")
+        print(f"{tb.pend_queue.qsize()}")
+        assert tb.rsp_queue.empty()
+        assert tb.req_queue.empty()
+        assert tb.pend_queue.empty()
