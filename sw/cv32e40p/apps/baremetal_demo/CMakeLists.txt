@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 set(RISCV    ${CMAKE_CURRENT_SOURCE_DIR}/../../../riscv/)
 set(CV32E40P ${CMAKE_CURRENT_SOURCE_DIR}/../../)
+set(REPO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
 
 list(APPEND CMAKE_MODULE_PATH ${RISCV})
 include(riscv)
@@ -22,14 +23,16 @@ add_executable(${TARGET}.elf
     prj_nanoprintf.c
     ${CV32E40P}/baremetal/start.s
     ${CV32E40P}/baremetal/entry.c
+    ${CV32E40P}/baremetal/vector_table.c
     ${CV32E40P}/syscalls.c
-    ${CV32E40P}/vector_table.c
     #${RISCV}/mtvec.c
 )
 target_include_directories(${TARGET}.elf
     PRIVATE
         ${RISCV}/
         ${CV32E40P}/
+        ${CV32E40P}/baremetal
+        ${REPO_DIR}/cores/nanoprintf/
 )
 target_link_libraries(${TARGET}.elf
     PRIVATE
@@ -89,7 +92,8 @@ set(CMAKE_C_FLAGS           ${_PROJECT_C_FLAGS})
 add_custom_command(
     TARGET ${TARGET}.elf
     POST_BUILD
-    COMMAND ${CMAKE_OBJDUMP} -S  ${TARGET}.elf > ${TARGET}.disasm
+    COMMAND ${CMAKE_OBJDUMP} -t -S ${TARGET}.elf > ${TARGET}.S
+    COMMAND ${CMAKE_OBJDUMP} -t -S --visualize-jumps ${TARGET}.elf > ${TARGET}.disasm
     COMMENT "Invoking: Disassemble"
 )
 

@@ -15,7 +15,7 @@
 
 #pragma once
 
-#define NANOPRINTF_USE_FIELD_WIDTH_FORMAT_SPECIFIERS 0
+#define NANOPRINTF_USE_FIELD_WIDTH_FORMAT_SPECIFIERS 1
 #define NANOPRINTF_USE_PRECISION_FORMAT_SPECIFIERS 1
 #define NANOPRINTF_USE_FLOAT_FORMAT_SPECIFIERS 1
 #define NANOPRINTF_USE_FLOAT_SINGLE_PRECISION 1
@@ -35,7 +35,7 @@
 int your_project_snprintf_(char *buffer, size_t bufsz, const char *fmt, ...);
 
 
-#define nprintf(buf, sz, ...) \
-  prjprintf_((buf), (sz), NPF_MAP_ARGS(__VA_ARGS__))
+#define nprintf(...) \
+  prjprintf_(NPF_MAP_ARGS(__VA_ARGS__))
 
 int prjprintf_(char const *fmt, ...);

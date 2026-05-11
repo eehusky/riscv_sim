@@ -168,7 +168,7 @@ void (*exception_handlers[16])(void) = {
 void riscv_mtvec_exception(void) __attribute__((interrupt("machine"), weak));
 void riscv_mtvec_exception(void)
 {
-    sim_exit(0x80000000);
+    //sim_exit(0x8000FFFF);
     uint_xlen_t this_cause = csr_read_mcause();
     //if (this_cause & MCAUSE_INT) {
     //    sim_putstring("invalid interrupt\n");

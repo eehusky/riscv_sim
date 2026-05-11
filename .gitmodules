@@ -4,3 +4,6 @@
 [submodule "cores/cv32e40p"]
 	path = cores/cv32e40p
 	url = git@github.com:openhwgroup/cv32e40p.git
+[submodule "cores/nanoprintf"]
+	path = cores/nanoprintf
+	url = git@github.com:charlesnicholson/nanoprintf.git

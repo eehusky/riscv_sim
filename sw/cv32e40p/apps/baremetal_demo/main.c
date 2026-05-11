@@ -14,20 +14,152 @@
 #include "sim_extensions.h"
 #include "vector_table.h"
 
+
+char *counter_names[16]={
+    [0]  ="CYCLES"      ,
+    [1]  ="INSTR"       ,
+    [2]  ="LD_STALL"    ,
+    [3]  ="JMP_STALL"   ,
+    [4]  ="IMISS"       ,
+    [5]  ="LD"          ,
+    [6]  ="ST"          ,
+    [7]  ="JUMP"        ,
+    [8]  ="BRANCH"      ,
+    [9]  ="BRANCH_TAKEN",
+    [10] ="COMP_INSTR"  ,
+    [11] ="PIPE_STALL"  ,
+    [12] ="APU_TYPE"    ,
+    [13] ="APU_CONT"    ,
+    [14] ="APU_DEP"     ,
+    [15] ="APU_WB"      ,
+    //[16] ="RESERVED"    ,
+    //[17] ="RESERVED"    ,
+    //[18] ="RESERVED"    ,
+    //[19] ="RESERVED"    ,
+    //[20] ="RESERVED"    ,
+    //[21] ="RESERVED"    ,
+    //[22] ="RESERVED"    ,
+    //[23] ="RESERVED"    ,
+    //[24] ="RESERVED"    ,
+    //[25] ="RESERVED"    ,
+    //[26] ="RESERVED"    ,
+    //[27] ="RESERVED"    ,
+    //[28] ="RESERVED"    ,
+    //[29] ="RESERVED"    ,
+    //[30] ="RESERVED"    ,
+    //[31] ="RESERVED"    ,
+};
+
+void dump_counters(void)
+{
+    csr_write_mcountinhibit(0xFFFFFFFF);
+    uint32_t data[16];
+
+    //asm volatile("csrr %0, mhpmcounter1" : "=r"(data[1]));
+    //asm volatile("csrr %0, mhpmcounter2" : "=r"(data[2]));
+    data[0] = csr_read_mcycle();
+    data[1] = csr_read_minstret();
+    asm volatile("csrr %0, mhpmcounter3" : "=r"(data[2]));
+    asm volatile("csrr %0, mhpmcounter4" : "=r"(data[3]));
+    asm volatile("csrr %0, mhpmcounter5" : "=r"(data[4]));
+    asm volatile("csrr %0, mhpmcounter6" : "=r"(data[5]));
+    asm volatile("csrr %0, mhpmcounter7" : "=r"(data[6]));
+    asm volatile("csrr %0, mhpmcounter8" : "=r"(data[7]));
+    asm volatile("csrr %0, mhpmcounter9" : "=r"(data[8]));
+    asm volatile("csrr %0, mhpmcounter10" : "=r"(data[9]));
+    asm volatile("csrr %0, mhpmcounter11" : "=r"(data[10]));
+    asm volatile("csrr %0, mhpmcounter12" : "=r"(data[11]));
+    asm volatile("csrr %0, mhpmcounter13" : "=r"(data[12]));
+    asm volatile("csrr %0, mhpmcounter14" : "=r"(data[13]));
+    asm volatile("csrr %0, mhpmcounter15" : "=r"(data[14]));
+    asm volatile("csrr %0, mhpmcounter16" : "=r"(data[15]));
+    //asm volatile("csrr %0, mhpmcounter17" : "=r"(data[16]));
+    //asm volatile("csrr %0, mhpmcounter18" : "=r"(data[17]));
+    //asm volatile("csrr %0, mhpmcounter19" : "=r"(data[18]));
+    //asm volatile("csrr %0, mhpmcounter20" : "=r"(data[19]));
+    //asm volatile("csrr %0, mhpmcounter21" : "=r"(data[20]));
+    //asm volatile("csrr %0, mhpmcounter22" : "=r"(data[21]));
+    //asm volatile("csrr %0, mhpmcounter23" : "=r"(data[22]));
+    //asm volatile("csrr %0, mhpmcounter24" : "=r"(data[23]));
+    //asm volatile("csrr %0, mhpmcounter25" : "=r"(data[24]));
+    //asm volatile("csrr %0, mhpmcounter26" : "=r"(data[25]));
+    //asm volatile("csrr %0, mhpmcounter27" : "=r"(data[26]));
+    //asm volatile("csrr %0, mhpmcounter28" : "=r"(data[27]));
+    //asm volatile("csrr %0, mhpmcounter29" : "=r"(data[28]));
+    //asm volatile("csrr %0, mhpmcounter30" : "=r"(data[29]));
+    //asm volatile("csrr %0, mhpmcounter31" : "=r"(data[30]));
+
+    for (int i = 0; i < 16; ++i)
+    {
+        nprintf("%13s:  %u\n", counter_names[i], (uint32_t)data[i]);
+    }
+
+    csr_write_mcountinhibit(0);
+}
+
+void enable_counters(void)
+{
+    csr_write_mcountinhibit(0xFFFFFFFF);
+
+    //asm volatile ("csrw    mhpmevent1,  %0" : : "r" (1<<1) : );
+    //asm volatile ("csrw    mhpmevent2,  %0" : : "r" (1<<2) : );
+    asm volatile ("csrw    mhpmevent3,  %0" : : "r" (1<<3) : );
+    asm volatile ("csrw    mhpmevent4,  %0" : : "r" (1<<4) : );
+    asm volatile ("csrw    mhpmevent5,  %0" : : "r" (1<<5) : );
+    asm volatile ("csrw    mhpmevent6,  %0" : : "r" (1<<6) : );
+    asm volatile ("csrw    mhpmevent7,  %0" : : "r" (1<<7) : );
+    asm volatile ("csrw    mhpmevent8,  %0" : : "r" (1<<8) : );
+    asm volatile ("csrw    mhpmevent9,  %0" : : "r" (1<<9) : );
+    asm volatile ("csrw    mhpmevent10, %0" : : "r" (1<<10) : );
+    asm volatile ("csrw    mhpmevent11, %0" : : "r" (1<<11) : );
+    asm volatile ("csrw    mhpmevent12, %0" : : "r" (1<<12) : );
+    asm volatile ("csrw    mhpmevent13, %0" : : "r" (1<<13) : );
+    asm volatile ("csrw    mhpmevent14, %0" : : "r" (1<<14) : );
+    asm volatile ("csrw    mhpmevent15, %0" : : "r" (1<<15) : );
+    asm volatile ("csrw    mhpmevent16, %0" : : "r" (1<<16) : );
+    //asm volatile ("csrw    mhpmevent17, %0" : : "r" (1<<17) : );
+    //asm volatile ("csrw    mhpmevent18, %0" : : "r" (1<<18) : );
+    //asm volatile ("csrw    mhpmevent19, %0" : : "r" (1<<19) : );
+    //asm volatile ("csrw    mhpmevent20, %0" : : "r" (1<<20) : );
+    //asm volatile ("csrw    mhpmevent21, %0" : : "r" (1<<21) : );
+    //asm volatile ("csrw    mhpmevent22, %0" : : "r" (1<<22) : );
+    //asm volatile ("csrw    mhpmevent23, %0" : : "r" (1<<23) : );
+    //asm volatile ("csrw    mhpmevent24, %0" : : "r" (1<<24) : );
+    //asm volatile ("csrw    mhpmevent25, %0" : : "r" (1<<25) : );
+    //asm volatile ("csrw    mhpmevent26, %0" : : "r" (1<<26) : );
+    //asm volatile ("csrw    mhpmevent27, %0" : : "r" (1<<27) : );
+    //asm volatile ("csrw    mhpmevent28, %0" : : "r" (1<<28) : );
+    //asm volatile ("csrw    mhpmevent29, %0" : : "r" (1<<29) : );
+    //asm volatile ("csrw    mhpmevent30, %0" : : "r" (1<<30) : );
+    //asm volatile ("csrw    mhpmevent31, %0" : : "r" (1<<31) : );
+
+    csr_write_mcountinhibit(0);
+}
+
+
 int main(void)
 {
     sim_putstring("Main\n");
 
+    enable_counters();
+
+    float x = 3.14159;
+    x*= (float)((uint32_t)mtime_get());
+    x*= (float)((uint32_t)mtime_get());
     nprintf("%s %.2f\n", "pi is", 3.14f);
+    nprintf("%s %.2f\n", "e is", 2.79);
+    nprintf("%s %.2f\n", "e is", x);
 
-    uint64_t mtime = mtime_get();
-    mtimecmp_set(mtime + 2048);
+    //uint64_t mtime = mtime_get();
+    //mtimecmp_set(mtime + 2048);
 
-    asm volatile("wfi");
-    asm volatile("wfi");
-    asm volatile("wfi");
-    asm volatile("wfi");
 
+    //asm volatile("wfi");
+    //asm volatile("wfi");
+    //asm volatile("wfi");
+    //asm volatile("wfi");
+
+    dump_counters();
     return 0;
 }
 
