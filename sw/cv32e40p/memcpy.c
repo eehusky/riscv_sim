@@ -1,3 +1,8 @@
+/**
+ * Original File: https://git.musl-libc.org/cgit/musl/tree/src/string/memcpy.c
+ *
+ * */
+
 #include <string.h>
 #include <stdint.h>
 //#include <endian.h>
