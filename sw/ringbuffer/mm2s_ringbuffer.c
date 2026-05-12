@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "biriscv_extensions.h"
 #include "mm2s_ringbuffer.h"
 #include "ringbuffer_explode.h"
 
@@ -195,7 +194,7 @@ int mm2s_ringbuffer_width(struct mm2s_ringbuffer *dev)
     }
     return dev->width;
 }
-int mm2s_ringbuffer_put2(struct mm2s_ringbuffer *dev, void *buffer, size_t buffer_size)
+int mm2s_ringbuffer_put_dumb(struct mm2s_ringbuffer *dev, void *buffer, size_t buffer_size)
 {
     if (dev == NULL) {
         return -1;
@@ -219,7 +218,6 @@ int mm2s_ringbuffer_put2(struct mm2s_ringbuffer *dev, void *buffer, size_t buffe
         _advance_head(dev);
         dev->buffer[dev->headptr] = ((uint8_t *)buffer)[i];
     }
-    biriscv_dcache_writeback_range((uint32_t)dev->buffer, dev->buffer_size);
     return count;
 }
 int mm2s_ringbuffer_commit(struct mm2s_ringbuffer *dev)
@@ -294,21 +292,15 @@ int mm2s_ringbuffer_put(struct mm2s_ringbuffer *dev, void *buffer, size_t buffer
 
     uint32_t c = 0;
 
-    // printf("head=%d, tail=%d\n", dev->headptr, dev->tailptr);
     _advance_head(dev);
 
     if (count >= (dev->buffer_size - dev->headptr)) {
-        // printf("head=%d, tail=%d, count=%d, h2e=%d\n", dev->headptr, dev->tailptr, count, dev->buffer_size -
-        // dev->headptr);
         memcpy(dev->buffer + dev->headptr, buffer + c, dev->buffer_size - dev->headptr);
-        biriscv_dcache_writeback_range((uint32_t)dev->buffer + dev->headptr, dev->buffer_size - dev->headptr);
         c += (dev->buffer_size - dev->headptr);
         dev->headptr = 0;
     }
     memcpy(dev->buffer + dev->headptr, buffer + c, count - c);
-    biriscv_dcache_writeback_range((uint32_t)dev->buffer + dev->headptr, count - c);
     dev->headptr += count - c - 1;
-    // biriscv_dcache_writeback_range((uint32_t)dev->buffer, dev->buffer_size);
 
     return count;
 }

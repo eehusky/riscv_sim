@@ -38,10 +38,15 @@ cv32e40p_freertos:
 	cmake -S cv32e40p/apps/freertos_demo -B build
 	make -C build/
 
+cv32e40p_ringbuffer:
+	mkdir -p build
+	cmake -S cv32e40p/apps/ringbuffer_demo -B build
+	make -C build/
+
 clean:
 	rm -rf ./build/
 	rm -rf ./.cache
 
 
-.PHONY: sim clean app1 apprsd freertos ringbuffer cv32e40p cv32e40p_freertos
+.PHONY: sim clean app1 apprsd freertos ringbuffer cv32e40p cv32e40p_freertos cv32e40p_ringbuffer
 FORCE:

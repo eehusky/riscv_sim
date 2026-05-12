@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "biriscv_extensions.h"
 #include "ringbuffer_explode.h"
 #include "s2mm_ringbuffer.h"
 
@@ -262,25 +261,6 @@ int s2mm_ringbuffer_get(struct s2mm_ringbuffer *dev, void *buffer, size_t buffer
 
     uint32_t level = s2mm_ringbuffer_level(dev);
     uint32_t count = level < buffer_size ? level : buffer_size;
-    uint32_t tail2end = dev->buffer_size - dev->tailptr;
-
-    // if(count > tail2end){
-    //     biriscv_dcache_invalidate_range(
-    //         (uint32_t)(dev->buffer+dev->tailptr),
-    //         tail2end
-    //     );
-    //     biriscv_dcache_invalidate_range(
-    //         (uint32_t)(dev->buffer),
-    //         count - tail2end
-    //     );
-    // } else {
-    //     biriscv_dcache_invalidate_range(
-    //         (uint32_t)(dev->buffer+dev->tailptr),
-    //         count
-    //     );
-    // }
-    // biriscv_dcache_invalidate_range((uint32_t)dev->buffer, dev->buffer_size);
-    biriscv_dcache_flush();
 
     int i;
     for (i = 0; i < count; i++) {

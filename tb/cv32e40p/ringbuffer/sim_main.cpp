@@ -128,7 +128,9 @@ int main(int argc, char** argv) {
 
     contextp->debug(0);
     contextp->randReset(0);
+    #ifdef VM_TRACE
     contextp->traceEverOn(true);
+    #endif
     contextp->commandArgs(argc, argv);
 
 
