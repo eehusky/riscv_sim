@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.5)
-project(tb_cv32e40p)
+project(tb_cv32e40p_demo)
 
-set(REPO_DIR                  ${CMAKE_CURRENT_SOURCE_DIR}/../../)
-set(CV32E40P                  ${REPO_DIR}/cores/cv32e40p)
-set(VERILOG_AXI $ENV{HOME}/github/alexforencich/verilog-axi/)
+set(REPO_DIR    ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
+set(CV32E40P    ${REPO_DIR}/cores/cv32e40p)
+set(VERILOG_AXI ${REPO_DIR}/cores/verilog-axi/)
+set(WB2AXIP     ${REPO_DIR}/cores/wb2axip/)
 
 find_package(verilator
     NO_DEFAULT_PATH
@@ -67,21 +68,13 @@ set(MY_VERILATOR_ARGS
     #--bbox-sys
     #--bbox-unsup
     #--prefix vljson
-    #-DCV32E40P_ASSERT_ON
-    #-DCV32E40P_CORE_LOG
-    #-DCV32E40P_APU_TRACE
-    #-DCV32E40P_TRACE_EXECUTION
-    #-DCV32E40P_RVFI
-    #-DCV32E40P_RVFI_TRACE_EXECUTION
-
-
 )
 
 
 #file(GLOB SOURCE_FILES ${CV32E40P}/rtl/*.sv)
 
 add_executable(tb_cv32e40p
-    ../biriscv/common/elf_load.cpp
+    ${REPO_DIR}/tb/common/elf_load.cpp
     sim_main.cpp
 )
 
@@ -95,13 +88,13 @@ verilate(tb_cv32e40p
     OPT_FAST
         ${CMAKE_CXX_FLAGS}
     INCLUDE_DIRS
-    #    ${CV32E40P}/rtl/include
+        #${CV32E40P}/rtl/include
         #${CV32E40P}/bhv/include
-        ${CV32E40P}/sva/
-        ${CV32E40P}/bhv/
-        ${CV32E40P}/bhv/include
-        ${CV32E40P}/rtl/vendor/pulp_platform_common_cells/include/
+        #${CV32E40P}/sva/
+        #${CV32E40P}/bhv/
+        #${CV32E40P}/bhv/include
         #${CV32E40P}/rtl/vendor/pulp_platform_common_cells/src/
+        ${CV32E40P}/rtl/vendor/pulp_platform_common_cells/include/ # Needed for FPU
     TOP_MODULE
         tb_cv32e40p
     SOURCES
@@ -193,15 +186,13 @@ verilate(tb_cv32e40p
         ${VERILOG_AXI}/rtl/axil_ram.v
         ${VERILOG_AXI}/rtl/axi_ram.v
         #
-        ${REPO_DIR}/cores/ringbuffer/ringbuffer_sfifo.v
+        ${WB2AXIP}/rtl/sfifo.v
         ${REPO_DIR}/rtl/dport/dport_pkg.sv
         ${REPO_DIR}/rtl/dport/dport2iob.sv
         ${REPO_DIR}/rtl/dport/dport2axi.sv
         ${REPO_DIR}/rtl/dport/dport2axil.sv
         ${REPO_DIR}/rtl/dport/dport_addrdecode.sv
         ${REPO_DIR}/rtl/dport/dport_mux.sv
-        ${REPO_DIR}/rtl/dport/dport_mux2.sv
-        ${REPO_DIR}/rtl/dport/dport.sv
         ${REPO_DIR}/rtl/dport/dport_ram.sv
         ${REPO_DIR}/rtl/dport/dport_dummy.sv
         ${REPO_DIR}/rtl/dport/obi_if.sv
@@ -224,5 +215,5 @@ verilate(tb_cv32e40p
 target_include_directories(tb_cv32e40p
     PUBLIC
         ${.}
-        ../biriscv/common/
+        ${REPO_DIR}/tb/common/
 )

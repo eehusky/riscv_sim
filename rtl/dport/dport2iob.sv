@@ -55,7 +55,7 @@ module dport2iob #(
     assign mem_req_push = (mem_rd_i || |mem_wr_i) && ~mem_req_full;
     assign mem_req_pop  = iob_ready && ~mem_req_empty;
 
-    ringbuffer_sfifo #(
+    sfifo #(
         .BW               ($size(mem_req_t)),
         .LGFLEN           (LGREQ),
         .OPT_ASYNC_READ   (1),
@@ -86,7 +86,7 @@ module dport2iob #(
     assign mem_rsp_push = mem_req_push;
     assign mem_rsp_pop  = (iob_rvalid || mem_rsp_data_out.wr) && ~mem_rsp_empty;
 
-    ringbuffer_sfifo #(
+    sfifo #(
         .BW               ($size(mem_rsp_t)),
         .LGFLEN           (LGRSP),
         .OPT_ASYNC_READ   (1),

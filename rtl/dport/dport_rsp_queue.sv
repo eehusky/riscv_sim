@@ -24,7 +24,7 @@ module dport_rsp_queue #(
     assign rsp_push = in.rvalid;
     assign rsp_pop  = out.rready && ~rsp_empty;
 
-    ringbuffer_sfifo #(
+    sfifo #(
         .BW               ($size(rsp_data_t)),
         .LGFLEN           (LGDEPTH),
         .OPT_ASYNC_READ   (1),

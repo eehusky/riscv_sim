@@ -41,7 +41,7 @@ module dport2axi #(
     assign mem_req_push = dport.req && dport.gnt;
     assign mem_req_pop  = ar_ack || aw_ack;
 
-    ringbuffer_sfifo #(
+    sfifo #(
         .BW               ($size(mem_req_t)),
         .LGFLEN           (LGREQ),
         .OPT_ASYNC_READ   (1),
@@ -76,7 +76,7 @@ module dport2axi #(
     assign wdata_push = dport.we && dport.req && dport.gnt;
     assign wdata_pop  = w_ack;
 
-    ringbuffer_sfifo #(
+    sfifo #(
         .BW               ($size(wdata_t)),
         .LGFLEN           (LGREQ),
         .OPT_ASYNC_READ   (1),
@@ -111,7 +111,7 @@ module dport2axi #(
     assign mem_rsp_push = mem_req_pop;
     assign mem_rsp_pop  = r_ack || b_ack;
 
-    ringbuffer_sfifo #(
+    sfifo #(
         .BW               ($size(mem_rsp_t)),
         .LGFLEN           (LGRSP),
         .OPT_ASYNC_READ   (1),

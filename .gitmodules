@@ -7,3 +7,9 @@
 [submodule "cores/nanoprintf"]
 	path = cores/nanoprintf
 	url = git@github.com:charlesnicholson/nanoprintf.git
+[submodule "cores/verilog-axi"]
+	path = cores/verilog-axi
+	url = git@github.com:alexforencich/verilog-axi.git
+[submodule "cores/wb2axip"]
+	path = cores/wb2axip
+	url = git@github.com:ZipCPU/wb2axip.git
