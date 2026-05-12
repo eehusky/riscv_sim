@@ -210,7 +210,7 @@ verilate(tb_cv32e40p
         ${REPO_DIR}/rtl/dport/dport_rsp_queue.sv
         ${REPO_DIR}/rtl/dport/dport_dtcm.sv
         #
-        ${REPO_DIR}/rtl/dport/timer.sv
+        ${REPO_DIR}/rtl/dport/mtime32.sv
         ${REPO_DIR}/rtl/dport/sim_ctrl.sv
         #
         tb_cv32e40p.sv

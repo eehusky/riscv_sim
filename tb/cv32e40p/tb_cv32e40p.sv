@@ -185,7 +185,7 @@ module tb_cv32e40p (
 
     // ------------------------------------------------------------------------
 
-    timer i_mtime (
+    mtime32 i_mtime (
         .clk_i       (clk_i),
         .rst_i       (rst_i),
         .dport       (segments[0]),
@@ -430,18 +430,3 @@ module tb_cv32e40p (
     end
 
 endmodule : tb_cv32e40p
-
-
-module obi2dport (
-    obi_if.slave    obi,
-    dport_if.master dport
-);
-    assign obi.rvalid    = dport.ack;
-    assign obi.rdata     = dport.data_rd;
-    assign obi.gnt       = dport.accept;
-    assign dport.rd      = obi.req && ~obi.we;
-    assign dport.wr      = obi.req && obi.we ? obi.be : 0;
-    assign dport.addr    = obi.req ? obi.addr : 0;
-    assign dport.data_wr = obi.wdata;
-
-endmodule : obi2dport

@@ -1,4 +1,4 @@
-module timer #(
+module mtime64 #(
     parameter int unsigned DataWidth = 32
 ) (
     input  logic        clk_i,

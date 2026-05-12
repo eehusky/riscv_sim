@@ -1,4 +1,4 @@
-module timer #(
+module mtime32 #(
     parameter int unsigned DataWidth = 32
 ) (
     input  logic        clk_i,
@@ -9,7 +9,7 @@ module timer #(
 );
 
     // The timers are always 64 bits
-    localparam int unsigned TW = 64;
+    localparam int unsigned TW = 32;
     // Upper bits of address are decoded into dport.req
     localparam int unsigned ADDR_OFFSET = 10;  // 1kB
     // Register map
@@ -19,10 +19,10 @@ module timer #(
     localparam bit [9:0] MTIMECMP_HIGH = 12;
 
     logic timer_we;
-    logic mtime_we, mtimeh_we;
-    logic mtimecmp_we, mtimecmph_we;
-    logic [DataWidth-1:0] mtime_wdata, mtimeh_wdata;
-    logic [DataWidth-1:0] mtimecmp_wdata, mtimecmph_wdata;
+    logic mtime_we;
+    logic mtimecmp_we;
+    logic [DataWidth-1:0] mtime_wdata;
+    logic [DataWidth-1:0] mtimecmp_wdata;
     logic [TW-1:0] mtime_q, mtime_d, mtime_inc;
     logic [TW-1:0] mtimecmp_q, mtimecmp_d;
     logic interrupt_q, interrupt_d;
@@ -39,21 +39,21 @@ module timer #(
     // Generate write data based on byte strobes
     for (genvar b = 0; b < DataWidth / 8; b++) begin : gen_byte_wdata
         assign mtime_wdata[(b*8)+:8]     = dport.be[b] ? dport.wdata[b*8+:8] : mtime_q[(b*8)+:8];
-        assign mtimeh_wdata[(b*8)+:8]    = dport.be[b] ? dport.wdata[b*8+:8] : mtime_q[DataWidth+(b*8)+:8];
+        //assign mtimeh_wdata[(b*8)+:8]    = dport.be[b] ? dport.wdata[b*8+:8] : mtime_q[DataWidth+(b*8)+:8];
         assign mtimecmp_wdata[(b*8)+:8]  = dport.be[b] ? dport.wdata[b*8+:8] : mtimecmp_q[(b*8)+:8];
-        assign mtimecmph_wdata[(b*8)+:8] = dport.be[b] ? dport.wdata[b*8+:8] : mtimecmp_q[DataWidth+(b*8)+:8];
+        //assign mtimecmph_wdata[(b*8)+:8] = dport.be[b] ? dport.wdata[b*8+:8] : mtimecmp_q[DataWidth+(b*8)+:8];
     end
 
     // Generate write enables
     assign mtime_we = timer_we & (dport.addr[ADDR_OFFSET-1:0] == MTIME_LOW);
-    assign mtimeh_we = timer_we & (dport.addr[ADDR_OFFSET-1:0] == MTIME_HIGH);
+    //assign mtimeh_we = timer_we & (dport.addr[ADDR_OFFSET-1:0] == MTIME_HIGH);
     assign mtimecmp_we = timer_we & (dport.addr[ADDR_OFFSET-1:0] == MTIMECMP_LOW);
-    assign mtimecmph_we = timer_we & (dport.addr[ADDR_OFFSET-1:0] == MTIMECMP_HIGH);
+    //assign mtimecmph_we = timer_we & (dport.addr[ADDR_OFFSET-1:0] == MTIMECMP_HIGH);
 
     // Generate next data
-    assign mtime_d = {(mtimeh_we ? mtimeh_wdata : mtime_inc[63:32]), (mtime_we ? mtime_wdata : mtime_inc[31:0])};
+    assign mtime_d = (mtime_we ? mtime_wdata : mtime_inc[31:0]);
     assign mtimecmp_d = {
-        (mtimecmph_we ? mtimecmph_wdata : mtimecmp_q[63:32]), (mtimecmp_we ? mtimecmp_wdata : mtimecmp_q[31:0])
+        (mtimecmp_we ? mtimecmp_wdata : mtimecmp_q[31:0])
     };
 
     // Generate registers
@@ -68,18 +68,18 @@ module timer #(
     always_ff @(posedge clk_i) begin
         if (rst_i) begin
             mtimecmp_q <= 'b0;
-        end else if (mtimecmp_we | mtimecmph_we) begin
+        end else if (mtimecmp_we ) begin
             mtimecmp_q <= mtimecmp_d;
         end
     end
 
     // interrupt remains set until mtimecmp is written
     //assign interrupt_d = ((mtime_q >= mtimecmp_q) | interrupt_q) & ~(mtimecmp_we | mtimecmph_we);
-    assign interrupt_d = ((mtime_q >= mtimecmp_q)| interrupt_q) & ~(mtimecmp_we | mtimecmph_we);
+    assign interrupt_d = ((mtime_q >= mtimecmp_q)| interrupt_q) & ~(mtimecmp_we );
     logic interrupt_set;
     logic interrupt_clear;
     assign interrupt_set = mtime_q == mtimecmp_q;
-    assign interrupt_clear = (mtimecmp_we | mtimecmph_we) || clear_intr_i;
+    assign interrupt_clear = (mtimecmp_we ) || clear_intr_i;
 
     //assign interrupt_d = ((mtime_q >= mtimecmp_q)| interrupt_q) & ~(mtimecmp_we | mtimecmph_we);
 
@@ -104,9 +104,9 @@ module timer #(
         error_d = 1'b0;
         unique case (dport.addr[ADDR_OFFSET-1:0])
             MTIME_LOW:     rdata_d = mtime_q[31:0];
-            MTIME_HIGH:    rdata_d = mtime_q[63:32];
+            //MTIME_HIGH:    rdata_d = mtime_q[63:32];
             MTIMECMP_LOW:  rdata_d = mtimecmp_q[31:0];
-            MTIMECMP_HIGH: rdata_d = mtimecmp_q[63:32];
+            //MTIMECMP_HIGH: rdata_d = mtimecmp_q[63:32];
             default: begin
                 rdata_d = 'b0;
                 // Error if no address matched
