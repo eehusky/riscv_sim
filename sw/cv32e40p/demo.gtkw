@@ -1,0 +1,415 @@
+[*]
+[*] GTKWave Analyzer v4.0.0-prealpha (36638f9) (w)1999-2022 BSI
+[*] Mon May 11 21:41:53 2026
+[*]
+[dumpfile] "/home/rbriggin/github/eehusky/riscv_sim/tb/cv32e40p/dump.fst"
+[dumpfile_mtime] "Mon May 11 21:41:04 2026"
+[dumpfile_size] 3460908
+[savefile] "/home/rbriggin/github/eehusky/riscv_sim/sw/cv32e40p/demo.gtkw"
+[timestart] 0
+[size] 1920 2088
+[pos] -1 -1
+*-16.006937 116505 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+[markername] AA
+[markername] BB
+[markername] CC
+[markername] DD
+[markername] EE
+[markername] FF
+[markername] GG
+[markername] HH
+[markername] II
+[markername] JJ
+[markername] KK
+[markername] LL
+[markername] MM
+[markername] NN
+[markername] OO
+[markername] PP
+[markername] QQ
+[markername] RR
+[markername] SS
+[markername] TT
+[markername] UU
+[markername] VV
+[markername] WW
+[markername] XX
+[markername] YY
+[markername] ZZ
+[treeopen] TOP.
+[treeopen] TOP.tb_cv32e40p.
+[treeopen] TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.
+[sst_width] 239
+[signals_width] 327
+[sst_expanded] 1
+[sst_vpaned_height] 670
+@28
+TOP.tb_cv32e40p.clk_i
+TOP.tb_cv32e40p.rst_i
+TOP.tb_cv32e40p.core_sleep_o
+@200
+-
+@c00022
+[color] 2
+TOP.tb_cv32e40p.instr_dport.addr[31:0]
+@28
+(0)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(1)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(2)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(3)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(4)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(5)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(6)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(7)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(8)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(9)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(10)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(11)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(12)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(13)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(14)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(15)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(16)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(17)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(18)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(19)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(20)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(21)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(22)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(23)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(24)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(25)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(26)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(27)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(28)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(29)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(30)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+(31)TOP.tb_cv32e40p.instr_dport.addr[31:0]
+@1401200
+-group_end
+@22
+[color] 2
+TOP.tb_cv32e40p.instr_dport.rdata[31:0]
+@28
+[color] 2
+TOP.tb_cv32e40p.instr_dport.req
+[color] 2
+TOP.tb_cv32e40p.instr_dport.rvalid
+@200
+-
+@28
+TOP.tb_cv32e40p.data_dport.gnt
+TOP.tb_cv32e40p.data_dport.req
+@22
+TOP.tb_cv32e40p.data_dport.addr[31:0]
+@28
+TOP.tb_cv32e40p.data_dport.we
+@22
+TOP.tb_cv32e40p.data_dport.wdata[31:0]
+TOP.tb_cv32e40p.data_dport.be[3:0]
+@28
+TOP.tb_cv32e40p.data_dport.rvalid
+@22
+TOP.tb_cv32e40p.data_dport.rdata[31:0]
+@28
+TOP.tb_cv32e40p.data_dport.err
+@200
+-
+@820
+[color] 5
+TOP.tb_cv32e40p.i_sim_ctrl.serial_data_o[7:0]
+@28
+[color] 5
+TOP.tb_cv32e40p.i_sim_ctrl.serial_valid_o
+@200
+-
+@c00200
+-SIMCTL
+@22
+TOP.tb_cv32e40p.i_sim_ctrl.dport.addr[31:0]
+@28
+TOP.tb_cv32e40p.i_sim_ctrl.dport.aid[0]
+@22
+TOP.tb_cv32e40p.i_sim_ctrl.dport.be[3:0]
+@28
+TOP.tb_cv32e40p.i_sim_ctrl.dport.err
+TOP.tb_cv32e40p.i_sim_ctrl.dport.gnt
+@22
+TOP.tb_cv32e40p.i_sim_ctrl.dport.rdata[31:0]
+@28
+TOP.tb_cv32e40p.i_sim_ctrl.dport.req
+TOP.tb_cv32e40p.i_sim_ctrl.dport.rid[0]
+TOP.tb_cv32e40p.i_sim_ctrl.dport.rready
+TOP.tb_cv32e40p.i_sim_ctrl.dport.rvalid
+@22
+TOP.tb_cv32e40p.i_sim_ctrl.dport.wdata[31:0]
+@28
+TOP.tb_cv32e40p.i_sim_ctrl.dport.we
+@22
+TOP.tb_cv32e40p.i_sim_ctrl.ctrl_addr[7:0]
+@28
+TOP.tb_cv32e40p.i_sim_ctrl.req_wr
+TOP.tb_cv32e40p.i_sim_ctrl.req_rd
+@1401200
+-SIMCTL
+@200
+-
+@22
+TOP.tb_cv32e40p.i_cv32e40p_top.core_i.if_stage_i.pc_id_o[31:0]
+TOP.tb_cv32e40p.mtvec_addr_i[31:0]
+@28
+TOP.tb_cv32e40p.irq_ack_o
+@22
+TOP.tb_cv32e40p.irq_id_o[4:0]
+@28
+TOP.tb_cv32e40p.irq_mei
+TOP.tb_cv32e40p.irq_msi
+TOP.tb_cv32e40p.irq_mti
+@24
+TOP.tb_cv32e40p.i_mtime.mtime_q[63:0]
+TOP.tb_cv32e40p.i_mtime.mtimecmp_q[63:0]
+TOP.tb_cv32e40p.i_mtime.mtimecmp_d[63:0]
+@200
+-
+-
+@c00200
+-MREG
+@22
+TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_n[23:0]
+@c00022
+TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+@28
+(0)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(1)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(2)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(3)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(4)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(5)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(6)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(7)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(8)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(9)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(10)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(11)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(12)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(13)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(14)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(15)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(16)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(17)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(18)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(19)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(20)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(21)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(22)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+(23)TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_q[23:0]
+@1401200
+-group_end
+@22
+TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mtvec_addr_i[31:0]
+TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mip[31:0]
+@100000028
+TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mstatus_fs_n[1:0]
+TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mstatus_fs_q[1:0]
+@22
+TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mepc_n[31:0]
+TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mepc_q[31:0]
+TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mcause_n[5:0]
+TOP.tb_cv32e40p.i_cv32e40p_top.core_i.cs_registers_i.mcause_q[5:0]
+@1401200
+-MREG
+@c00200
+-FPU
+@28
+TOP.tb_cv32e40p.i_cv32e40p_top.apu_busy
+TOP.tb_cv32e40p.i_cv32e40p_top.apu_clk
+TOP.tb_cv32e40p.i_cv32e40p_top.apu_clk_en
+@22
+TOP.tb_cv32e40p.i_cv32e40p_top.apu_flags[14:0]
+@28
+TOP.tb_cv32e40p.i_cv32e40p_top.apu_gnt
+@22
+TOP.tb_cv32e40p.i_cv32e40p_top.apu_op[5:0]
+TOP.tb_cv32e40p.i_cv32e40p_top.apu_operands[95:0]
+TOP.tb_cv32e40p.i_cv32e40p_top.apu_rdata[31:0]
+@28
+TOP.tb_cv32e40p.i_cv32e40p_top.apu_req
+@22
+TOP.tb_cv32e40p.i_cv32e40p_top.apu_rflags[4:0]
+@28
+TOP.tb_cv32e40p.i_cv32e40p_top.apu_rvalid
+@1401200
+-FPU
+@200
+-
+@c00200
+-CACHED
+@22
+TOP.tb_cv32e40p.m_axi_cached.araddr[31:0]
+@28
+TOP.tb_cv32e40p.m_axi_cached.arburst[1:0]
+@22
+TOP.tb_cv32e40p.m_axi_cached.arcache[3:0]
+TOP.tb_cv32e40p.m_axi_cached.arid[7:0]
+TOP.tb_cv32e40p.m_axi_cached.arlen[7:0]
+@28
+TOP.tb_cv32e40p.m_axi_cached.arlock
+TOP.tb_cv32e40p.m_axi_cached.arprot[2:0]
+@22
+TOP.tb_cv32e40p.m_axi_cached.arqos[3:0]
+@28
+TOP.tb_cv32e40p.m_axi_cached.arready
+@22
+TOP.tb_cv32e40p.m_axi_cached.arregion[3:0]
+@28
+TOP.tb_cv32e40p.m_axi_cached.arsize[2:0]
+TOP.tb_cv32e40p.m_axi_cached.arvalid
+@22
+TOP.tb_cv32e40p.m_axi_cached.awaddr[31:0]
+@28
+TOP.tb_cv32e40p.m_axi_cached.awburst[1:0]
+@22
+TOP.tb_cv32e40p.m_axi_cached.awcache[3:0]
+TOP.tb_cv32e40p.m_axi_cached.awid[7:0]
+TOP.tb_cv32e40p.m_axi_cached.awlen[7:0]
+@28
+TOP.tb_cv32e40p.m_axi_cached.awlock
+TOP.tb_cv32e40p.m_axi_cached.awprot[2:0]
+@22
+TOP.tb_cv32e40p.m_axi_cached.awqos[3:0]
+@28
+TOP.tb_cv32e40p.m_axi_cached.awready
+@22
+TOP.tb_cv32e40p.m_axi_cached.awregion[3:0]
+@28
+TOP.tb_cv32e40p.m_axi_cached.awsize[2:0]
+TOP.tb_cv32e40p.m_axi_cached.awvalid
+@22
+TOP.tb_cv32e40p.m_axi_cached.bid[7:0]
+@28
+TOP.tb_cv32e40p.m_axi_cached.bready
+TOP.tb_cv32e40p.m_axi_cached.bresp[1:0]
+TOP.tb_cv32e40p.m_axi_cached.bvalid
+@22
+TOP.tb_cv32e40p.m_axi_cached.rdata[31:0]
+TOP.tb_cv32e40p.m_axi_cached.rid[7:0]
+@28
+TOP.tb_cv32e40p.m_axi_cached.rlast
+TOP.tb_cv32e40p.m_axi_cached.rready
+TOP.tb_cv32e40p.m_axi_cached.rresp[1:0]
+TOP.tb_cv32e40p.m_axi_cached.rvalid
+@22
+TOP.tb_cv32e40p.m_axi_cached.wdata[31:0]
+@28
+TOP.tb_cv32e40p.m_axi_cached.wlast
+TOP.tb_cv32e40p.m_axi_cached.wready
+@22
+TOP.tb_cv32e40p.m_axi_cached.wstrb[3:0]
+@28
+TOP.tb_cv32e40p.m_axi_cached.wvalid
+@1401200
+-CACHED
+@c00200
+-UNCACHED
+@22
+TOP.tb_cv32e40p.m_axi_uncached.araddr[31:0]
+@28
+TOP.tb_cv32e40p.m_axi_uncached.arburst[1:0]
+@22
+TOP.tb_cv32e40p.m_axi_uncached.arcache[3:0]
+TOP.tb_cv32e40p.m_axi_uncached.arid[7:0]
+TOP.tb_cv32e40p.m_axi_uncached.arlen[7:0]
+@28
+TOP.tb_cv32e40p.m_axi_uncached.arlock
+TOP.tb_cv32e40p.m_axi_uncached.arprot[2:0]
+@22
+TOP.tb_cv32e40p.m_axi_uncached.arqos[3:0]
+@28
+TOP.tb_cv32e40p.m_axi_uncached.arready
+@22
+TOP.tb_cv32e40p.m_axi_uncached.arregion[3:0]
+@28
+TOP.tb_cv32e40p.m_axi_uncached.arsize[2:0]
+TOP.tb_cv32e40p.m_axi_uncached.arvalid
+@22
+TOP.tb_cv32e40p.m_axi_uncached.awaddr[31:0]
+@28
+TOP.tb_cv32e40p.m_axi_uncached.awburst[1:0]
+@22
+TOP.tb_cv32e40p.m_axi_uncached.awcache[3:0]
+TOP.tb_cv32e40p.m_axi_uncached.awid[7:0]
+TOP.tb_cv32e40p.m_axi_uncached.awlen[7:0]
+@28
+TOP.tb_cv32e40p.m_axi_uncached.awlock
+TOP.tb_cv32e40p.m_axi_uncached.awprot[2:0]
+@22
+TOP.tb_cv32e40p.m_axi_uncached.awqos[3:0]
+@28
+TOP.tb_cv32e40p.m_axi_uncached.awready
+@22
+TOP.tb_cv32e40p.m_axi_uncached.awregion[3:0]
+@28
+TOP.tb_cv32e40p.m_axi_uncached.awsize[2:0]
+TOP.tb_cv32e40p.m_axi_uncached.awvalid
+@22
+TOP.tb_cv32e40p.m_axi_uncached.bid[7:0]
+@28
+TOP.tb_cv32e40p.m_axi_uncached.bready
+TOP.tb_cv32e40p.m_axi_uncached.bresp[1:0]
+TOP.tb_cv32e40p.m_axi_uncached.bvalid
+@22
+TOP.tb_cv32e40p.m_axi_uncached.rdata[31:0]
+TOP.tb_cv32e40p.m_axi_uncached.rid[7:0]
+@28
+TOP.tb_cv32e40p.m_axi_uncached.rlast
+TOP.tb_cv32e40p.m_axi_uncached.rready
+TOP.tb_cv32e40p.m_axi_uncached.rresp[1:0]
+TOP.tb_cv32e40p.m_axi_uncached.rvalid
+@22
+TOP.tb_cv32e40p.m_axi_uncached.wdata[31:0]
+@28
+TOP.tb_cv32e40p.m_axi_uncached.wlast
+TOP.tb_cv32e40p.m_axi_uncached.wready
+@22
+TOP.tb_cv32e40p.m_axi_uncached.wstrb[3:0]
+@28
+TOP.tb_cv32e40p.m_axi_uncached.wvalid
+@1401200
+-UNCACHED
+@c00200
+-AXIL
+@22
+TOP.tb_cv32e40p.m_axil.araddr[31:0]
+@28
+TOP.tb_cv32e40p.m_axil.arprot[2:0]
+TOP.tb_cv32e40p.m_axil.arready
+TOP.tb_cv32e40p.m_axil.arvalid
+@22
+TOP.tb_cv32e40p.m_axil.rdata[31:0]
+@28
+TOP.tb_cv32e40p.m_axil.rready
+TOP.tb_cv32e40p.m_axil.rresp[1:0]
+TOP.tb_cv32e40p.m_axil.rvalid
+@200
+-
+@22
+TOP.tb_cv32e40p.m_axil.awaddr[31:0]
+@28
+TOP.tb_cv32e40p.m_axil.awprot[2:0]
+TOP.tb_cv32e40p.m_axil.awready
+TOP.tb_cv32e40p.m_axil.awvalid
+@22
+TOP.tb_cv32e40p.m_axil.wdata[31:0]
+@28
+TOP.tb_cv32e40p.m_axil.wready
+@22
+TOP.tb_cv32e40p.m_axil.wstrb[3:0]
+@28
+TOP.tb_cv32e40p.m_axil.wvalid
+TOP.tb_cv32e40p.m_axil.bready
+TOP.tb_cv32e40p.m_axil.bresp[1:0]
+TOP.tb_cv32e40p.m_axil.bvalid
+@1401200
+-AXIL
+[pattern_trace] 1
+[pattern_trace] 0
