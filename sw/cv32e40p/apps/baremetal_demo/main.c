@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -13,6 +14,21 @@
 #include "riscv_io.h"
 #include "sim_extensions.h"
 #include "vector_table.h"
+
+#define ITCM_ADDR     0x80000000
+#define ITCM_SIZE     0x00020000
+#define MTIME_ADDR    0x00002000
+#define MTIME_SIZE    0x00001000
+#define SIMCTRL_ADDR  0x00003000
+#define SIMCTRL_SIZE  0x00001000
+#define DTCM_ADDR     0x80020000
+#define DTCM_SIZE     0x00020000
+#define CACHED_ADDR   0x90000000
+#define CACHED_SIZE   0x00020000
+#define UNCACHED_ADDR 0xA0000000
+#define UNCACHED_SIZE 0x00020000
+#define AXIL_ADDR     0xB0000000
+#define AXIL_SIZE     0x00020000
 
 
 char *counter_names[16]={
@@ -137,35 +153,85 @@ void enable_counters(void)
 }
 
 
-int main(void)
+void do_floats(void)
 {
-    sim_putstring("Main\n");
-
-    enable_counters();
-
+    sim_putstring("  cv32e40p floats demo\n");
     float x = 3.14159;
     x*= (float)((uint32_t)mtime_get());
     x*= (float)((uint32_t)mtime_get());
-    nprintf("%s %.2f\n", "pi is", 3.14f);
-    nprintf("%s %.2f\n", "e is", 2.79);
-    nprintf("%s %.2f\n", "e is", x);
+    nprintf("%s %.2f\n", "    pi is", 3.14159f);
+    nprintf("%s %.2f\n", "    e is", 2.718f);
+    nprintf("%s %.2f\n", "    e is", x);
+}
 
-    //uint64_t mtime = mtime_get();
-    //mtimecmp_set(mtime + 2048);
+void do_mtime(void)
+{
+    sim_putstring("  cv32e40p mtime demo\n");
+    uint64_t mtime = mtime_get();
+    mtimecmp_set(mtime + 2048);
+    asm volatile("wfi");
+    asm volatile("wfi");
+    csr_clr_bits_mie(MIE_MTI_BIT_MASK);
+}
 
+void do_addr(void)
+{
+    sim_putstring("  cv32e40p addr demo\n");
+    uint32_t blah = 0;
 
-    //asm volatile("wfi");
-    //asm volatile("wfi");
-    //asm volatile("wfi");
-    //asm volatile("wfi");
+    sim_putstring("    cv32e40p cached demo\n");
+    write32(CACHED_ADDR,0xDEADBEEF);
+    read32(CACHED_ADDR);
+    write32(CACHED_ADDR+CACHED_SIZE-4,0xDEADBEEF);
+    read32(CACHED_ADDR+CACHED_SIZE-4);
+    for (int i = 0; i < 512; ++i)
+    {
+        write32(CACHED_ADDR+(i*4),blah+1);
+        blah = read32(CACHED_ADDR+(i*4));
+    }
 
+    sim_putstring("    cv32e40p uncached demo\n");
+    write32(UNCACHED_ADDR,0xDEADBEEF);
+    read32(UNCACHED_ADDR);
+    write32(UNCACHED_ADDR+UNCACHED_SIZE-4,0xDEADBEEF);
+    read32(UNCACHED_ADDR+UNCACHED_SIZE-4);
+    for (int i = 0; i < 512; ++i)
+    {
+        write32(UNCACHED_ADDR+(i*4),blah+1);
+        blah = read32(UNCACHED_ADDR+(i*4));
+    }
+
+    sim_putstring("    cv32e40p axil demo\n");
+    write32(AXIL_ADDR,0xDEADBEEF);
+    read32(AXIL_ADDR);
+    write32(AXIL_ADDR+AXIL_SIZE-4,0xDEADBEEF);
+    read32(AXIL_ADDR+AXIL_SIZE-4);
+    for (int i = 0; i < 512; ++i)
+    {
+        write32(AXIL_ADDR+(i*4),blah+1);
+        blah = read32(AXIL_ADDR+(i*4));
+    }
+
+}
+
+int main(void)
+{
+    sim_putstring("cv32e40p main demo\n");
+
+    enable_counters();
+
+    do_floats();
+    do_mtime();
+    do_addr();
+
+    sim_putstring("  cv32e40p counter demo\n");
     dump_counters();
     return 0;
 }
 
 void riscv_mtvec_mti(void)
 {
-    sim_putstring("riscv_mtvec_mti\n");
+    sim_putstring("    riscv_mtvec_mti\n");
     uint64_t mtimecmp = mtimecmp_get();
     mtimecmp_set(mtimecmp + 2048);
 }
