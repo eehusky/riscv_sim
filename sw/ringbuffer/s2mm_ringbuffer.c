@@ -237,7 +237,7 @@ struct s2mm_ringbuffer *s2mm_ringbuffer_init(void *dev_address)
 
     return dev;
 }
-int s2mm_ringbuffer_get(struct s2mm_ringbuffer *dev, void *buffer, size_t buffer_size)
+int s2mm_ringbuffer_get_dumb(struct s2mm_ringbuffer *dev, void *buffer, size_t buffer_size)
 {
     if (dev == NULL) {
         return -1;
@@ -297,4 +297,40 @@ int s2mm_ringbuffer_flush(struct s2mm_ringbuffer *dev)
     dev->headptr = dev->regs->HEADPTR;
     dev->tailptr = dev->regs->TAILPTR;
     return 0;
+}
+
+
+
+int s2mm_ringbuffer_get(struct s2mm_ringbuffer *dev, void *buffer, size_t buffer_size)
+{
+    if (dev == NULL) {
+        return -1;
+    }
+
+    if (dev->buffer == NULL) {
+        return -1;
+    }
+
+    if (buffer == NULL) {
+        return -1;
+    }
+
+    if (buffer_size < dev->width) {
+        return -1;
+    }
+
+    if ((buffer_size % dev->width) != 0) {
+        return -1;
+    }
+
+    uint32_t level = s2mm_ringbuffer_level(dev);
+    uint32_t count = level < buffer_size ? level : buffer_size;
+
+    int i;
+    for (i = 0; i < count; i++) {
+        _advance_tail(dev);
+        ((uint8_t *)buffer)[i] = dev->buffer[dev->tailptr];
+    }
+
+    return i;
 }
