@@ -39,6 +39,7 @@ static inline void sim_putstring(const char *s)
     }
 }
 
+#ifdef MTIME64
 static inline void mtimecmp_set( uint64_t cmp )
 {
     write32(MTIMECMP_LOW, (uint32_t)cmp);
@@ -56,6 +57,19 @@ static inline uint64_t mtime_get(void)
     uint64_t upper = read32(MTIME_HIGH);
     return (upper<<32) | lower;
 }
-
+#else
+static inline void mtimecmp_set( uint32_t cmp )
+{
+    write32(MTIMECMP_LOW, cmp);
+}
+static inline uint32_t mtimecmp_get(void)
+{
+    return read32(MTIMECMP_LOW);
+}
+static inline uint32_t mtime_get(void)
+{
+    return read32(MTIME_LOW);
+}
+#endif
 
 #endif

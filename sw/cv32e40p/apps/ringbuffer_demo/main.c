@@ -107,8 +107,8 @@ struct mm2s_ringbuffer *mm2s_0 = NULL;
 struct s2mm_ringbuffer *s2mm_0 = NULL;
 uint32_t n_s2mm_bytes = 0;
 uint32_t n_mm2s_bytes = 0;
-uint32_t s2mm_pat = 0;
-uint32_t mm2s_pat = 0;
+uint8_t s2mm_pat = 0;
+uint8_t mm2s_pat = 0;
 
 #define RINGBUFFER_BASE 0xB0000000
 #define RINGBUFFER_INT_ENABLE RINGBUFFER_BASE + 0
@@ -322,19 +322,30 @@ static void stats_task(void *pvParameters)
 {
     PUTS("stats_task started\n");
     int done = 0;
-    int n_bytes = 250;
+    int n_bytes = 248;
     int i = 0;
     int rv;
-
+    uint32_t word;
     while (1) {
         vTaskDelay(1);
         //printf("n_s2mm_bytes=%d, n_mm2s_bytes=%d\n", n_s2mm_bytes, n_mm2s_bytes);
 
         if (n_mm2s_bytes < 2048) {
-            for (i = 0; i < n_bytes; i++) {
-                putbuffer[i] = (mm2s_pat & 0xFF);
-                mm2s_pat++;
+            for (i = 0; i < n_bytes; i+=4) {
+                *((uint32_t *)(putbuffer+i)) = ((((mm2s_pat+0)))<<0)  | \
+                                               ((((mm2s_pat+1)))<<8)  | \
+                                               ((((mm2s_pat+2)))<<16) | \
+                                               ((((mm2s_pat+3)))<<24);
+                //*((uint32_t *)(putbuffer+i)) = ((((mm2s_pat+0) & 0xFF))<<0)  | \
+                //                               ((((mm2s_pat+1) & 0xFF))<<8)  | \
+                //                               ((((mm2s_pat+2) & 0xFF))<<16) | \
+                //                               ((((mm2s_pat+3) & 0xFF))<<24);
+                mm2s_pat+=4;
             }
+            //for (i = 0; i < n_bytes; i++) {
+            //    putbuffer[i] = (mm2s_pat & 0xFF);
+            //    mm2s_pat++;
+            //}
 
             rv = mm2s_ringbuffer_put(mm2s_0, putbuffer, n_bytes);
             if (rv > 0) {

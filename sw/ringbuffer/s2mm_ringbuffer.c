@@ -255,10 +255,6 @@ int s2mm_ringbuffer_get_dumb(struct s2mm_ringbuffer *dev, void *buffer, size_t b
         return -1;
     }
 
-    if ((buffer_size % dev->width) != 0) {
-        return -1;
-    }
-
     uint32_t level = s2mm_ringbuffer_level(dev);
     uint32_t count = level < buffer_size ? level : buffer_size;
 
@@ -316,10 +312,6 @@ int s2mm_ringbuffer_get(struct s2mm_ringbuffer *dev, void *buffer, size_t buffer
     }
 
     if (buffer_size < dev->width) {
-        return -1;
-    }
-
-    if ((buffer_size % dev->width) != 0) {
         return -1;
     }
 
