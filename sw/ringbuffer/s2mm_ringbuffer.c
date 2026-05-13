@@ -317,12 +317,25 @@ int s2mm_ringbuffer_get(struct s2mm_ringbuffer *dev, void *buffer, size_t buffer
 
     uint32_t level = s2mm_ringbuffer_level(dev);
     uint32_t count = level < buffer_size ? level : buffer_size;
+    uint32_t c = 0;
 
-    int i;
-    for (i = 0; i < count; i++) {
-        _advance_tail(dev);
-        ((uint8_t *)buffer)[i] = dev->buffer[dev->tailptr];
+    if (count == 0) {
+        return 0;
     }
 
-    return i;
+    _advance_tail(dev);
+    if (count >= (dev->buffer_size - dev->tailptr)) {
+        memcpy(buffer+c, dev->buffer + dev->tailptr, dev->buffer_size - dev->tailptr);
+        c += (dev->buffer_size - dev->tailptr);
+        dev->tailptr = 0;
+    }
+    memcpy(buffer+c, dev->buffer + dev->tailptr, count - c);
+    dev->tailptr += count - c - 1;
+
+    //int i;
+    //for (i = 0; i < count; i++) {
+    //    ((uint8_t *)buffer)[i] = dev->buffer[dev->tailptr];
+    //}
+
+    return count;
 }

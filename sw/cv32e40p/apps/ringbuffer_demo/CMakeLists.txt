@@ -46,13 +46,13 @@ add_executable(${TARGET}.elf
 target_include_directories(${TARGET}.elf
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
+        ${RB}/
         ${RISCV}/
         ${CV32E40P}/
-        ${RB}
-        ${REPO_DIR}/cores/nanoprintf/
         ${CV32E40P}/freertos
         ${CV32E40P}/freertos/RISC-V_cv32e40p
         ${RTOS_SOURCE_DIR}/include
+        ${REPO_DIR}/cores/nanoprintf/
 )
 target_link_libraries(${TARGET}.elf
     PRIVATE

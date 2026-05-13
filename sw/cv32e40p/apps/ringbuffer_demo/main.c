@@ -44,8 +44,10 @@
 #include "s2mm_ringbuffer.h"
 #include "test_mm2s_ringbuffer.h"
 
-// #define PUTS(s) sim_putstring((s))
-#define PUTS(s)
+// #define DEBUG(s) sim_putstring((s))
+#define DEBUG(s)
+#define ERROR(s) sim_putstring((s))
+// #define ERROR(s)
 
 /*-----------------------------------------------------------*/
 /*-- FreeRTOS Hooks------------------------------------------*/
@@ -63,7 +65,7 @@ void vApplicationMallocFailedHook(void)
      * FreeRTOSConfig.h, and the xPortGetFreeHeapSize() API function can be used
      * to query the size of free heap space that remains (although it does not
      * provide information on how the remaining heap might be fragmented). */
-    sim_putstring("vApplicationMallocFailedHook\n");
+    ERROR("vApplicationMallocFailedHook\n");
     sim_exit(0);
 }
 
@@ -86,7 +88,7 @@ void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskName)
     (void)pcTaskName;
     (void)pxTask;
 
-    sim_putstring("vApplicationStackOverflowHook\n");
+    ERROR("vApplicationStackOverflowHook\n");
     sim_exit(0);
 }
 
@@ -94,7 +96,7 @@ void vApplicationTickHook(void) {}
 
 void vAssertCalled(void)
 {
-    sim_putstring("vAssertCalled\n");
+    ERROR("vAssertCalled\n");
     sim_exit(0);
 }
 
@@ -158,23 +160,23 @@ struct mm2s_ringbuffer *configure_mm2s(void *dev_address, void *buffer, size_t b
     int rc;
     struct mm2s_ringbuffer *dev;
 
-    PUTS("configure_mm2s\n");
+    DEBUG("configure_mm2s\n");
 
     dev = mm2s_ringbuffer_init(dev_address);
     if (dev == NULL) {
-        sim_putstring("mm2s_ringbuffer_init failed\n");
+        ERROR("mm2s_ringbuffer_init failed\n");
         return NULL;
     }
 
     rc = mm2s_ringbuffer_set_buffer(dev, buffer, buffer_size);
     if (rc) {
-        sim_putstring("mm2s_ringbuffer_set_buffer failed\n");
+        ERROR("mm2s_ringbuffer_set_buffer failed\n");
         return NULL;
     }
 
     rc = mm2s_ringbuffer_start(dev);
     if (rc) {
-        sim_putstring("mm2s_ringbuffer_start failed\n");
+        ERROR("mm2s_ringbuffer_start failed\n");
         return NULL;
     }
 
@@ -186,23 +188,23 @@ struct s2mm_ringbuffer *configure_s2mm(void *dev_address, void *buffer, size_t b
     int rc;
     struct s2mm_ringbuffer *dev;
 
-    PUTS("configure_s2mm\n");
+    DEBUG("configure_s2mm\n");
 
     dev = s2mm_ringbuffer_init(dev_address);
     if (dev == NULL) {
-        sim_putstring("s2mm_ringbuffer_init failed\n");
+        ERROR("s2mm_ringbuffer_init failed\n");
         return NULL;
     }
 
     rc = s2mm_ringbuffer_set_buffer(dev, buffer, buffer_size);
     if (rc) {
-        sim_putstring("s2mm_ringbuffer_set_buffer failed\n");
+        ERROR("s2mm_ringbuffer_set_buffer failed\n");
         return NULL;
     }
 
     rc = s2mm_ringbuffer_start(dev);
     if (rc) {
-        sim_putstring("s2mm_ringbuffer_start failed\n");
+        ERROR("s2mm_ringbuffer_start failed\n");
         return NULL;
     }
 
@@ -218,7 +220,7 @@ static void mm2s_ringbuffer_task(void *pvParameters)
     uint32_t active;
     uint32_t pending;
 
-    PUTS("mm2s_ringbuffer_task started\n");
+    DEBUG("mm2s_ringbuffer_task started\n");
 
     ringbuffer_t *inst = ((ringbuffer_t *)RINGBUFFER_BASE);
     mm2s_0 = configure_mm2s((void *)&(inst->ringbuffer_mm2s[0]), buffers[0], DMA_BUFFER_SIZE, 0);
@@ -229,7 +231,7 @@ static void mm2s_ringbuffer_task(void *pvParameters)
     for (;;) {
         xSemaphoreTake(sem_mm2s, -1);
 
-        PUTS("  mm2s_ringbuffer_isr\n");
+        DEBUG("  mm2s_ringbuffer_isr\n");
 
         enabled = mm2s_ringbuffer_read_intr_enable(mm2s_0);
         active = mm2s_ringbuffer_read_intr_active(mm2s_0);
@@ -237,11 +239,11 @@ static void mm2s_ringbuffer_task(void *pvParameters)
         while (pending) {
 
             if (pending & RINGBUFFER_MM2SX__INTR_ACTIVE__ERROR_bm) {
-                PUTS("    mm2s_ringbuffer_isr_error\n");
+                DEBUG("    mm2s_ringbuffer_isr_error\n");
                 mm2s_ringbuffer_clear_intr(mm2s_0, RINGBUFFER_MM2SX__INTR_ACTIVE__ERROR_bm);
             }
             if (pending & RINGBUFFER_MM2SX__INTR_ACTIVE__LEVEL_bm) {
-                PUTS("    mm2s_ringbuffer_isr_level\n");
+                DEBUG("    mm2s_ringbuffer_isr_level\n");
 
                 int rv;
                 rv = mm2s_ringbuffer_put(mm2s_0, putbuffer, PUT_BUFFER_SIZE);
@@ -269,8 +271,9 @@ static void s2mm_ringbuffer_task(void *pvParameters)
     uint32_t enabled;
     uint32_t active;
     uint32_t pending;
+    uint32_t matchword;
     int i;
-    PUTS("s2mm_ringbuffer_task started\n");
+    DEBUG("s2mm_ringbuffer_task started\n");
 
     ringbuffer_t *inst = ((ringbuffer_t *)RINGBUFFER_BASE);
     s2mm_0 = configure_s2mm((void *)&(inst->ringbuffer_s2mm[0]), buffers[1], DMA_BUFFER_SIZE, 0);
@@ -278,7 +281,7 @@ static void s2mm_ringbuffer_task(void *pvParameters)
     for (;;) {
         xSemaphoreTake(sem_s2mm, -1);
 
-        PUTS("  s2mm_ringbuffer_isr\n");
+        DEBUG("  s2mm_ringbuffer_isr\n");
 
         enabled = s2mm_ringbuffer_read_intr_enable(s2mm_0);
         active = s2mm_ringbuffer_read_intr_active(s2mm_0);
@@ -286,27 +289,33 @@ static void s2mm_ringbuffer_task(void *pvParameters)
 
         while (pending) {
             if (pending & RINGBUFFER_S2MMX__INTR_ACTIVE__OVERRUN_bm) {
-                PUTS("    s2mm_ringbuffer_isr_overrun\n");
+                DEBUG("    s2mm_ringbuffer_isr_overrun\n");
                 s2mm_ringbuffer_clear_intr(s2mm_0, RINGBUFFER_S2MMX__INTR_ACTIVE__OVERRUN_bm);
             }
             if (pending & RINGBUFFER_S2MMX__INTR_ACTIVE__ERROR_bm) {
-                PUTS("    s2mm_ringbuffer_isr_error\n");
+                DEBUG("    s2mm_ringbuffer_isr_error\n");
                 s2mm_ringbuffer_clear_intr(s2mm_0, RINGBUFFER_S2MMX__INTR_ACTIVE__ERROR_bm);
             }
             if (pending & RINGBUFFER_S2MMX__INTR_ACTIVE__LEVEL_bm) {
-                PUTS("    s2mm_ringbuffer_isr_level\n");
+                DEBUG("    s2mm_ringbuffer_isr_level\n");
                 n_s2mm_bytes += s2mm_ringbuffer_level(s2mm_0);
-                s2mm_ringbuffer_flush(s2mm_0);
+                // s2mm_ringbuffer_flush(s2mm_0);
                 int rv;
                 do {
                     rv = s2mm_ringbuffer_get(s2mm_0, getbuffer, GET_BUFFER_SIZE);
                     s2mm_ringbuffer_commit(s2mm_0);
-                    for (i = 0; i < rv; i++) {
-                        if (getbuffer[i] != (s2mm_pat & 0xFF)) {
-                            printf("buffer mismatch %02X != %02X\n", (s2mm_pat & 0xFF), getbuffer[i]);
-                            sim_exit(0);
+                    for (i = 0; i < rv; i += 4) {
+                        matchword = ((((s2mm_pat + 0))) << 0) | ((((s2mm_pat + 1))) << 8) | ((((s2mm_pat + 2))) << 16) |
+                                    ((((s2mm_pat + 3))) << 24);
+                        if (*((uint32_t *)(getbuffer + i)) != matchword) {
+                            printf("buffer mismatch %02X != %02X\n", matchword, *((uint32_t *)(getbuffer + i)));
+                            sim_exit(-1);
                         }
-                        s2mm_pat++;
+                        // if (getbuffer[i] != (s2mm_pat & 0xFF)) {
+                        //     printf("buffer mismatch %02X != %02X\n", (s2mm_pat & 0xFF), getbuffer[i]);
+                        //     sim_exit(0);
+                        // }
+                        s2mm_pat += 4;
                     }
                 } while (rv > 0);
                 s2mm_ringbuffer_clear_intr(s2mm_0, RINGBUFFER_S2MMX__INTR_ACTIVE__LEVEL_bm);
@@ -320,7 +329,7 @@ static void s2mm_ringbuffer_task(void *pvParameters)
 
 static void stats_task(void *pvParameters)
 {
-    PUTS("stats_task started\n");
+    DEBUG("stats_task started\n");
     int done = 0;
     int n_bytes = 248;
     int i = 0;
@@ -328,24 +337,14 @@ static void stats_task(void *pvParameters)
     uint32_t word;
     while (1) {
         vTaskDelay(1);
-        //printf("n_s2mm_bytes=%d, n_mm2s_bytes=%d\n", n_s2mm_bytes, n_mm2s_bytes);
+        printf("n_s2mm_bytes=%d, n_mm2s_bytes=%d\n", n_s2mm_bytes, n_mm2s_bytes);
 
         if (n_mm2s_bytes < 2048) {
-            for (i = 0; i < n_bytes; i+=4) {
-                *((uint32_t *)(putbuffer+i)) = ((((mm2s_pat+0)))<<0)  | \
-                                               ((((mm2s_pat+1)))<<8)  | \
-                                               ((((mm2s_pat+2)))<<16) | \
-                                               ((((mm2s_pat+3)))<<24);
-                //*((uint32_t *)(putbuffer+i)) = ((((mm2s_pat+0) & 0xFF))<<0)  | \
-                //                               ((((mm2s_pat+1) & 0xFF))<<8)  | \
-                //                               ((((mm2s_pat+2) & 0xFF))<<16) | \
-                //                               ((((mm2s_pat+3) & 0xFF))<<24);
-                mm2s_pat+=4;
+            for (i = 0; i < n_bytes; i += 4) {
+                *((uint32_t *)(putbuffer + i)) = ((((mm2s_pat + 0))) << 0) | ((((mm2s_pat + 1))) << 8) |
+                                                 ((((mm2s_pat + 2))) << 16) | ((((mm2s_pat + 3))) << 24);
+                mm2s_pat += 4;
             }
-            //for (i = 0; i < n_bytes; i++) {
-            //    putbuffer[i] = (mm2s_pat & 0xFF);
-            //    mm2s_pat++;
-            //}
 
             rv = mm2s_ringbuffer_put(mm2s_0, putbuffer, n_bytes);
             if (rv > 0) {
