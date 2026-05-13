@@ -491,7 +491,7 @@ module tb_cv32e40p (
 
     // ------------------------------------------------------------------------
 
-    function write_itcm;  /*verilator public*/
+    function static void write_itcm;  /*verilator public*/
         input [31:0] addr;
         input [7:0] data;
         begin
@@ -516,7 +516,7 @@ module tb_cv32e40p (
         end
     endfunction
 
-    function write_dtcm;  /*verilator public*/
+    function static void write_dtcm;  /*verilator public*/
         input [31:0] addr;
         input [7:0] data;
         begin
