@@ -2,21 +2,23 @@
 
 This is a collection of odds and ends to make a up a full RISCV RTL simulation environment.  There isnt *much* original work here on my part besides providing the duct tape and string to tie all the parts and pieces together.
 
-It has sort of evolved into a kind of goldilocks situation with RISCV cores, trying to find one that is easy to integrate, verilator compatible, and has the extensions I'm interested in.
+Over time its (d)evolved into a kind of goldilocks situation with different opensource RISCV cores.  Trying to find one that is easy to integrate, verilator compatible, has the extensions I'm interested in and potentially FPGA friendly.
 
-For each core ive tried to makeup a baremetal demo application as well as a freertos demo application.  the ones that havent hit dealbreakers also get a ringbuffer demo application to see how well they play with using DMA (usually this is limited by the ability to do fine grained cache control ie flush/invalidate specific addresses.)
+For each core, ive tried to makeup a baremetal demo application as well as a freertos demo application.  the ones that havent hit dealbreakers also get a ringbuffer demo application to see how well they play with using DMA (usually this is limited by the ability to do fine grained cache control ie flush/invalidate specific addresses.)
+
+Also Ive recently started adding coremark benchmark applications.
 
 For the most part this should be completely sythensizable however ive taken some liberties in the area of setup/memory loading so at the moment there isnt any way to load an application when running on a piece of hardware.  If pressed, a UART/SPI2AXI connection that can tied into the memory complex to load the ITCM/DTCM should do the trick but isnt of particular interest at the moment.
 
 ## Errata
 
-Notes and observations made in the pursuit of finding the perfect RISCV core
+Notes and observations made in the pursuit of finding the perfect RISCV core.  These are ranked in order of the amount of polish/effort ive put into integration work.
 
 * openhwgroup/cv32e40pv2
     * this is pretty close
     * I wish it had the bit manipulation extension
     * The RVFI interface is kind of finicky and not easy to setup since its using some goofy timing features that verilator doesnt play well with.  Not a deal breaker but a bummer none the less.
-* ultraembedded/biriscv
+* ultraembedded/biriscv (retired)
     * Vector Interrupts dont work
     * wfi doesnt wait for anything
     * mtime is csr based instead of mm and isnt 64 bits
@@ -28,14 +30,16 @@ Notes and observations made in the pursuit of finding the perfect RISCV core
     * RVFI is probably going to be a pain
 * lowRISC/ibex (todo)
     * Havent tried this one yet but i think this one will be pretty good.
-    * If this had a FPU i suspect this would be my winner
+    * If it had a FPU i suspect this would be my winner
     * has ready to go RVFI
 * ARM/DesignStart M0/M3 (todo)
+    * why should the riscv cores get to have all the fun?
 * openhwgroup/CVW (abandoned)
     * uses AHB...i strongly dislike using AHB buses
     * Something in the Mult/Div extensions blows the verilation process up and takes ~15 minutes to finish
 * rsd-devel/rsd (abandoned)
     * integration with external modules is sort of a hot mess.  spent an afternoon trying to do memory accesses outside of RAM and gave up on this one.
+    * i want to like this one....might revisit later and see if its more agreeable
 
 
 
@@ -96,6 +100,7 @@ Memory: 0x80004150 - 0x8000a3e7 (Size=24KB) [.bss]
 | chipsalliance |             |
 |---------------|-------------|
 | [VeeR EH1](https://github.com/chipsalliance/Cores-VeeR-EH1) | RV32IMC     |
+| [VeeR EL2](https://github.com/chipsalliance/Cores-VeeR-EL2) |             |
 
 | rsd-devel     |             |
 |---------------|-------------|
