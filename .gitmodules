@@ -16,3 +16,6 @@
 [submodule "cores/verilog-uart"]
 	path = cores/verilog-uart
 	url = git@github.com:alexforencich/verilog-uart.git
+[submodule "cores/coremark"]
+	path = cores/coremark
+	url = git@github.com:eembc/coremark.git

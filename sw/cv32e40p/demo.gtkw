@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v4.0.0-prealpha (36638f9) (w)1999-2022 BSI
-[*] Wed May 13 21:07:38 2026
+[*] Thu May 14 17:24:29 2026
 [*]
 [dumpfile] "/home/rbriggin/github/eehusky/riscv_sim/tb/cv32e40p/ringbuffer/dump.fst"
-[dumpfile_mtime] "Wed May 13 21:06:15 2026"
-[dumpfile_size] 71865585
+[dumpfile_mtime] "Thu May 14 17:23:42 2026"
+[dumpfile_size] 149246
 [savefile] "/home/rbriggin/github/eehusky/riscv_sim/sw/cv32e40p/demo.gtkw"
 [timestart] 0
 [size] 1920 2088
 [pos] -1 -1
-*-20.743721 2209300 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-21.882145 18130000 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -253,6 +253,49 @@ TOP.tb_cv32e40p.i_cv32e40p_top.apu_rvalid
 @200
 -
 @c00200
+-DTCM_AXI
+@22
+TOP.tb_cv32e40p.s_axi_dtcm.araddr[31:0]
+TOP.tb_cv32e40p.s_axi_dtcm.arid[7:0]
+TOP.tb_cv32e40p.s_axi_dtcm.arlen[7:0]
+@28
+TOP.tb_cv32e40p.s_axi_dtcm.arready
+TOP.tb_cv32e40p.s_axi_dtcm.arvalid
+@22
+TOP.tb_cv32e40p.s_axi_dtcm.rdata[31:0]
+TOP.tb_cv32e40p.s_axi_dtcm.rid[7:0]
+@28
+TOP.tb_cv32e40p.s_axi_dtcm.rlast
+TOP.tb_cv32e40p.s_axi_dtcm.rready
+TOP.tb_cv32e40p.s_axi_dtcm.rresp[1:0]
+TOP.tb_cv32e40p.s_axi_dtcm.rvalid
+@200
+-
+@28
+TOP.tb_cv32e40p.s_axi_dtcm.awready
+TOP.tb_cv32e40p.s_axi_dtcm.awvalid
+@22
+TOP.tb_cv32e40p.s_axi_dtcm.awaddr[31:0]
+TOP.tb_cv32e40p.s_axi_dtcm.awid[7:0]
+TOP.tb_cv32e40p.s_axi_dtcm.awlen[7:0]
+@28
+TOP.tb_cv32e40p.s_axi_dtcm.awsize[2:0]
+TOP.tb_cv32e40p.s_axi_dtcm.wready
+TOP.tb_cv32e40p.s_axi_dtcm.wvalid
+@22
+TOP.tb_cv32e40p.s_axi_dtcm.wdata[31:0]
+TOP.tb_cv32e40p.s_axi_dtcm.wstrb[3:0]
+@28
+TOP.tb_cv32e40p.s_axi_dtcm.wlast
+@22
+TOP.tb_cv32e40p.s_axi_dtcm.bid[7:0]
+@28
+TOP.tb_cv32e40p.s_axi_dtcm.bready
+TOP.tb_cv32e40p.s_axi_dtcm.bresp[1:0]
+TOP.tb_cv32e40p.s_axi_dtcm.bvalid
+@1401200
+-DTCM_AXI
+@c00200
 -CACHED
 @22
 TOP.tb_cv32e40p.m_axi_cached.araddr[31:0]
@@ -386,40 +429,40 @@ TOP.tb_cv32e40p.m_axi_uncached.wstrb[3:0]
 TOP.tb_cv32e40p.m_axi_uncached.wvalid
 @1401200
 -UNCACHED
-@800200
+@c00200
 -AXIL
-@23
+@22
 TOP.tb_cv32e40p.m_axil.araddr[31:0]
-@29
+@28
 TOP.tb_cv32e40p.m_axil.arprot[2:0]
 TOP.tb_cv32e40p.m_axil.arready
 TOP.tb_cv32e40p.m_axil.arvalid
-@23
+@22
 TOP.tb_cv32e40p.m_axil.rdata[31:0]
-@29
+@28
 TOP.tb_cv32e40p.m_axil.rready
 TOP.tb_cv32e40p.m_axil.rresp[1:0]
 TOP.tb_cv32e40p.m_axil.rvalid
 @200
 -
-@23
+@22
 TOP.tb_cv32e40p.m_axil.awaddr[31:0]
-@29
+@28
 TOP.tb_cv32e40p.m_axil.awprot[2:0]
 TOP.tb_cv32e40p.m_axil.awready
 TOP.tb_cv32e40p.m_axil.awvalid
-@23
+@22
 TOP.tb_cv32e40p.m_axil.wdata[31:0]
-@29
+@28
 TOP.tb_cv32e40p.m_axil.wready
-@23
+@22
 TOP.tb_cv32e40p.m_axil.wstrb[3:0]
-@29
+@28
 TOP.tb_cv32e40p.m_axil.wvalid
 TOP.tb_cv32e40p.m_axil.bready
 TOP.tb_cv32e40p.m_axil.bresp[1:0]
 TOP.tb_cv32e40p.m_axil.bvalid
-@1000200
+@1401200
 -AXIL
 @800200
 -M00_AXIS
@@ -439,72 +482,5 @@ TOP.tb_cv32e40p.m01_axis.tready
 TOP.tb_cv32e40p.m01_axis.tvalid
 @1000200
 -M01_AXIS
-@c00200
--DTCM_AXI
-@22
-TOP.tb_cv32e40p.s_axi_dtcm.araddr[31:0]
-@28
-TOP.tb_cv32e40p.s_axi_dtcm.arburst[1:0]
-@22
-TOP.tb_cv32e40p.s_axi_dtcm.arcache[3:0]
-TOP.tb_cv32e40p.s_axi_dtcm.arid[7:0]
-TOP.tb_cv32e40p.s_axi_dtcm.arlen[7:0]
-@28
-TOP.tb_cv32e40p.s_axi_dtcm.arlock
-TOP.tb_cv32e40p.s_axi_dtcm.arprot[2:0]
-@22
-TOP.tb_cv32e40p.s_axi_dtcm.arqos[3:0]
-@28
-TOP.tb_cv32e40p.s_axi_dtcm.arready
-@22
-TOP.tb_cv32e40p.s_axi_dtcm.arregion[3:0]
-@28
-TOP.tb_cv32e40p.s_axi_dtcm.arsize[2:0]
-TOP.tb_cv32e40p.s_axi_dtcm.arvalid
-@22
-TOP.tb_cv32e40p.s_axi_dtcm.awaddr[31:0]
-@28
-TOP.tb_cv32e40p.s_axi_dtcm.awburst[1:0]
-@22
-TOP.tb_cv32e40p.s_axi_dtcm.awcache[3:0]
-TOP.tb_cv32e40p.s_axi_dtcm.awid[7:0]
-TOP.tb_cv32e40p.s_axi_dtcm.awlen[7:0]
-@28
-TOP.tb_cv32e40p.s_axi_dtcm.awlock
-TOP.tb_cv32e40p.s_axi_dtcm.awprot[2:0]
-@22
-TOP.tb_cv32e40p.s_axi_dtcm.awqos[3:0]
-@28
-TOP.tb_cv32e40p.s_axi_dtcm.awready
-@22
-TOP.tb_cv32e40p.s_axi_dtcm.awregion[3:0]
-@28
-TOP.tb_cv32e40p.s_axi_dtcm.awsize[2:0]
-TOP.tb_cv32e40p.s_axi_dtcm.awvalid
-@22
-TOP.tb_cv32e40p.s_axi_dtcm.bid[7:0]
-@28
-TOP.tb_cv32e40p.s_axi_dtcm.bready
-TOP.tb_cv32e40p.s_axi_dtcm.bresp[1:0]
-TOP.tb_cv32e40p.s_axi_dtcm.bvalid
-@22
-TOP.tb_cv32e40p.s_axi_dtcm.rdata[31:0]
-TOP.tb_cv32e40p.s_axi_dtcm.rid[7:0]
-@28
-TOP.tb_cv32e40p.s_axi_dtcm.rlast
-TOP.tb_cv32e40p.s_axi_dtcm.rready
-TOP.tb_cv32e40p.s_axi_dtcm.rresp[1:0]
-TOP.tb_cv32e40p.s_axi_dtcm.rvalid
-@22
-TOP.tb_cv32e40p.s_axi_dtcm.wdata[31:0]
-@28
-TOP.tb_cv32e40p.s_axi_dtcm.wlast
-TOP.tb_cv32e40p.s_axi_dtcm.wready
-@22
-TOP.tb_cv32e40p.s_axi_dtcm.wstrb[3:0]
-@28
-TOP.tb_cv32e40p.s_axi_dtcm.wvalid
-@1401200
--DTCM_AXI
 [pattern_trace] 1
 [pattern_trace] 0

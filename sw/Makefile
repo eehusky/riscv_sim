@@ -43,10 +43,16 @@ cv32e40p_ringbuffer:
 	cmake -S cv32e40p/apps/ringbuffer_demo -B build
 	make -C build/
 
+cv32e40p_coremark:
+	mkdir -p build
+	cmake -S cv32e40p/apps/coremark_demo -B build
+	make -C build/
+
 clean:
 	rm -rf ./build/
 	rm -rf ./.cache
 
 
-.PHONY: sim clean app1 apprsd freertos ringbuffer cv32e40p cv32e40p_freertos cv32e40p_ringbuffer
+.PHONY: sim clean app1 apprsd freertos ringbuffer
+.PHONY: cv32e40p cv32e40p_freertos cv32e40p_ringbuffer cv32e40p_coremark
 FORCE:

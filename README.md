@@ -93,6 +93,10 @@ Memory: 0x80004150 - 0x8000a3e7 (Size=24KB) [.bss]
 | [riscv](https://github.com/ultraembedded/riscv)       | 2 stage, RV32IMZicsr            |
 | [biriscv](https://github.com/ultraembedded/biriscv)   | 6 stage, dual issue RV32IMZicsr |
 
+| chipsalliance |             |
+|---------------|-------------|
+| [VeeR EH1](https://github.com/chipsalliance/Cores-VeeR-EH1) | RV32IMC     |
+
 | rsd-devel     |             |
 |---------------|-------------|
 | [rsd](https://github.com/rsd-devel/rsd)               | RV32IMF     |

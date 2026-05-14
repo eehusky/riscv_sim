@@ -13,41 +13,41 @@ static void riscv_nop_supervisor(void) __attribute__((interrupt("supervisor")));
 static void riscv_nop_user(void) __attribute__((interrupt("user")));
 
 // Weak alias to the "NOP" implementations. If another function
-void riscv_mtvec_exception(void) __attribute__((interrupt("machine"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_msi(void) __attribute__((interrupt("machine"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_mti(void) __attribute__((interrupt("machine"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_mei(void) __attribute__((interrupt("machine"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_ssi(void) __attribute__((interrupt("supervisor"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_sti(void) __attribute__((interrupt("supervisor"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_sei(void) __attribute__((interrupt("supervisor"), weak, alias("riscv_nop_machine")));
+void riscv_mtvec_exception(void) __attribute__((interrupt("machine"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_msi(void) __attribute__((interrupt("machine"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_mti(void) __attribute__((interrupt("machine"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_mei(void) __attribute__((interrupt("machine"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_ssi(void) __attribute__((interrupt("supervisor"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_sti(void) __attribute__((interrupt("supervisor"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_sei(void) __attribute__((interrupt("supervisor"), used, weak, alias("riscv_nop_machine")));
 
 void riscv_stvec_exception(void) __attribute__((interrupt("supervisor"), weak, alias("riscv_nop_supervisor")));
-void riscv_stvec_ssi(void) __attribute__((interrupt("supervisor"), weak, alias("riscv_nop_supervisor")));
-void riscv_stvec_sti(void) __attribute__((interrupt("supervisor"), weak, alias("riscv_nop_supervisor")));
-void riscv_stvec_sei(void) __attribute__((interrupt("supervisor"), weak, alias("riscv_nop_supervisor")));
+void riscv_stvec_ssi(void) __attribute__((interrupt("supervisor"), used, weak, alias("riscv_nop_supervisor")));
+void riscv_stvec_sti(void) __attribute__((interrupt("supervisor"), used, weak, alias("riscv_nop_supervisor")));
+void riscv_stvec_sei(void) __attribute__((interrupt("supervisor"), used, weak, alias("riscv_nop_supervisor")));
 
-void riscv_utvec_usi(void) __attribute__((interrupt("user"), weak, alias("riscv_nop_user")));
-void riscv_utvec_uti(void) __attribute__((interrupt("user"), weak, alias("riscv_nop_user")));
-void riscv_utvec_uei(void) __attribute__((interrupt("user"), weak, alias("riscv_nop_user")));
+void riscv_utvec_usi(void) __attribute__((interrupt("user"), used, weak, alias("riscv_nop_user")));
+void riscv_utvec_uti(void) __attribute__((interrupt("user"), used, weak, alias("riscv_nop_user")));
+void riscv_utvec_uei(void) __attribute__((interrupt("user"), used, weak, alias("riscv_nop_user")));
 
 #ifndef VECTOR_TABLE_MTVEC_PLATFORM_INTS
 
-void riscv_mtvec_platform_irq0(void) __attribute__((interrupt("machine"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_platform_irq1(void) __attribute__((interrupt("machine"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_platform_irq2(void) __attribute__((interrupt("machine"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_platform_irq3(void) __attribute__((interrupt("machine"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_platform_irq4(void) __attribute__((interrupt("machine"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_platform_irq5(void) __attribute__((interrupt("machine"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_platform_irq6(void) __attribute__((interrupt("machine"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_platform_irq7(void) __attribute__((interrupt("machine"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_platform_irq8(void) __attribute__((interrupt("machine"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_platform_irq9(void) __attribute__((interrupt("machine"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_platform_irq10(void) __attribute__((interrupt("machine"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_platform_irq11(void) __attribute__((interrupt("machine"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_platform_irq12(void) __attribute__((interrupt("machine"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_platform_irq13(void) __attribute__((interrupt("machine"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_platform_irq14(void) __attribute__((interrupt("machine"), weak, alias("riscv_nop_machine")));
-void riscv_mtvec_platform_irq15(void) __attribute__((interrupt("machine"), weak, alias("riscv_nop_machine")));
+void riscv_mtvec_platform_irq0(void) __attribute__((interrupt("machine"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_platform_irq1(void) __attribute__((interrupt("machine"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_platform_irq2(void) __attribute__((interrupt("machine"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_platform_irq3(void) __attribute__((interrupt("machine"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_platform_irq4(void) __attribute__((interrupt("machine"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_platform_irq5(void) __attribute__((interrupt("machine"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_platform_irq6(void) __attribute__((interrupt("machine"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_platform_irq7(void) __attribute__((interrupt("machine"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_platform_irq8(void) __attribute__((interrupt("machine"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_platform_irq9(void) __attribute__((interrupt("machine"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_platform_irq10(void) __attribute__((interrupt("machine"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_platform_irq11(void) __attribute__((interrupt("machine"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_platform_irq12(void) __attribute__((interrupt("machine"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_platform_irq13(void) __attribute__((interrupt("machine"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_platform_irq14(void) __attribute__((interrupt("machine"), used, weak, alias("riscv_nop_machine")));
+void riscv_mtvec_platform_irq15(void) __attribute__((interrupt("machine"), used, weak, alias("riscv_nop_machine")));
 
 #endif // #ifndef VECTOR_TABLE_MTVEC_PLATFORM_INTS
 
