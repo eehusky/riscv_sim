@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.5)
 project(tb_cv32e40p_demo)
 
-set(REPO_DIR    ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
-set(CV32E40P    ${REPO_DIR}/cores/cv32e40p)
-set(VERILOG_AXI ${REPO_DIR}/cores/verilog-axi/)
-set(WB2AXIP     ${REPO_DIR}/cores/wb2axip/)
+set(REPO_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
+set(CV32E40P     ${REPO_DIR}/cores/cv32e40p)
+set(BIRISCV      ${REPO_DIR}/cores/biriscv)
+set(VERILOG_AXI  ${REPO_DIR}/cores/verilog-axi/)
+set(VERILOG_UART ${REPO_DIR}/cores/verilog-uart/)
+set(WB2AXIP      ${REPO_DIR}/cores/wb2axip/)
 
 find_package(verilator
     NO_DEFAULT_PATH
@@ -81,6 +83,8 @@ add_executable(tb_cv32e40p
 verilate(tb_cv32e40p
     PREFIX
         Vtb_cv32e40p
+    TOP_MODULE
+        tb_cv32e40p
     OPT_GLOBAL
         ${CMAKE_CXX_FLAGS}
     OPT_SLOW
@@ -94,9 +98,8 @@ verilate(tb_cv32e40p
         #${CV32E40P}/bhv/
         #${CV32E40P}/bhv/include
         #${CV32E40P}/rtl/vendor/pulp_platform_common_cells/src/
+        ${BIRISCV}/src/core/
         ${CV32E40P}/rtl/vendor/pulp_platform_common_cells/include/ # Needed for FPU
-    TOP_MODULE
-        tb_cv32e40p
     SOURCES
         ${CV32E40P}/rtl/include/cv32e40p_pkg.sv
         ${CV32E40P}/rtl/include/cv32e40p_fpu_pkg.sv
@@ -118,7 +121,6 @@ verilate(tb_cv32e40p
         #${CV32E40P}/bhv/insn_trace.sv
         #${CV32E40P}/bhv/pipe_freeze_trace.sv
         #${CV32E40P}/sva/cv32e40p_prefetch_controller_sva.sv
-
         #
         ${CV32E40P}/rtl/cv32e40p_fp_wrapper.sv
         ${CV32E40P}/rtl/vendor/pulp_platform_fpnew/src/fpnew_cast_multi.sv
@@ -134,7 +136,6 @@ verilate(tb_cv32e40p
         ${CV32E40P}/rtl/vendor/pulp_platform_fpnew/src/fpnew_pkg.sv
         ${CV32E40P}/rtl/vendor/pulp_platform_fpnew/src/fpnew_rounding.sv
         ${CV32E40P}/rtl/vendor/pulp_platform_fpnew/src/fpnew_top.sv
-        #${CV32E40P}/rtl/vendor/pulp_platform_fpnew/vendor/.sv
         ${CV32E40P}/rtl/vendor/pulp_platform_fpnew/vendor/opene906/E906_RTL_FACTORY/gen_rtl/clk/rtl/gated_clk_cell.v
         ${CV32E40P}/rtl/vendor/pulp_platform_fpnew/vendor/opene906/E906_RTL_FACTORY/gen_rtl/fdsu/rtl/pa_fdsu_ctrl.v
         ${CV32E40P}/rtl/vendor/pulp_platform_fpnew/vendor/opene906/E906_RTL_FACTORY/gen_rtl/fdsu/rtl/pa_fdsu_ff1.v
@@ -186,6 +187,10 @@ verilate(tb_cv32e40p
         ${VERILOG_AXI}/rtl/axil_ram.v
         ${VERILOG_AXI}/rtl/axi_ram.v
         #
+        ${VERILOG_UART}/rtl/uart.v
+        ${VERILOG_UART}/rtl/uart_rx.v
+        ${VERILOG_UART}/rtl/uart_tx.v
+        #
         ${WB2AXIP}/rtl/sfifo.v
         ${REPO_DIR}/rtl/dport/dport_pkg.sv
         ${REPO_DIR}/rtl/dport/dport2iob.sv
@@ -235,6 +240,8 @@ verilate(tb_cv32e40p
         ${REPO_DIR}/cores/ringbuffer/ringbuffer_addrmap_pkg.vlt
         ${REPO_DIR}/cores/ringbuffer/ringbuffer_axil.sv
         ${REPO_DIR}/cores/ringbuffer/ringbuffer_axil.vlt
+        #
+        ${BIRISCV}/src/core/biriscv_trace_sim.v
         #
         tb_cv32e40p.sv
         tb_cv32e40p.vlt

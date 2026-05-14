@@ -332,10 +332,5 @@ int s2mm_ringbuffer_get(struct s2mm_ringbuffer *dev, void *buffer, size_t buffer
     memcpy(buffer+c, dev->buffer + dev->tailptr, count - c);
     dev->tailptr += count - c - 1;
 
-    //int i;
-    //for (i = 0; i < count; i++) {
-    //    ((uint8_t *)buffer)[i] = dev->buffer[dev->tailptr];
-    //}
-
     return count;
 }

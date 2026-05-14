@@ -13,3 +13,6 @@
 [submodule "cores/wb2axip"]
 	path = cores/wb2axip
 	url = git@github.com:ZipCPU/wb2axip.git
+[submodule "cores/verilog-uart"]
+	path = cores/verilog-uart
+	url = git@github.com:alexforencich/verilog-uart.git

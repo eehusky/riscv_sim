@@ -112,6 +112,11 @@ module tb_cv32e40p (
         .core_sleep_o       (core_sleep_o)
     );
 
+    biriscv_trace_sim i_biriscv_trace_sim(
+        .valid_i(i_cv32e40p_top.core_i.instr_valid_id),
+        .pc_i(i_cv32e40p_top.core_i.pc_if),
+        .opcode_i(i_cv32e40p_top.core_i.instr_rdata_id)
+    );
 
 
 
@@ -373,9 +378,9 @@ module tb_cv32e40p (
     localparam int M_AXI_ADDR_WIDTH = 32;
     localparam int M_AXI_ID_WIDTH = 4;
     localparam int M00_AXIS_TDATA_WIDTH = 8;
-    localparam int M01_AXIS_TDATA_WIDTH = 16;
+    localparam int M01_AXIS_TDATA_WIDTH = 8;
     localparam int S00_AXIS_TDATA_WIDTH = 8;
-    localparam int S01_AXIS_TDATA_WIDTH = 16;
+    localparam int S01_AXIS_TDATA_WIDTH = 8;
     localparam int S_AXIL_DATA_WIDTH    = ringbuffer_addrmap_pkg::RINGBUFFER_ADDRMAP_MIN_ADDR_WIDTH;
 
     ringbuffer_axis_if #(.TDATA_WIDTH(M00_AXIS_TDATA_WIDTH)) m00_axis ();
@@ -485,8 +490,6 @@ module tb_cv32e40p (
         .m_axi_bid     (s_axi_dtcm.bid),
         .m_axi_bresp   (s_axi_dtcm.bresp)
     );
-
-
 
 
     // ------------------------------------------------------------------------

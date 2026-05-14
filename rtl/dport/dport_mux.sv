@@ -90,7 +90,7 @@ module dport_mux #(
     assign req_data[NS].gnt   = dummy.gnt;
 
     always_comb begin
-        decode_stall = 0;
+        decode_stall = 1;
         for (int i = 0; i < NS + 1; i++) begin
             req_data[i].req   = 0;
             req_data[i].addr  = 0;

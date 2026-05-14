@@ -102,26 +102,44 @@ void vAssertCalled(void)
 
 /*-----------------------------------------------------------*/
 
-SemaphoreHandle_t sem_mm2s = NULL;
-SemaphoreHandle_t sem_s2mm = NULL;
-SemaphoreHandle_t sem_isr = NULL;
-struct mm2s_ringbuffer *mm2s_0 = NULL;
-struct s2mm_ringbuffer *s2mm_0 = NULL;
-uint32_t n_s2mm_bytes = 0;
-uint32_t n_mm2s_bytes = 0;
-uint8_t s2mm_pat = 0;
-uint8_t mm2s_pat = 0;
+// SemaphoreHandle_t sem_mm2s = NULL;
+// SemaphoreHandle_t sem_s2mm = NULL;
+// struct mm2s_ringbuffer *mm2s_0;//devs[2] = {NULL, NULL};
+// struct s2mm_ringbuffer *s2mm_0;//devs[2] = {NULL, NULL};
+
+struct mm2s_channel {
+    struct mm2s_ringbuffer *dev;
+    uint32_t n_bytes;
+    uint32_t dma_buffer_size;
+    uint32_t buffer_size;
+    uint8_t pattern;
+    uint8_t *dma_buffer;
+    uint8_t *buffer;
+    SemaphoreHandle_t isr_sem;
+};
+struct s2mm_channel {
+    struct s2mm_ringbuffer *dev;
+    uint32_t n_bytes;
+    uint32_t dma_buffer_size;
+    uint32_t buffer_size;
+    uint8_t pattern;
+    uint8_t *dma_buffer;
+    uint8_t *buffer;
+    SemaphoreHandle_t isr_sem;
+};
+static struct mm2s_channel _mm2s_channels[2];
+static struct s2mm_channel _s2mm_channels[2];
 
 #define RINGBUFFER_BASE 0xB0000000
 #define RINGBUFFER_INT_ENABLE RINGBUFFER_BASE + 0
 #define RINGBUFFER_INT_ACTIVE RINGBUFFER_BASE + 4
 
-#define DMA_BUFFER_SIZE 1024
-unsigned char buffers[4][DMA_BUFFER_SIZE] __attribute__((aligned(4096)));
-#define PUT_BUFFER_SIZE 256
-char putbuffer[PUT_BUFFER_SIZE];
-#define GET_BUFFER_SIZE 256
-char getbuffer[GET_BUFFER_SIZE];
+#define DMA_BUFFER_SIZE 2048
+static unsigned char buffers[4][DMA_BUFFER_SIZE] __attribute__((aligned(4096)));
+#define PUT_BUFFER_SIZE 512
+#define GET_BUFFER_SIZE 512
+static unsigned char channel_buffers[4][PUT_BUFFER_SIZE];
+static SemaphoreHandle_t sem_isr = NULL;
 
 void freertos_risc_v_application_interrupt_handler(void)
 {
@@ -136,26 +154,36 @@ void freertos_risc_v_application_interrupt_handler(void)
     enabled = read32(RINGBUFFER_INT_ENABLE);
     active = read32(RINGBUFFER_INT_ACTIVE);
     pending = active & enabled;
+    write32(RINGBUFFER_INT_ACTIVE, pending);
 
     while (pending) {
         if (pending & RINGBUFFER__INTR_ACTIVE__S2MM_0_bm) {
-            xSemaphoreGiveFromISR(sem_s2mm, &xHigherPriorityTaskWoken);
+            xSemaphoreGiveFromISR(_s2mm_channels[0].isr_sem, &xHigherPriorityTaskWoken);
             xHigherPriorityTaskWoken2 |= xHigherPriorityTaskWoken;
         }
         if (pending & RINGBUFFER__INTR_ACTIVE__MM2S_0_bm) {
-            xSemaphoreGiveFromISR(sem_mm2s, &xHigherPriorityTaskWoken);
+            xSemaphoreGiveFromISR(_mm2s_channels[0].isr_sem, &xHigherPriorityTaskWoken);
             xHigherPriorityTaskWoken2 |= xHigherPriorityTaskWoken;
         }
-        write32(RINGBUFFER_INT_ACTIVE, pending);
+        if (pending & RINGBUFFER__INTR_ACTIVE__S2MM_1_bm) {
+            xSemaphoreGiveFromISR(_s2mm_channels[1].isr_sem, &xHigherPriorityTaskWoken);
+            xHigherPriorityTaskWoken2 |= xHigherPriorityTaskWoken;
+        }
+        if (pending & RINGBUFFER__INTR_ACTIVE__MM2S_1_bm) {
+            xSemaphoreGiveFromISR(_mm2s_channels[1].isr_sem, &xHigherPriorityTaskWoken);
+            xHigherPriorityTaskWoken2 |= xHigherPriorityTaskWoken;
+        }
+
         enabled = read32(RINGBUFFER_INT_ENABLE);
         active = read32(RINGBUFFER_INT_ACTIVE);
         pending = active & enabled;
+        write32(RINGBUFFER_INT_ACTIVE, pending);
     }
     csr_clr_bits_mip(0x800);
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken2);
 }
 
-struct mm2s_ringbuffer *configure_mm2s(void *dev_address, void *buffer, size_t buffer_size, int32_t instance)
+struct mm2s_ringbuffer *configure_mm2s(void *dev_address, void *buffer, size_t buffer_size)
 {
     int rc;
     struct mm2s_ringbuffer *dev;
@@ -183,7 +211,7 @@ struct mm2s_ringbuffer *configure_mm2s(void *dev_address, void *buffer, size_t b
     return dev;
 }
 
-struct s2mm_ringbuffer *configure_s2mm(void *dev_address, void *buffer, size_t buffer_size, int32_t instance)
+struct s2mm_ringbuffer *configure_s2mm(void *dev_address, void *buffer, size_t buffer_size)
 {
     int rc;
     struct s2mm_ringbuffer *dev;
@@ -208,7 +236,7 @@ struct s2mm_ringbuffer *configure_s2mm(void *dev_address, void *buffer, size_t b
         return NULL;
     }
 
-    s2mm_ringbuffer_set_threshold(dev, 99);
+    s2mm_ringbuffer_set_threshold(dev, 500);
     s2mm_ringbuffer_write_intr_enable(dev, RINGBUFFER_S2MMX__INTR_ENABLE__LEVEL_bm);
 
     return dev;
@@ -216,51 +244,38 @@ struct s2mm_ringbuffer *configure_s2mm(void *dev_address, void *buffer, size_t b
 
 static void mm2s_ringbuffer_task(void *pvParameters)
 {
+    struct mm2s_channel *channel = (struct mm2s_channel *)pvParameters;
     uint32_t enabled;
     uint32_t active;
     uint32_t pending;
 
     DEBUG("mm2s_ringbuffer_task started\n");
 
-    ringbuffer_t *inst = ((ringbuffer_t *)RINGBUFFER_BASE);
-    mm2s_0 = configure_mm2s((void *)&(inst->ringbuffer_mm2s[0]), buffers[0], DMA_BUFFER_SIZE, 0);
+    // ringbuffer_t *inst = ((ringbuffer_t *)RINGBUFFER_BASE);
+    // mm2s_0 = configure_mm2s((void *)&(inst->ringbuffer_mm2s[0]), buffers[0], DMA_BUFFER_SIZE);
 
-    mm2s_ringbuffer_set_threshold(mm2s_0, 1);
-    mm2s_ringbuffer_write_intr_enable(mm2s_0, RINGBUFFER_MM2SX__INTR_ENABLE__LEVEL_bm);
+    mm2s_ringbuffer_set_threshold(channel->dev, 1);
+    mm2s_ringbuffer_write_intr_enable(channel->dev, RINGBUFFER_MM2SX__INTR_ENABLE__LEVEL_bm);
 
     for (;;) {
-        xSemaphoreTake(sem_mm2s, -1);
+        xSemaphoreTake(channel->isr_sem, -1);
 
         DEBUG("  mm2s_ringbuffer_isr\n");
 
-        enabled = mm2s_ringbuffer_read_intr_enable(mm2s_0);
-        active = mm2s_ringbuffer_read_intr_active(mm2s_0);
+        enabled = mm2s_ringbuffer_read_intr_enable(channel->dev);
+        active = mm2s_ringbuffer_read_intr_active(channel->dev);
         pending = active & enabled;
         while (pending) {
-
             if (pending & RINGBUFFER_MM2SX__INTR_ACTIVE__ERROR_bm) {
                 DEBUG("    mm2s_ringbuffer_isr_error\n");
-                mm2s_ringbuffer_clear_intr(mm2s_0, RINGBUFFER_MM2SX__INTR_ACTIVE__ERROR_bm);
+                mm2s_ringbuffer_clear_intr(channel->dev, RINGBUFFER_MM2SX__INTR_ACTIVE__ERROR_bm);
             }
             if (pending & RINGBUFFER_MM2SX__INTR_ACTIVE__LEVEL_bm) {
                 DEBUG("    mm2s_ringbuffer_isr_level\n");
-
-                int rv;
-                rv = mm2s_ringbuffer_put(mm2s_0, putbuffer, PUT_BUFFER_SIZE);
-                if (rv > 0) {
-                    n_mm2s_bytes += rv;
-                }
-                //  biriscv_dcache_flush();
-                mm2s_ringbuffer_commit(mm2s_0);
-
-                // if (mm2s_n_bytes > 4096) {
-                //     mm2s_ringbuffer_write_intr_enable(dev, 0);
-                // }
-
-                mm2s_ringbuffer_clear_intr(mm2s_0, RINGBUFFER_MM2SX__INTR_ACTIVE__LEVEL_bm);
+                mm2s_ringbuffer_clear_intr(channel->dev, RINGBUFFER_MM2SX__INTR_ACTIVE__LEVEL_bm);
             }
-            enabled = mm2s_ringbuffer_read_intr_enable(mm2s_0);
-            active = mm2s_ringbuffer_read_intr_active(mm2s_0);
+            enabled = mm2s_ringbuffer_read_intr_enable(channel->dev);
+            active = mm2s_ringbuffer_read_intr_active(channel->dev);
             pending = active & enabled;
         }
     }
@@ -268,6 +283,7 @@ static void mm2s_ringbuffer_task(void *pvParameters)
 
 static void s2mm_ringbuffer_task(void *pvParameters)
 {
+    struct s2mm_channel *channel = (struct s2mm_channel *)pvParameters;
     uint32_t enabled;
     uint32_t active;
     uint32_t pending;
@@ -275,54 +291,89 @@ static void s2mm_ringbuffer_task(void *pvParameters)
     int i;
     DEBUG("s2mm_ringbuffer_task started\n");
 
-    ringbuffer_t *inst = ((ringbuffer_t *)RINGBUFFER_BASE);
-    s2mm_0 = configure_s2mm((void *)&(inst->ringbuffer_s2mm[0]), buffers[1], DMA_BUFFER_SIZE, 0);
+    // ringbuffer_t *inst = ((ringbuffer_t *)RINGBUFFER_BASE);
+    // s2mm_0 = configure_s2mm((void *)&(inst->ringbuffer_s2mm[0]), buffers[1], DMA_BUFFER_SIZE);
 
     for (;;) {
-        xSemaphoreTake(sem_s2mm, -1);
+        // printf("s2mm_n_bytes: %d\n", channel->n_bytes);
+        xSemaphoreTake(channel->isr_sem, -1);
 
         DEBUG("  s2mm_ringbuffer_isr\n");
 
-        enabled = s2mm_ringbuffer_read_intr_enable(s2mm_0);
-        active = s2mm_ringbuffer_read_intr_active(s2mm_0);
+        enabled = s2mm_ringbuffer_read_intr_enable(channel->dev);
+        active = s2mm_ringbuffer_read_intr_active(channel->dev);
         pending = active & enabled;
 
         while (pending) {
             if (pending & RINGBUFFER_S2MMX__INTR_ACTIVE__OVERRUN_bm) {
                 DEBUG("    s2mm_ringbuffer_isr_overrun\n");
-                s2mm_ringbuffer_clear_intr(s2mm_0, RINGBUFFER_S2MMX__INTR_ACTIVE__OVERRUN_bm);
+                s2mm_ringbuffer_clear_intr(channel->dev, RINGBUFFER_S2MMX__INTR_ACTIVE__OVERRUN_bm);
             }
             if (pending & RINGBUFFER_S2MMX__INTR_ACTIVE__ERROR_bm) {
                 DEBUG("    s2mm_ringbuffer_isr_error\n");
-                s2mm_ringbuffer_clear_intr(s2mm_0, RINGBUFFER_S2MMX__INTR_ACTIVE__ERROR_bm);
+                s2mm_ringbuffer_clear_intr(channel->dev, RINGBUFFER_S2MMX__INTR_ACTIVE__ERROR_bm);
             }
             if (pending & RINGBUFFER_S2MMX__INTR_ACTIVE__LEVEL_bm) {
                 DEBUG("    s2mm_ringbuffer_isr_level\n");
-                n_s2mm_bytes += s2mm_ringbuffer_level(s2mm_0);
+                channel->n_bytes += s2mm_ringbuffer_level(channel->dev);
                 // s2mm_ringbuffer_flush(s2mm_0);
                 int rv;
                 do {
-                    rv = s2mm_ringbuffer_get(s2mm_0, getbuffer, GET_BUFFER_SIZE);
-                    s2mm_ringbuffer_commit(s2mm_0);
+                    rv = s2mm_ringbuffer_get(channel->dev, channel->buffer, GET_BUFFER_SIZE);
+                    s2mm_ringbuffer_commit(channel->dev);
                     for (i = 0; i < rv; i += 4) {
-                        matchword = ((((s2mm_pat + 0))) << 0) | ((((s2mm_pat + 1))) << 8) | ((((s2mm_pat + 2))) << 16) |
-                                    ((((s2mm_pat + 3))) << 24);
-                        if (*((uint32_t *)(getbuffer + i)) != matchword) {
-                            printf("buffer mismatch %02X != %02X\n", matchword, *((uint32_t *)(getbuffer + i)));
+                        matchword = ((((channel->pattern + 0))) << 0) | ((((channel->pattern + 1))) << 8) |
+                                    ((((channel->pattern + 2))) << 16) | ((((channel->pattern + 3))) << 24);
+                        if (*((uint32_t *)(channel->buffer + i)) != matchword) {
+                            printf("buffer mismatch %02X != %02X\n", matchword, *((uint32_t *)(channel->buffer + i)));
                             sim_exit(-1);
                         }
                         // if (getbuffer[i] != (s2mm_pat & 0xFF)) {
                         //     printf("buffer mismatch %02X != %02X\n", (s2mm_pat & 0xFF), getbuffer[i]);
                         //     sim_exit(0);
                         // }
-                        s2mm_pat += 4;
+                        channel->pattern += 4;
                     }
                 } while (rv > 0);
-                s2mm_ringbuffer_clear_intr(s2mm_0, RINGBUFFER_S2MMX__INTR_ACTIVE__LEVEL_bm);
+                s2mm_ringbuffer_clear_intr(channel->dev, RINGBUFFER_S2MMX__INTR_ACTIVE__LEVEL_bm);
             }
-            enabled = s2mm_ringbuffer_read_intr_enable(s2mm_0);
-            active = s2mm_ringbuffer_read_intr_active(s2mm_0);
+            enabled = s2mm_ringbuffer_read_intr_enable(channel->dev);
+            active = s2mm_ringbuffer_read_intr_active(channel->dev);
             pending = active & enabled;
+        }
+    }
+}
+
+static void send_task(void *pvParameters)
+{
+    DEBUG("send_task started\n");
+    struct mm2s_channel *channel = (struct mm2s_channel *)pvParameters;
+    int done = 0;
+    int n_bytes = 248 * 2;
+    int i = 0;
+    int rv;
+    uint32_t word;
+    while (1) {
+        vTaskDelay(1);
+
+        if (channel->n_bytes < 2048 * 4) {
+            for (i = 0; i < n_bytes; i += 4) {
+                *((uint32_t *)(channel->buffer + i)) =
+                    ((((channel->pattern + 0))) << 0) | ((((channel->pattern + 1))) << 8) |
+                    ((((channel->pattern + 2))) << 16) | ((((channel->pattern + 3))) << 24);
+                channel->pattern += 4;
+            }
+
+            rv = mm2s_ringbuffer_put(channel->dev, channel->buffer, n_bytes);
+            if (rv > 0) {
+                channel->n_bytes += rv;
+            }
+            mm2s_ringbuffer_commit(channel->dev);
+        } else {
+            done = 1;
+        }
+        if (done) {
+            sim_exit(0);
         }
     }
 }
@@ -330,35 +381,15 @@ static void s2mm_ringbuffer_task(void *pvParameters)
 static void stats_task(void *pvParameters)
 {
     DEBUG("stats_task started\n");
-    int done = 0;
-    int n_bytes = 248;
-    int i = 0;
-    int rv;
-    uint32_t word;
+    struct mm2s_channel *channel0 = *(((struct mm2s_channel **)pvParameters) + 0);
+    struct mm2s_channel *channel1 = *(((struct mm2s_channel **)pvParameters) + 1);
+    struct s2mm_channel *channel2 = *(struct s2mm_channel **)(((struct mm2s_channel **)(pvParameters)) + 2);
+    struct s2mm_channel *channel3 = *(struct s2mm_channel **)(((struct mm2s_channel **)(pvParameters)) + 3);
+
     while (1) {
         vTaskDelay(1);
-        printf("n_s2mm_bytes=%d, n_mm2s_bytes=%d\n", n_s2mm_bytes, n_mm2s_bytes);
-
-        if (n_mm2s_bytes < 2048) {
-            for (i = 0; i < n_bytes; i += 4) {
-                *((uint32_t *)(putbuffer + i)) = ((((mm2s_pat + 0))) << 0) | ((((mm2s_pat + 1))) << 8) |
-                                                 ((((mm2s_pat + 2))) << 16) | ((((mm2s_pat + 3))) << 24);
-                mm2s_pat += 4;
-            }
-
-            rv = mm2s_ringbuffer_put(mm2s_0, putbuffer, n_bytes);
-            if (rv > 0) {
-                n_mm2s_bytes += rv;
-            }
-
-            mm2s_ringbuffer_commit(mm2s_0);
-        } else {
-            done = 1;
-        }
-
-        if (done) {
-            sim_exit(0);
-        }
+        printf("mm2s_0_bytes=%d, mm2s_1_bytes=%d, s2mm_0_bytes=%d, s2mm_1_bytes=%d\n", channel0->n_bytes,
+               channel1->n_bytes, channel2->n_bytes, channel3->n_bytes);
     }
 }
 
@@ -366,22 +397,62 @@ int main(void)
 {
     printf("%d: %s\n", mtime_get(), "Hello FreeRTOS!");
 
-    sem_mm2s = xSemaphoreCreateBinary();
-    sem_s2mm = xSemaphoreCreateBinary();
+    ringbuffer_t *inst = ((ringbuffer_t *)RINGBUFFER_BASE);
+
+    _mm2s_channels[0].dev = configure_mm2s((void *)&(inst->ringbuffer_mm2s[0]), buffers[0], DMA_BUFFER_SIZE);
+    _mm2s_channels[0].isr_sem = xSemaphoreCreateBinary();
+    _mm2s_channels[0].n_bytes = 0;
+    _mm2s_channels[0].dma_buffer_size = DMA_BUFFER_SIZE;
+    _mm2s_channels[0].buffer_size = PUT_BUFFER_SIZE;
+    _mm2s_channels[0].pattern = 0;
+    _mm2s_channels[0].dma_buffer = buffers[0];
+    _mm2s_channels[0].buffer = channel_buffers[0];
+    _mm2s_channels[1].dev = configure_mm2s((void *)&(inst->ringbuffer_mm2s[1]), buffers[1], DMA_BUFFER_SIZE);
+    _mm2s_channels[1].isr_sem = xSemaphoreCreateBinary();
+    _mm2s_channels[1].n_bytes = 0;
+    _mm2s_channels[1].dma_buffer_size = DMA_BUFFER_SIZE;
+    _mm2s_channels[1].buffer_size = PUT_BUFFER_SIZE;
+    _mm2s_channels[1].pattern = 0;
+    _mm2s_channels[1].dma_buffer = buffers[1];
+    _mm2s_channels[1].buffer = channel_buffers[1];
+
+    _s2mm_channels[0].dev = configure_s2mm((void *)&(inst->ringbuffer_s2mm[0]), buffers[2], DMA_BUFFER_SIZE);
+    _s2mm_channels[0].isr_sem = xSemaphoreCreateBinary();
+    _s2mm_channels[0].n_bytes = 0;
+    _s2mm_channels[0].dma_buffer_size = DMA_BUFFER_SIZE;
+    _s2mm_channels[0].buffer_size = PUT_BUFFER_SIZE;
+    _s2mm_channels[0].pattern = 0;
+    _s2mm_channels[0].dma_buffer = buffers[2];
+    _s2mm_channels[0].buffer = channel_buffers[2];
+    _s2mm_channels[1].dev = configure_s2mm((void *)&(inst->ringbuffer_s2mm[1]), buffers[3], DMA_BUFFER_SIZE);
+    _s2mm_channels[1].isr_sem = xSemaphoreCreateBinary();
+    _s2mm_channels[1].n_bytes = 0;
+    _s2mm_channels[1].dma_buffer_size = DMA_BUFFER_SIZE;
+    _s2mm_channels[1].buffer_size = PUT_BUFFER_SIZE;
+    _s2mm_channels[1].pattern = 0;
+    _s2mm_channels[1].dma_buffer = buffers[3];
+    _s2mm_channels[1].buffer = channel_buffers[3];
+
     sem_isr = xSemaphoreCreateBinary();
 
-    // xTaskCreate(isr_task, "tisr", configMINIMAL_STACK_SIZE*2, NULL, tskIDLE_PRIORITY + 3, NULL);
-    xTaskCreate(s2mm_ringbuffer_task, "s2mm", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 3, NULL);
-    xTaskCreate(mm2s_ringbuffer_task, "mm2s", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, NULL);
-    xTaskCreate(stats_task, "stats", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 4, NULL);
+    void *args[4] = {
+        &_mm2s_channels[0],
+        &_mm2s_channels[1],
+        &_s2mm_channels[0],
+        &_s2mm_channels[1],
+    };
 
-    int i;
-    for (i = 0; i < PUT_BUFFER_SIZE; i++) {
-        putbuffer[i] = i;
-    }
+    xTaskCreate(s2mm_ringbuffer_task, "s2mm_0", configMINIMAL_STACK_SIZE, &_s2mm_channels[0], tskIDLE_PRIORITY + 3,
+                NULL);
+    xTaskCreate(s2mm_ringbuffer_task, "s2mm_1", configMINIMAL_STACK_SIZE, &_s2mm_channels[1], tskIDLE_PRIORITY + 3,
+                NULL);
+    xTaskCreate(send_task, "mm2s_0", configMINIMAL_STACK_SIZE, &_mm2s_channels[0], tskIDLE_PRIORITY + 2, NULL);
+    xTaskCreate(send_task, "mm2s_1", configMINIMAL_STACK_SIZE, &_mm2s_channels[1], tskIDLE_PRIORITY + 2, NULL);
+    // xTaskCreate(stats_task,           "stats",  configMINIMAL_STACK_SIZE, args,               tskIDLE_PRIORITY + 1,
+    // NULL);
+    //  xTaskCreate(mm2s_ringbuffer_task, "mm2s", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, NULL);
 
-    // write32(RINGBUFFER_INT_ENABLE, RINGBUFFER__INTR_ENABLE__S2MM_0_bm | RINGBUFFER__INTR_ENABLE__MM2S_0_bm);
-    write32(RINGBUFFER_INT_ENABLE, RINGBUFFER__INTR_ENABLE__S2MM_0_bm);
+    write32(RINGBUFFER_INT_ENABLE, RINGBUFFER__INTR_ENABLE__S2MM_0_bm | RINGBUFFER__INTR_ENABLE__S2MM_1_bm);
 
     sim_putstring("vTaskStartScheduler\n");
     vTaskStartScheduler();
