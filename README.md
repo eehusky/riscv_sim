@@ -23,7 +23,7 @@ Notes and observations made in the pursuit of finding the perfect RISCV core
     * the dcache line invalidate extension doesnt seem to work correctly
         * ```asm volatile("csrw pmpcfg2, %0" : : "r"(addr));```
         * this means when something is DMA'd into a cacheable region of ram you need to do a full dcache flush inorder to retrieve the contents instead of just invalidating the region of interest.
-* openhwgroup/cva6 (todo)
+* openhwgroup/cva5 (todo)
     * Havent tried this one yet but i think this one will be pretty good.
     * RVFI is probably going to be a pain
 * lowRISC/ibex (todo)
