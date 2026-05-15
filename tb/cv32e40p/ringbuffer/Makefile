@@ -11,6 +11,7 @@ build/risvc_top: build/Makefile FORCE
 clean:
 	rm -rf ./.generated/
 	rm -rf ./build/
+	rm -rf ./.cache/
 	rm -rf ./.pytest_cache
 	rm -rf ./__pycache__
 	rm -f ./results.xml
