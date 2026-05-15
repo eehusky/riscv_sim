@@ -241,11 +241,9 @@ module tb_cv32e40p (
         end
     endfunction
 
-`ifdef VM_TRACE
     initial begin
         $dumpfile("dump.fst");
         $dumpvars(0);
         $dumpon;
     end
-`endif
 endmodule : tb_cv32e40p
