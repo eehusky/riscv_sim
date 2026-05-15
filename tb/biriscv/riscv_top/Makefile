@@ -19,7 +19,7 @@ clean:
 
 
 sim: build/risvc_top FORCE
-	#./build/risvc_top
+
 
 .PHONY: sim clean bclean
 FORCE:

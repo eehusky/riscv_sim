@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
-project(tb_biriscv_idcache_top)
+project(tb_biriscv_ringbuffer)
 
 set(REPO_DIR                  ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
 set(BIRISCV                   ${REPO_DIR}/cores/biriscv)
-set(VERILOG_AXI $ENV{HOME}/github/alexforencich/verilog-axi/)
+set(VERILOG_AXI                $ENV{HOME}/github/alexforencich/verilog-axi/)
 
 find_package(verilator
     NO_DEFAULT_PATH
@@ -25,18 +25,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS   "ON")
 set(CXX_WARNING                     "-Wall -Wno-sign-compare -Wno-unused-variable -Wno-bool-operation")
 set(CMAKE_CXX_FLAGS                 "-Og -fstrict-aliasing -march=native ${CXX_WARNING}")
 set(CMAKE_C_FLAGS                   "-Og -fstrict-aliasing -march=native ${CXX_WARNING}")
-#set(LD_FLAGS                        "")
-#-O3 -flto
-#-O3 -flto
-#set(LD_FLAGS                        "-fwhole-program")
 
 string(STRIP ${CMAKE_CXX_FLAGS} CMAKE_CXX_FLAGS)
 string(STRIP ${CMAKE_C_FLAGS}   CMAKE_C_FLAGS)
-#string(STRIP ${LD_FLAGS}        LD_FLAGS)
-#set(CMAKE_MODULE_LINKER_FLAGS   ${LD_FLAGS})
-#set(CMAKE_SHARED_LINKER_FLAGS   ${LD_FLAGS})
-#set(CMAKE_STATIC_LINKER_FLAGS   ${LD_FLAGS})
-#set(CMAKE_EXE_LINKER_FLAGS      ${LD_FLAGS})
+
 
 set(MY_VERILATOR_ARGS
     -O3
@@ -45,6 +37,7 @@ set(MY_VERILATOR_ARGS
     --x-initial fast
     #--noassert
     #--decorations none
+    -Wno-NORETURN
     -Wno-context
     #--Wall
     --report-unoptflat
@@ -63,14 +56,14 @@ set(MY_VERILATOR_ARGS
 )
 
 
-add_executable(tb_biriscv_idcache_top
-    ../common/elf_load.cpp
+add_executable(tb_biriscv
+    ../../common/elf_load.cpp
     sim_main.cpp
 )
 
-verilate(tb_biriscv_idcache_top
+verilate(tb_biriscv
     PREFIX
-        Vtb_biriscv_idcache_top
+        Vtb_biriscv
     OPT_GLOBAL
         ${CMAKE_CXX_FLAGS}
     OPT_SLOW
@@ -143,37 +136,37 @@ verilate(tb_biriscv_idcache_top
         ${REPO_DIR}/rtl/soc_mem.sv
         ##
         ## Ringbuffer
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_mm2s_fetch_if.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_mm2s_arbiter.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_mm2s_addr_pipelined.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_mm2s_addr_stage.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_mm2s_channel.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_mm2s_beatbox.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_mm2s_handshake.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_mm2s_gearbox.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_mm2s.vlt
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_mm2s.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_s2mm_req_if.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_s2mm_arbiter.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_s2mm_channel.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_s2mm_collapse.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_s2mm_addr.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_s2mm_handshake.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_s2mm.vlt
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_s2mm.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_csr_if.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_axis_if.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_level.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_fsm.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_arbiter.v
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_priority_encoder.v
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_sfifo.v
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_addrmap.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_addrmap.vlt
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_addrmap_pkg.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_addrmap_pkg.vlt
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_axil.sv
-        ${REPO_DIR}/rtl/ringbuffer/ringbuffer_axil.vlt
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_mm2s_fetch_if.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_mm2s_arbiter.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_mm2s_addr_pipelined.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_mm2s_addr_stage.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_mm2s_channel.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_mm2s_beatbox.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_mm2s_handshake.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_mm2s_gearbox.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_mm2s.vlt
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_mm2s.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_s2mm_req_if.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_s2mm_arbiter.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_s2mm_channel.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_s2mm_collapse.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_s2mm_addr.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_s2mm_handshake.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_s2mm.vlt
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_s2mm.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_csr_if.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_axis_if.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_level.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_fsm.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_arbiter.v
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_priority_encoder.v
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_sfifo.v
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_addrmap.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_addrmap.vlt
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_addrmap_pkg.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_addrmap_pkg.vlt
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_axil.sv
+        ${REPO_DIR}/cores/ringbuffer/ringbuffer_axil.vlt
         ##
         tb_biriscv_idcache_top.sv
         tb_biriscv_idcache_top.vlt
@@ -183,9 +176,9 @@ verilate(tb_biriscv_idcache_top
 )
 
 
-target_include_directories(tb_biriscv_idcache_top
+target_include_directories(tb_biriscv
     PUBLIC
         SystemC::systemc
         ${.}
-        ../common/
+        ../../common/
 )

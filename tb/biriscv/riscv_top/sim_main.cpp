@@ -6,8 +6,8 @@
 #include "elf_load.h"
 #include "mem_api.h"
 
-#include "Vtb_biriscv_idcache_top.h"
-#include "Vtb_biriscv_idcache_top__Syms.h"
+#include "Vtb_biriscv.h"
+#include "Vtb_biriscv__Syms.h"
 
 #define CLK_PERIOD 10
 #define MEM_BASE (0x80000000)
@@ -35,11 +35,11 @@ static void help_options(void)
 class bootstrap: public mem_api
 {
 public:
-    Vtb_biriscv_idcache_top           *m_dut;
+    Vtb_biriscv           *m_dut;
     uint32_t           lo_addr;
     uint32_t           hi_addr;
 
-    bootstrap(Vtb_biriscv_idcache_top *dut)
+    bootstrap(Vtb_biriscv *dut)
     {
         m_dut = dut;
         lo_addr = 0xFFFFFFFF;
@@ -129,7 +129,7 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    const std::unique_ptr<Vtb_biriscv_idcache_top> top{new Vtb_biriscv_idcache_top{contextp.get(), "TOP"}};
+    const std::unique_ptr<Vtb_biriscv> top{new Vtb_biriscv{contextp.get(), "TOP"}};
     bootstrap *boot = new bootstrap(top.get());
 
 
