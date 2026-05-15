@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(risvc_tcm)
+project(tb_biriscv_benchmark)
 
 set(REPO_DIR                  ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
 set(BIRISCV                   ${REPO_DIR}/cores/biriscv)
@@ -36,6 +36,7 @@ set(MY_VERILATOR_ARGS
     #--x-initial fast
     #--noassert
     #--decorations none
+    -Wno-NORETURN
     -Wno-context
     #--Wall
     --report-unoptflat
@@ -47,14 +48,14 @@ set(MY_VERILATOR_ARGS
 )
 
 
-add_executable(risvc_tcm
-    ../common/elf_load.cpp
+add_executable(tb_biriscv
+    ../../common/elf_load.cpp
     sim_main.cpp
 )
 
-verilate(risvc_tcm
+verilate(tb_biriscv
     PREFIX
-        Vtb_riscv_tcm_top
+        Vtb_biriscv
     OPT_GLOBAL
         ${CMAKE_CXX_FLAGS}
     OPT_SLOW
@@ -118,9 +119,9 @@ verilate(risvc_tcm
 )
 
 
-target_include_directories(risvc_tcm
+target_include_directories(tb_biriscv
     PUBLIC
         SystemC::systemc
         ${.}
-        ../common/
+        ../../common/
 )

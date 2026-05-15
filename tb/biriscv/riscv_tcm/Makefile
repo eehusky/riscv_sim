@@ -10,6 +10,7 @@ build/risvc_tcm: build/Makefile FORCE
 
 clean:
 	rm -rf ./.generated/
+	rm -rf ./.cache
 	rm -rf ./build/
 	rm -rf ./.pytest_cache
 	rm -rf ./__pycache__
@@ -18,7 +19,6 @@ clean:
 
 
 sim: build/risvc_tcm FORCE
-	#./build/risvc_top
 
 .PHONY: sim clean bclean
 FORCE:

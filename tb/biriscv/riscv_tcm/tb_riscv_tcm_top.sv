@@ -1,5 +1,27 @@
 module tb_riscv_tcm_top #(
-    parameter int CLK_PERIOD = 10
+    parameter BOOT_VECTOR               = 32'h80000000,
+    parameter CORE_ID                   = 0,
+    parameter TCM_MEM_BASE              = 32'h80000000,
+    parameter SUPPORT_BRANCH_PREDICTION = 1,
+    parameter SUPPORT_MULDIV            = 1,
+    parameter SUPPORT_SUPER             = 0,
+    parameter SUPPORT_MMU               = 0,
+    parameter SUPPORT_DUAL_ISSUE        = 1,
+    parameter SUPPORT_LOAD_BYPASS       = 1,
+    parameter SUPPORT_MUL_BYPASS        = 1,
+    parameter SUPPORT_REGFILE_XILINX    = 0,
+    parameter EXTRA_DECODE_STAGE        = 0,
+    parameter MEM_CACHE_ADDR_MIN        = 32'h80000000,
+    parameter MEM_CACHE_ADDR_MAX        = 32'h8fffffff,
+    parameter NUM_BTB_ENTRIES           = 32,
+    parameter NUM_BTB_ENTRIES_W         = 5,
+    parameter NUM_BHT_ENTRIES           = 512,
+    parameter NUM_BHT_ENTRIES_W         = 9,
+    parameter RAS_ENABLE                = 1,
+    parameter GSHARE_ENABLE             = 0,
+    parameter BHT_ENABLE                = 1,
+    parameter NUM_RAS_ENTRIES           = 8,
+    parameter NUM_RAS_ENTRIES_W         = 3
 ) (
     input logic i_clk,
     input logic i_rst,
@@ -52,11 +74,13 @@ module tb_riscv_tcm_top #(
     logic [ 1:0] m_axil_rresp;
     logic        m_axil_rready;
 
+`ifdef VM_TRACE
     initial begin
         $dumpfile("dump.fst");
         $dumpvars(0);
         $dumpon;
     end
+`endif
 
     initial begin
         i_intr         = 0;
@@ -98,29 +122,29 @@ module tb_riscv_tcm_top #(
     end
 
     riscv_tcm_top_wrapper #(
-    //.BOOT_VECTOR              (BOOT_VECTOR),
-    //.CORE_ID                  (CORE_ID),
-    //.TCM_MEM_BASE             (TCM_MEM_BASE),
-    //.SUPPORT_BRANCH_PREDICTION(SUPPORT_BRANCH_PREDICTION),
-    //.SUPPORT_MULDIV           (SUPPORT_MULDIV),
-    //.SUPPORT_SUPER            (SUPPORT_SUPER),
-    //.SUPPORT_MMU              (SUPPORT_MMU),
-    //.SUPPORT_DUAL_ISSUE       (SUPPORT_DUAL_ISSUE),
-    //.SUPPORT_LOAD_BYPASS      (SUPPORT_LOAD_BYPASS),
-    //.SUPPORT_MUL_BYPASS       (SUPPORT_MUL_BYPASS),
-    //.SUPPORT_REGFILE_XILINX   (SUPPORT_REGFILE_XILINX),
-    //.EXTRA_DECODE_STAGE       (EXTRA_DECODE_STAGE),
-    //.MEM_CACHE_ADDR_MIN       (MEM_CACHE_ADDR_MIN),
-    //.MEM_CACHE_ADDR_MAX       (MEM_CACHE_ADDR_MAX),
-    //.NUM_BTB_ENTRIES          (NUM_BTB_ENTRIES),
-    //.NUM_BTB_ENTRIES_W        (NUM_BTB_ENTRIES_W),
-    //.NUM_BHT_ENTRIES          (NUM_BHT_ENTRIES),
-    //.NUM_BHT_ENTRIES_W        (NUM_BHT_ENTRIES_W),
-    //.RAS_ENABLE               (RAS_ENABLE),
-    //.GSHARE_ENABLE            (GSHARE_ENABLE),
-    //.BHT_ENABLE               (BHT_ENABLE),
-    //.NUM_RAS_ENTRIES          (NUM_RAS_ENTRIES),
-    //.NUM_RAS_ENTRIES_W        (NUM_RAS_ENTRIES_W)
+        .BOOT_VECTOR              (BOOT_VECTOR),
+        .CORE_ID                  (CORE_ID),
+        .TCM_MEM_BASE             (TCM_MEM_BASE),
+        .SUPPORT_BRANCH_PREDICTION(SUPPORT_BRANCH_PREDICTION),
+        .SUPPORT_MULDIV           (SUPPORT_MULDIV),
+        .SUPPORT_SUPER            (SUPPORT_SUPER),
+        .SUPPORT_MMU              (SUPPORT_MMU),
+        .SUPPORT_DUAL_ISSUE       (SUPPORT_DUAL_ISSUE),
+        .SUPPORT_LOAD_BYPASS      (SUPPORT_LOAD_BYPASS),
+        .SUPPORT_MUL_BYPASS       (SUPPORT_MUL_BYPASS),
+        .SUPPORT_REGFILE_XILINX   (SUPPORT_REGFILE_XILINX),
+        .EXTRA_DECODE_STAGE       (EXTRA_DECODE_STAGE),
+        .MEM_CACHE_ADDR_MIN       (MEM_CACHE_ADDR_MIN),
+        .MEM_CACHE_ADDR_MAX       (MEM_CACHE_ADDR_MAX),
+        .NUM_BTB_ENTRIES          (NUM_BTB_ENTRIES),
+        .NUM_BTB_ENTRIES_W        (NUM_BTB_ENTRIES_W),
+        .NUM_BHT_ENTRIES          (NUM_BHT_ENTRIES),
+        .NUM_BHT_ENTRIES_W        (NUM_BHT_ENTRIES_W),
+        .RAS_ENABLE               (RAS_ENABLE),
+        .GSHARE_ENABLE            (GSHARE_ENABLE),
+        .BHT_ENABLE               (BHT_ENABLE),
+        .NUM_RAS_ENTRIES          (NUM_RAS_ENTRIES),
+        .NUM_RAS_ENTRIES_W        (NUM_RAS_ENTRIES_W)
     ) i_riscv_tcm_top (
         .i_clk         (i_clk),
         .i_rst         (i_rst),

@@ -6,11 +6,11 @@
 #include "elf_load.h"
 #include "mem_api.h"
 
-#include "Vtb_riscv_tcm_top.h"
-#include "Vtb_riscv_tcm_top__Syms.h"
+#include "Vtb_biriscv.h"
+#include "Vtb_biriscv__Syms.h"
 
 #define CLK_PERIOD 10
-#define MEM_BASE 0x00000000
+#define MEM_BASE 0x80000000
 #define MEM_SIZE (64 * 1024)
 #define GETOPTS_ARGS "f:c:h"
 
@@ -35,11 +35,11 @@ static void help_options(void)
 class bootstrap: public mem_api
 {
 public:
-    Vtb_riscv_tcm_top           *m_dut;
+    Vtb_biriscv           *m_dut;
     uint32_t           lo_addr;
     uint32_t           hi_addr;
 
-    bootstrap(Vtb_riscv_tcm_top *dut)
+    bootstrap(Vtb_biriscv *dut)
     {
         m_dut = dut;
         lo_addr = 0xFFFFFFFF;
@@ -97,7 +97,9 @@ int main(int argc, char** argv) {
 
     contextp->debug(0);
     contextp->randReset(0);
+    #ifdef VM_TRACE
     contextp->traceEverOn(true);
+    #endif
     contextp->commandArgs(argc, argv);
 
 
@@ -127,7 +129,7 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    const std::unique_ptr<Vtb_riscv_tcm_top> top{new Vtb_riscv_tcm_top{contextp.get(), "TOP"}};
+    const std::unique_ptr<Vtb_biriscv> top{new Vtb_biriscv{contextp.get(), "TOP"}};
     bootstrap *boot = new bootstrap(top.get());
     elf_load elf(filename, boot);
     if (!elf.load()) {
@@ -147,7 +149,7 @@ int main(int argc, char** argv) {
             break;
         }
     }
-    boot->dump();
+    //boot->dump();
     top->i_rst = 0;
     top->i_rst_cpu = 0;
 
