@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(tb_cv32e40p_demo)
+project(tb_cv32e40p_benchmark)
 
 set(REPO_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
 set(CV32E40P     ${REPO_DIR}/cores/cv32e40p)
@@ -43,10 +43,6 @@ set(LD_FLAGS                        "${PGO_FLAGS} -fwhole-program")
 string(STRIP ${CMAKE_CXX_FLAGS} CMAKE_CXX_FLAGS)
 string(STRIP ${CMAKE_C_FLAGS}   CMAKE_C_FLAGS)
 string(STRIP ${LD_FLAGS}        LD_FLAGS)
-#set(CMAKE_MODULE_LINKER_FLAGS   ${LD_FLAGS})
-#set(CMAKE_SHARED_LINKER_FLAGS   ${LD_FLAGS})
-#set(CMAKE_STATIC_LINKER_FLAGS   ${LD_FLAGS})
-#set(CMAKE_EXE_LINKER_FLAGS      ${LD_FLAGS})
 
 set(MY_VERILATOR_ARGS
     -O3
