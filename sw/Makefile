@@ -12,9 +12,9 @@ biriscv_demo:
 
 biriscv_freertos:
 	mkdir -p build
-	cmake -S biriscv/apps/freertos_demo -B build
+	cmake -S biriscv2/apps/freertos_demo -B build
 	make -C build/
-	../tb/biriscv/riscv_top/build/tb_biriscv_idcache_top -f build/freertos_demo.elf
+	../tb/biriscv/benchmark/build/tb_biriscv -f build/freertos_demo.elf
 
 biriscv_ringbuffer:
 	mkdir -p build

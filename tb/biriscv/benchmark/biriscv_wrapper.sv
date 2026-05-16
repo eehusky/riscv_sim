@@ -77,7 +77,7 @@ module biriscv_wrapper #(
     ) u_core (
         .clk_i             (i_clk),
         .rst_i             (i_rst),
-        .intr_i            (i_irq[7]),
+        .intr_i            (i_irq[11]),
         .reset_vector_i    (BOOT_ADDRESS),
         .cpu_id_i          (HART_ID),
         //
