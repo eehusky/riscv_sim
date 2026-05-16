@@ -57,12 +57,6 @@ module dport_ram #(
                     mem[addr/STRB_WIDTH][(i*8)+:8] = data;
                 end
             end
-            //case (addr[LGSTRB_WIDTH-1:0])
-            //    LGSTRB_WIDTH'('d0): mem[addr/dport.STRB_WIDTH][7:0] = data;
-            //    LGSTRB_WIDTH'('d1): mem[addr/dport.STRB_WIDTH][15:8] = data;
-            //    LGSTRB_WIDTH'('d2): mem[addr/dport.STRB_WIDTH][23:16] = data;
-            //    LGSTRB_WIDTH'('d3): mem[addr/dport.STRB_WIDTH][31:24] = data;
-            //endcase
         end
     endfunction
     function static bit [7:0] read;  /*verilator public*/
@@ -73,12 +67,6 @@ module dport_ram #(
                     read = mem[addr/STRB_WIDTH][(i*8)+:8];
                 end
             end
-            //case (addr[LGSTRB_WIDTH-1:0])
-            //    LGSTRB_WIDTH'('d0): read = mem[addr/dport.STRB_WIDTH][7:0];
-            //    LGSTRB_WIDTH'('d1): read = mem[addr/dport.STRB_WIDTH][15:8];
-            //    LGSTRB_WIDTH'('d2): read = mem[addr/dport.STRB_WIDTH][23:16];
-            //    LGSTRB_WIDTH'('d3): read = mem[addr/dport.STRB_WIDTH][31:24];
-            //endcase
         end
     endfunction
 

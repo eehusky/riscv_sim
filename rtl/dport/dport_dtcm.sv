@@ -253,6 +253,31 @@ module dport_dtcm #(
         end
     end
 
+    //localparam STRB_WIDTH = dport.STRB_WIDTH;
+    localparam LGSTRB_WIDTH = $clog2(dport.STRB_WIDTH);
+
+    function static void write;  /*verilator public*/
+        input [31:0] addr;
+        input [7:0] data;
+        begin
+            for (int i = 0; i < STRB_WIDTH; i++) begin
+                if (addr[LGSTRB_WIDTH-1:0] == i) begin
+                    mem[addr/STRB_WIDTH][(i*8)+:8] = data;
+                end
+            end
+        end
+    endfunction
+    function static bit [7:0] read;  /*verilator public*/
+        input [31:0] addr;
+        begin
+            for (int i = 0; i < STRB_WIDTH; i++) begin
+                if (addr[LGSTRB_WIDTH-1:0] == i) begin
+                    read = mem[addr/STRB_WIDTH][(i*8)+:8];
+                end
+            end
+        end
+    endfunction
+
 endmodule : dport_dtcm
 
 

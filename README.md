@@ -18,16 +18,15 @@ Notes and observations made in the pursuit of finding the perfect RISCV core.  T
     * this is pretty close
     * I wish it had the bit manipulation extension
     * The RVFI interface is kind of finicky and not easy to setup since its using some goofy timing features that verilator doesnt play well with.  Not a deal breaker but a bummer none the less.
-* ultraembedded/biriscv (retired)
+* ultraembedded/biriscv
     * Vector Interrupts dont work
     * wfi doesnt wait for anything
     * mtime is csr based instead of mm and isnt 64 bits
     * the dcache line invalidate extension doesnt seem to work correctly
         * ```asm volatile("csrw pmpcfg2, %0" : : "r"(addr));```
         * this means when something is DMA'd into a cacheable region of ram you need to do a full dcache flush inorder to retrieve the contents instead of just invalidating the region of interest.
-* lowRISC/ibex (todo)
-    * Havent tried this one yet but i think this one will be pretty good.
-    * If it had a FPU i suspect this would be my winner
+* lowRISC/ibex
+    * If it had a FPU i this would be my winner
     * has ready to go RVFI
 * ARM/DesignStart M0/M3 (todo)
     * why should the riscv cores get to have all the fun?
@@ -35,7 +34,7 @@ Notes and observations made in the pursuit of finding the perfect RISCV core.  T
     * Another disappointment
     * the I/D memory interfaces require comb logic, these are what i want to use but the lack of being able to apply backpressure is a deal breaker.
     * the other interfaces (excluding the I/D caches, havent tried those) are all mutlicycle/poorly pipelined
-    * this WB interface requests an address for 2 cycles then has an idle cycle before the next req.
+    * the WB interface requests an address for 2 cycles then has an idle cycle before the next req.
 * openhwgroup/CVW (abandoned)
     * Something in the Mult/Div extensions blows the verilation process up and takes ~15 minutes to finish
     * uses AHB...i strongly dislike using AHB buses
@@ -103,6 +102,10 @@ Memory: 0x80004150 - 0x8000a3e7 (Size=24KB) [.bss]
 |---------------|-------------|
 | [VeeR EH1](https://github.com/chipsalliance/Cores-VeeR-EH1) | RV32IMC     |
 | [VeeR EL2](https://github.com/chipsalliance/Cores-VeeR-EL2) |             |
+
+| AleksandarLilic |             |
+|-----------------|-------------|
+| [ama-riscv](https://github.com/AleksandarLilic/ama-riscv)   | RV32IM     |
 
 | rsd-devel     |             |
 |---------------|-------------|

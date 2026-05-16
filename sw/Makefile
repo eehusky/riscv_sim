@@ -22,6 +22,11 @@ biriscv_ringbuffer:
 	make -C build/
 	../tb/biriscv/riscv_top/build/tb_biriscv_idcache_top -f build/ringbuffer_demo.elf
 
+biriscv_coremark:
+	mkdir -p build
+	cmake -S biriscv2/apps/coremark_demo -B build
+	make -C build/
+	../tb/biriscv/benchmark/build/tb_biriscv -f build/coremark.elf
 
 ##
 
