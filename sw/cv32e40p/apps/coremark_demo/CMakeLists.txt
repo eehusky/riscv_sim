@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(RISCV    ${CMAKE_CURRENT_SOURCE_DIR}/../../../riscv/)
-set(CV32E40P ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 set(REPO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
 set(COREMARK ${CMAKE_CURRENT_SOURCE_DIR}/../../../../cores/coremark)
+set(RISCV    ${CMAKE_CURRENT_SOURCE_DIR}/../../../riscv/)
+set(COMMON   ${CMAKE_CURRENT_SOURCE_DIR}/../../../common/)
+set(CV32E40P ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 
 list(APPEND CMAKE_MODULE_PATH ${RISCV})
 include(riscv)
@@ -34,8 +35,8 @@ add_executable(${TARGET}.elf
     ${CV32E40P}/baremetal/entry.c
     ${CV32E40P}/baremetal/vector_table.c
     #${CV32E40P}/syscalls.c
-    ${CV32E40P}/memset.c
-    ${CV32E40P}/memcpy.c
+    ${COMMON}/memset.c
+    ${COMMON}/memcpy.c
 )
 target_include_directories(${TARGET}.elf
     PRIVATE
@@ -66,15 +67,12 @@ set(PROJECT_C_FLAGS
     -fdata-sections
     -falign-functions=4
     -Wall
-    #-march=rv32im
-    #-mabi=ilp32
     -march=rv32im_zicsr_zifencei_zicntr
     -mabi=ilp32
     -MD
     -mcmodel=medany
     -mstrict-align
-    #-DFLAGS_STR=
-    -DITERATIONS=2750
+    -DITERATIONS=10
     -DCLOCKS_PER_SEC=100000000
     -DHAS_FLOAT=0
     -DMULTITHREAD=1
