@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 3.5)
 project(tb_biriscv_benchmark)
 
 set(REPO_DIR                  ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
-set(BIRISCV                   ${REPO_DIR}/cores/biriscv)
+set(BIRISCV      ${REPO_DIR}/cores/biriscv)
+set(VERILOG_AXI  ${REPO_DIR}/cores/verilog-axi/)
+set(VERILOG_UART ${REPO_DIR}/cores/verilog-uart/)
+set(WB2AXIP      ${REPO_DIR}/cores/wb2axip/)
 
 find_package(verilator
     NO_DEFAULT_PATH
@@ -34,13 +37,13 @@ set(CMAKE_CXX_STANDARD              ${SystemC_CXX_STANDARD})
 set(CMAKE_CXX_STANDARD_REQUIRED     ${SystemC_CXX_STANDARD_REQUIRED})
 set(CMAKE_EXPORT_COMPILE_COMMANDS   "ON")
 set(CXX_WARNING                     "-Wall -Wno-sign-compare -Wno-unused-variable -Wno-bool-operation -Wno-uninitialized")
-set(CMAKE_CXX_FLAGS                 "${PGO_FLAGS} -O3 -flto -fstrict-aliasing -march=native ${CXX_WARNING}")
-set(CMAKE_C_FLAGS                   "${PGO_FLAGS} -O3 -flto -fstrict-aliasing -march=native ${CXX_WARNING}")
-set(LD_FLAGS                        "${PGO_FLAGS} -fwhole-program")
+set(CMAKE_CXX_FLAGS                 "${PGO_FLAGS} -Og -fstrict-aliasing -march=native ${CXX_WARNING}")
+set(CMAKE_C_FLAGS                   "${PGO_FLAGS} -Og -fstrict-aliasing -march=native ${CXX_WARNING}")
+#set(LD_FLAGS                        "${PGO_FLAGS} -fwhole-program")
 
 string(STRIP ${CMAKE_CXX_FLAGS} CMAKE_CXX_FLAGS)
 string(STRIP ${CMAKE_C_FLAGS}   CMAKE_C_FLAGS)
-string(STRIP ${LD_FLAGS}        LD_FLAGS)
+#string(STRIP ${LD_FLAGS}        LD_FLAGS)
 
 
 set(MY_VERILATOR_ARGS
@@ -51,6 +54,9 @@ set(MY_VERILATOR_ARGS
     #--noassert
     #--decorations none
     -Wno-NORETURN
+    -Wno-WIDTHEXPAND
+    -Wno-WIDTHTRUNC
+    -Wno-CASEINCOMPLETE
     -Wno-context
     #--Wall
     --report-unoptflat
@@ -79,7 +85,7 @@ verilate(tb_biriscv
     INCLUDE_DIRS
         ${BIRISCV}/src/core/
     TOP_MODULE
-        tb_riscv_tcm_top
+        tb_biriscv
     SOURCES
         ##
         ${BIRISCV}/src/core/biriscv_alu.v
@@ -103,30 +109,54 @@ verilate(tb_biriscv
         ${BIRISCV}/src/core/biriscv_xilinx_2r1w.v
         ${BIRISCV}/src/core/riscv_core.v
         ##
-        ${BIRISCV}/src/dcache/dcache_axi_axi.v
-        ${BIRISCV}/src/dcache/dcache_axi.v
-        ${BIRISCV}/src/dcache/dcache_core_data_ram.v
-        ${BIRISCV}/src/dcache/dcache_core_tag_ram.v
-        ${BIRISCV}/src/dcache/dcache_core.v
-        ${BIRISCV}/src/dcache/dcache_if_pmem.v
-        ${BIRISCV}/src/dcache/dcache_mux.v
-        ${BIRISCV}/src/dcache/dcache_pmem_mux.v
-        ${BIRISCV}/src/dcache/dcache.v
+        #${BIRISCV}/src/dcache/dcache_axi_axi.v
+        #${BIRISCV}/src/dcache/dcache_axi.v
+        #${BIRISCV}/src/dcache/dcache_core_data_ram.v
+        #${BIRISCV}/src/dcache/dcache_core_tag_ram.v
+        #${BIRISCV}/src/dcache/dcache_core.v
+        #${BIRISCV}/src/dcache/dcache_if_pmem.v
+        #${BIRISCV}/src/dcache/dcache_mux.v
+        #${BIRISCV}/src/dcache/dcache_pmem_mux.v
+        #${BIRISCV}/src/dcache/dcache.v
         ##
-        ${BIRISCV}/src/icache/icache_data_ram.v
-        ${BIRISCV}/src/icache/icache_tag_ram.v
-        ${BIRISCV}/src/icache/icache.v
+        #${BIRISCV}/src/icache/icache_data_ram.v
+        #${BIRISCV}/src/icache/icache_tag_ram.v
+        #${BIRISCV}/src/icache/icache.v
         ##
-        ${BIRISCV}/src/tcm/dport_axi.v
-        ${BIRISCV}/src/tcm/dport_mux.v
-        ${BIRISCV}/src/tcm/tcm_mem_pmem.v
-        ${BIRISCV}/src/tcm/tcm_mem_ram.v
-        ${BIRISCV}/src/tcm/tcm_mem.v
+        #${BIRISCV}/src/tcm/dport_axi.v
+        #${BIRISCV}/src/tcm/dport_mux.v
+        #${BIRISCV}/src/tcm/tcm_mem_pmem.v
+        #${BIRISCV}/src/tcm/tcm_mem_ram.v
+        #${BIRISCV}/src/tcm/tcm_mem.v
         ##
-        ${BIRISCV}/src/top/riscv_tcm_top.v
+
+        ## DPORT
+        ${WB2AXIP}/rtl/sfifo.v
+        ${REPO_DIR}/rtl/dport/dport_pkg.sv
+        ${REPO_DIR}/rtl/dport/dport2iob.sv
+        ${REPO_DIR}/rtl/dport/dport2axi.sv
+        ${REPO_DIR}/rtl/dport/dport2axil.sv
+        ${REPO_DIR}/rtl/dport/dport_addrdecode.sv
+        ${REPO_DIR}/rtl/dport/dport_mux.sv
+        ${REPO_DIR}/rtl/dport/dport_ram.sv
+        ${REPO_DIR}/rtl/dport/dport_dummy.sv
+        ${REPO_DIR}/rtl/dport/obi_if.sv
+        ${REPO_DIR}/rtl/dport/axi_if.sv
+        ${REPO_DIR}/rtl/dport/axil_if.sv
+        ${REPO_DIR}/rtl/dport/dport_rsp_queue.sv
+        ${REPO_DIR}/rtl/dport/dport_dtcm.sv
+        #
+        ${REPO_DIR}/rtl/dport/mtime32.sv
+        ${REPO_DIR}/rtl/dport/sim_ctrl.sv
+        #${VERILOG_AXI}/rtl/axi_dp_ram.v
+        ${VERILOG_AXI}/rtl/axi_ram_wr_rd_if.v
+        ${VERILOG_AXI}/rtl/axi_ram_wr_if.v
+        ${VERILOG_AXI}/rtl/axi_ram_rd_if.v
+        #${VERILOG_AXI}/rtl/axil_ram.v
+        #${VERILOG_AXI}/rtl/axi_ram.v
+
         ##
-        riscv_tcm_top_wrapper.v
-        tb_riscv_tcm_top.sv
+        tb_biriscv.sv
         #
     VERILATOR_ARGS
         ${MY_VERILATOR_ARGS}
