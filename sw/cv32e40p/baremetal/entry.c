@@ -1,13 +1,14 @@
 #include <stdint.h>
 
-
 #include "riscv_io.h"
 #include "sim_extensions.h"
 #include "vector_table.h"
-void riscv_mtvec_nop(void) {}
-#if 1
+
 #include "riscv_csr.h"
 #include "riscv_interrupts.h"
+
+void riscv_mtvec_nop(void) {}
+
 // ----------------------------------------------------------------------------
 // -- Interrupt Handlers ------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -168,12 +169,12 @@ void (*exception_handlers[16])(void) = {
 void riscv_mtvec_exception(void) __attribute__((interrupt("machine"), weak));
 void riscv_mtvec_exception(void)
 {
-    //sim_exit(0x8000FFFF);
+    // sim_exit(0x8000FFFF);
     uint_xlen_t this_cause = csr_read_mcause();
-    //if (this_cause & MCAUSE_INT) {
-    //    sim_putstring("invalid interrupt\n");
-    //    sim_exit(0x80000001);
-    //}
+    // if (this_cause & MCAUSE_INT) {
+    //     sim_putstring("invalid interrupt\n");
+    //     sim_exit(0x80000001);
+    // }
     exception_handlers[this_cause & MCAUSE_EXCP_CAUSE]();
 }
 
@@ -194,7 +195,7 @@ void configure_interrupts(void)
     // Global interrupt enable
     csr_set_bits_mstatus(MSTATUS_MIE_BIT_MASK);
 }
-#endif
+
 extern int main(void);
 
 void _entry(void)
@@ -202,7 +203,7 @@ void _entry(void)
     // clear initial mtime
     mtimecmp_set(0);
     // enable fpu
-    //csr_set_bits_mstatus(1<<MSTATUS_FS_BIT_OFFSET);
+    csr_set_bits_mstatus(1<<MSTATUS_FS_BIT_OFFSET);
 
     configure_interrupts();
 
