@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 set(RISCV    ${CMAKE_CURRENT_SOURCE_DIR}/../../../riscv/)
 set(CV32E40P ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 set(REPO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
+set(COMMON   ${CMAKE_CURRENT_SOURCE_DIR}/../../../common/)
 
 list(APPEND CMAKE_MODULE_PATH ${RISCV})
 include(riscv)

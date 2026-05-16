@@ -5,6 +5,7 @@ set(CV32E40P        ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 set(REPO_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
 set(FREERTOS        $ENV{HOME}/github/FreeRTOS/FreeRTOS/)
 set(RTOS_SOURCE_DIR ${FREERTOS}/FreeRTOS/Source)
+set(COMMON   ${CMAKE_CURRENT_SOURCE_DIR}/../../../common/)
 
 list(APPEND CMAKE_MODULE_PATH ${RISCV})
 include(riscv)
@@ -37,8 +38,8 @@ add_executable(${TARGET}.elf
     ${CV32E40P}/freertos/vector.S
 
     ${CV32E40P}/syscalls.c
-    ${CV32E40P}/memcpy.c
-    ${CV32E40P}/memset.c
+    ${COMMON}/memcpy.c
+    ${COMMON}/memset.c
 )
 target_include_directories(${TARGET}.elf
     PRIVATE
