@@ -68,13 +68,13 @@ set(PROJECT_C_FLAGS
     -Wall
     #-march=rv32im
     #-mabi=ilp32
-    -march=rv32imb_zicsr_zifencei_zicntr_zcmp_zcb
+    -march=rv32im_zicsr_zifencei_zicntr
     -mabi=ilp32
     -MD
     -mcmodel=medany
     -mstrict-align
     #-DFLAGS_STR=
-    -DITERATIONS=3180
+    -DITERATIONS=2750
     -DCLOCKS_PER_SEC=100000000
     -DHAS_FLOAT=0
     -DMULTITHREAD=1

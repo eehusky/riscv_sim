@@ -7,7 +7,7 @@
 #include "riscv_csr.h"
 #include "riscv_interrupts.h"
 
-void riscv_mtvec_nop(void) {}
+static void riscv_mtvec_nop(void) {}
 
 // ----------------------------------------------------------------------------
 // -- Interrupt Handlers ------------------------------------------------------
