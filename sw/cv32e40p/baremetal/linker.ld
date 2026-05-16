@@ -8,6 +8,7 @@ SECTIONS
 {
     .text :
     {
+        . = 0x00000080;
         _text = .;
         KEEP(*(.text.start))
         *(.text.start)

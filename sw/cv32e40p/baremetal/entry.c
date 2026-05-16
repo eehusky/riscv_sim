@@ -1,13 +1,13 @@
 #include <stdint.h>
 
-#include "riscv_csr.h"
-#include "riscv_interrupts.h"
 
 #include "riscv_io.h"
 #include "sim_extensions.h"
 #include "vector_table.h"
 void riscv_mtvec_nop(void) {}
-
+#if 1
+#include "riscv_csr.h"
+#include "riscv_interrupts.h"
 // ----------------------------------------------------------------------------
 // -- Interrupt Handlers ------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -194,7 +194,7 @@ void configure_interrupts(void)
     // Global interrupt enable
     csr_set_bits_mstatus(MSTATUS_MIE_BIT_MASK);
 }
-
+#endif
 extern int main(void);
 
 void _entry(void)
@@ -202,7 +202,7 @@ void _entry(void)
     // clear initial mtime
     mtimecmp_set(0);
     // enable fpu
-    csr_set_bits_mstatus(1<<MSTATUS_FS_BIT_OFFSET);
+    //csr_set_bits_mstatus(1<<MSTATUS_FS_BIT_OFFSET);
 
     configure_interrupts();
 

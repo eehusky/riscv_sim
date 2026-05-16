@@ -22,3 +22,6 @@
 [submodule "cores/cva5"]
 	path = cores/cva5
 	url = git@github.com:openhwgroup/cva5.git
+[submodule "cores/ibex"]
+	path = cores/ibex
+	url = git@github.com:lowRISC/ibex.git

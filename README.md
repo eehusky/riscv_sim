@@ -25,18 +25,20 @@ Notes and observations made in the pursuit of finding the perfect RISCV core.  T
     * the dcache line invalidate extension doesnt seem to work correctly
         * ```asm volatile("csrw pmpcfg2, %0" : : "r"(addr));```
         * this means when something is DMA'd into a cacheable region of ram you need to do a full dcache flush inorder to retrieve the contents instead of just invalidating the region of interest.
-* openhwgroup/cva5 (todo)
-    * Havent tried this one yet but i think this one will be pretty good.
-    * RVFI is probably going to be a pain
 * lowRISC/ibex (todo)
     * Havent tried this one yet but i think this one will be pretty good.
     * If it had a FPU i suspect this would be my winner
     * has ready to go RVFI
 * ARM/DesignStart M0/M3 (todo)
     * why should the riscv cores get to have all the fun?
+* openhwgroup/cva5 (abandoned)
+    * Another disappointment
+    * the I/D memory interfaces require comb logic, these are what i want to use but the lack of being able to apply backpressure is a deal breaker.
+    * the other interfaces (excluding the I/D caches, havent tried those) are all mutlicycle/poorly pipelined
+    * this WB interface requests an address for 2 cycles then has an idle cycle before the next req.
 * openhwgroup/CVW (abandoned)
-    * uses AHB...i strongly dislike using AHB buses
     * Something in the Mult/Div extensions blows the verilation process up and takes ~15 minutes to finish
+    * uses AHB...i strongly dislike using AHB buses
 * rsd-devel/rsd (abandoned)
     * integration with external modules is sort of a hot mess.  spent an afternoon trying to do memory accesses outside of RAM and gave up on this one.
     * i want to like this one....might revisit later and see if its more agreeable

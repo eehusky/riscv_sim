@@ -30,7 +30,7 @@ add_executable(${TARGET}.elf
     barebones/cvt.c
 
 
-    ${CV32E40P}/baremetal/start.s
+    ${CV32E40P}/baremetal/start.S
     ${CV32E40P}/baremetal/entry.c
     ${CV32E40P}/baremetal/vector_table.c
     #${CV32E40P}/syscalls.c
@@ -68,13 +68,13 @@ set(PROJECT_C_FLAGS
     -Wall
     #-march=rv32im
     #-mabi=ilp32
-    -march=rv32imc_zicsr_zifencei_zicntr
+    -march=rv32imb_zicsr_zifencei_zicntr_zcmp_zcb
     -mabi=ilp32
     -MD
     -mcmodel=medany
     -mstrict-align
-    -DCOMPILER_FLAGS=""-03""
-    -DITERATIONS=2750
+    #-DFLAGS_STR=
+    -DITERATIONS=3180
     -DCLOCKS_PER_SEC=100000000
     -DHAS_FLOAT=0
     -DMULTITHREAD=1

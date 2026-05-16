@@ -22,6 +22,7 @@ void *_sbrk_r(struct _reent *r, ptrdiff_t incr)
     prev_heap_end = heap_end;
 
     if (heap_end + incr > (caddr_t)&_heap_top) {
+        sim_exit(0xFFFFFFFF);
         return (caddr_t)0;
     }
 

@@ -71,8 +71,7 @@ Original Author: Shay Gal-on
 #endif
 #endif
 #ifndef COMPILER_FLAGS
-#define COMPILER_FLAGS \
-    FLAGS_STR /* "Please put compiler flags here (e.g. -o3)" */
+#define COMPILER_FLAGS "UNKNOWN" /* "Please put compiler flags here (e.g. -o3)" */
 #endif
 #ifndef MEM_LOCATION
 #define MEM_LOCATION "STACK"
