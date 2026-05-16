@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 
 set(REPO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
-set(COREMARK ${CMAKE_CURRENT_SOURCE_DIR}/../../../../cores/coremark)
-set(RISCV    ${CMAKE_CURRENT_SOURCE_DIR}/../../../riscv/)
-set(COMMON   ${CMAKE_CURRENT_SOURCE_DIR}/../../../common/)
-set(BIRISCV  ${CMAKE_CURRENT_SOURCE_DIR}/../../)
+set(COREMARK ${REPO_DIR}/cores/coremark)
+set(RISCV ${REPO_DIR}/sw/riscv/)
+set(COMMON ${REPO_DIR}/sw/common/)
+set(BIRISCV ${REPO_DIR}/sw/biriscv/)
 
 list(APPEND CMAKE_MODULE_PATH ${RISCV})
 include(riscv)
@@ -13,12 +13,9 @@ project(coremark_demo)
 enable_language(ASM)
 set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
-
-set(STACK_SIZE    0x1000 )
-set(TARGET        coremark )
+set(STACK_SIZE 0x1000)
+set(TARGET coremark)
 set(LINKER_SCRIPT ${BIRISCV}/baremetal/linker.ld)
-
-
 
 add_executable(${TARGET}.elf
     ${COREMARK}/core_main.c
@@ -29,15 +26,14 @@ add_executable(${TARGET}.elf
     barebones/core_portme.c
     barebones/ee_printf.c
     barebones/cvt.c
-
-
     ${BIRISCV}/baremetal/start.S
     ${BIRISCV}/baremetal/entry.c
     ${BIRISCV}/baremetal/vector_table.c
-    #${BIRISCV}/syscalls.c
+    # ${BIRISCV}/syscalls.c
     ${COMMON}/memset.c
     ${COMMON}/memcpy.c
 )
+
 target_include_directories(${TARGET}.elf
     PRIVATE
         ${COREMARK}/
@@ -47,16 +43,17 @@ target_include_directories(${TARGET}.elf
         ${BIRISCV}/baremetal
         ${REPO_DIR}/cores/nanoprintf/
 )
+
 target_link_libraries(${TARGET}.elf
     PRIVATE
-        #/opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libc_nano.a
-        #/opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libm_nano.a
-        #/opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libg_nano.a
-        #/opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libgloss_nano.a
-        #/opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libc_nano.a
-        #/opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libm_nano.a
-        #/opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libg_nano.a
-        #/opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libgloss_nano.a
+        # /opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libc_nano.a
+        # /opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libm_nano.a
+        # /opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libg_nano.a
+        # /opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libgloss_nano.a
+        # /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libc_nano.a
+        # /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libm_nano.a
+        # /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libg_nano.a
+        # /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libgloss_nano.a
 )
 
 set(PROJECT_C_FLAGS
@@ -85,7 +82,8 @@ set(PROJECT_C_FLAGS
     -flto
 )
 set(PROJECT_LINKER_FLAGS
-    --entry _start
+    --entry
+    _start
     -nostdlib
     -T${LINKER_SCRIPT}
     -Wl,-Map=${TARGET}.map
@@ -97,28 +95,27 @@ set(PROJECT_LINKER_FLAGS
     -fwhole-program
 )
 
-
-## ----------------------------------------------------------------------------
-## ----------------------------------------------------------------------------
-## ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 set_target_properties(${TARGET}.elf
     PROPERTIES
-        LINK_DEPENDS "${LINKER_SCRIPT}"
-)
-list(JOIN PROJECT_C_FLAGS      " " _PROJECT_C_FLAGS)
+        LINK_DEPENDS "${LINKER_SCRIPT}")
+list(JOIN PROJECT_C_FLAGS " " _PROJECT_C_FLAGS)
 list(JOIN PROJECT_LINKER_FLAGS " " _PROJECT_LINKER_FLAGS)
-set(CMAKE_EXE_LINKER_FLAGS  ${_PROJECT_LINKER_FLAGS})
-set(CMAKE_CXX_FLAGS         ${_PROJECT_C_FLAGS})
-set(CMAKE_ASM_FLAGS         ${_PROJECT_C_FLAGS})
-set(CMAKE_C_FLAGS           ${_PROJECT_C_FLAGS})
+set(CMAKE_EXE_LINKER_FLAGS ${_PROJECT_LINKER_FLAGS})
+set(CMAKE_CXX_FLAGS ${_PROJECT_C_FLAGS})
+set(CMAKE_ASM_FLAGS ${_PROJECT_C_FLAGS})
+set(CMAKE_C_FLAGS ${_PROJECT_C_FLAGS})
 
 # Post processing command to create a disassembly file
 add_custom_command(
     TARGET ${TARGET}.elf
     POST_BUILD
     COMMAND ${CMAKE_OBJDUMP} -t -S ${TARGET}.elf > ${TARGET}.S
-    COMMAND ${CMAKE_OBJDUMP} -t -S --visualize-jumps ${TARGET}.elf > ${TARGET}.disasm
+    COMMAND ${CMAKE_OBJDUMP} -t -S --visualize-jumps ${TARGET}.elf >
+            ${TARGET}.disasm
     COMMENT "Invoking: Disassemble"
 )
 
@@ -126,7 +123,7 @@ add_custom_command(
 add_custom_command(
     TARGET ${TARGET}.elf
     POST_BUILD
-    COMMAND ${CMAKE_OBJCOPY} -O ihex  ${TARGET}.elf  ${TARGET}.hex
+    COMMAND ${CMAKE_OBJCOPY} -O ihex ${TARGET}.elf ${TARGET}.hex
     COMMENT "Invoking: Hexdump"
 )
 
