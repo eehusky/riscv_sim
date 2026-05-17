@@ -60,9 +60,9 @@ module tb_biriscv #(
         .NUM_RAS_ENTRIES          (NUM_RAS_ENTRIES),
         .NUM_RAS_ENTRIES_W        (NUM_RAS_ENTRIES_W)
     ) i_biriscv_wrapper (
-        .i_clk      (i_clk),
-        .i_rst      (i_rst),
-        .i_irq      (i_irq),
+        .clk_i      (i_clk),
+        .rst_i      (i_rst),
+        .irq_i      (i_irq),
         .instr_dport(instr_dport),
         .data_dport (data_dport)
     );

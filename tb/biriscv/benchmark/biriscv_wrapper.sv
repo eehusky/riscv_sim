@@ -22,9 +22,9 @@ module biriscv_wrapper #(
     parameter int        NUM_RAS_ENTRIES           = 8,
     parameter int        NUM_RAS_ENTRIES_W         = $clog2(NUM_RAS_ENTRIES)
 ) (
-    input logic        i_clk,
-    input logic        i_rst,
-    input logic [31:0] i_irq,
+    input logic        clk_i,
+    input logic        rst_i,
+    input logic [31:0] irq_i,
 
     obi_if.master instr_dport,
     obi_if.master data_dport
