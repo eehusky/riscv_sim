@@ -61,7 +61,7 @@ module tb_dport ();
 
     obi_if segments [N_SEGMENTS] ();
 
-    dport_mux2 i_dport_mux (
+    dport_demux i_dport_demux (
         .clk_i   (clk_i),
         .rst_i   (rst_i),
         .cpu     (cpu),

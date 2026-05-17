@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 project(tb_dport)
 
-set(REPO_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/../../)
-set(VERILOG_AXI     $ENV{HOME}/github/alexforencich/verilog-axi/)
-set(IOBCACHE        ${REPO_DIR}/cores/iob_cache_axi_V0.7.1/)
+set(REPO_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
+set(VERILOG_AXI  ${REPO_DIR}/cores/verilog-axi/)
+set(WB2AXIP      ${REPO_DIR}/cores/wb2axip/)
 
 
 
@@ -76,15 +76,13 @@ verilate(Vtop
         ${VERILOG_AXI}/rtl/axil_ram.v
         ${VERILOG_AXI}/rtl/axi_ram.v
         #
-        ${REPO_DIR}/cores/ringbuffer/ringbuffer_sfifo.v
+        ${WB2AXIP}/rtl/sfifo.v
         ${REPO_DIR}/rtl/dport/dport_pkg.sv
         ${REPO_DIR}/rtl/dport/dport2iob.sv
         ${REPO_DIR}/rtl/dport/dport2axi.sv
         ${REPO_DIR}/rtl/dport/dport2axil.sv
         ${REPO_DIR}/rtl/dport/dport_addrdecode.sv
-        ${REPO_DIR}/rtl/dport/dport_mux.sv
-        ${REPO_DIR}/rtl/dport/dport_mux2.sv
-        ${REPO_DIR}/rtl/dport/dport.sv
+        ${REPO_DIR}/rtl/dport/dport_demux.sv
         ${REPO_DIR}/rtl/dport/dport_ram.sv
         ${REPO_DIR}/rtl/dport/dport_dummy.sv
         ${REPO_DIR}/rtl/dport/obi_if.sv

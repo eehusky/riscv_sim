@@ -10,7 +10,7 @@ module dport_ram #(
     localparam WORD_ADDR_WIDTH = ADDR_WIDTH - $clog2(dport.STRB_WIDTH);
 
     logic   [WORD_ADDR_WIDTH-1:0] word_addr;
-    logic   [ dport.DATA_WIDTH:0] mem       [(2**WORD_ADDR_WIDTH)-1];
+    logic   [ dport.DATA_WIDTH-1:0] mem       [(2**WORD_ADDR_WIDTH)-1];
     integer                       i;
 
     assign word_addr = dport.addr[ADDR_WIDTH-1:ADDR_WIDTH-WORD_ADDR_WIDTH];
@@ -53,7 +53,7 @@ module dport_ram #(
         input [7:0] data;
         begin
             for (int i = 0; i < STRB_WIDTH; i++) begin
-                if (addr[LGSTRB_WIDTH-1:0] == i) begin
+                if (addr[LGSTRB_WIDTH-1:0] == LGSTRB_WIDTH'(i)) begin
                     mem[addr/STRB_WIDTH][(i*8)+:8] = data;
                 end
             end
@@ -63,7 +63,7 @@ module dport_ram #(
         input [31:0] addr;
         begin
             for (int i = 0; i < STRB_WIDTH; i++) begin
-                if (addr[LGSTRB_WIDTH-1:0] == i) begin
+                if (addr[LGSTRB_WIDTH-1:0] == LGSTRB_WIDTH'(i)) begin
                     read = mem[addr/STRB_WIDTH][(i*8)+:8];
                 end
             end

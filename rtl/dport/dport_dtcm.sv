@@ -261,7 +261,7 @@ module dport_dtcm #(
         input [7:0] data;
         begin
             for (int i = 0; i < STRB_WIDTH; i++) begin
-                if (addr[LGSTRB_WIDTH-1:0] == i) begin
+                if (addr[LGSTRB_WIDTH-1:0] == LGSTRB_WIDTH'(i)) begin
                     mem[addr/STRB_WIDTH][(i*8)+:8] = data;
                 end
             end
@@ -271,7 +271,7 @@ module dport_dtcm #(
         input [31:0] addr;
         begin
             for (int i = 0; i < STRB_WIDTH; i++) begin
-                if (addr[LGSTRB_WIDTH-1:0] == i) begin
+                if (addr[LGSTRB_WIDTH-1:0] == LGSTRB_WIDTH'(i)) begin
                     read = mem[addr/STRB_WIDTH][(i*8)+:8];
                 end
             end

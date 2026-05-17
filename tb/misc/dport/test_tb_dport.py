@@ -339,7 +339,7 @@ class Range(NamedTuple):
         return self.low+self.size-1
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
 @cocotb.parametrize(region_def=REGIONS)
 async def test_iob_region(dut,region_def=REGIONS[0]):
     tb = TB(dut)
@@ -417,7 +417,7 @@ async def test_iob_region(dut,region_def=REGIONS[0]):
     await tb.clkcycle(1000)
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
 async def test_iob_addrspace(dut):
     tb = TB(dut)
     cocotb.start_soon(tb.proc_req())
@@ -491,8 +491,6 @@ async def test_iob_addrspace(dut):
         assert ref == pool, f"{_:04X}: {ref:08X} == {pool:08x}"
 
     await tb.clkcycle(1000)
-
-
 
 
 @cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
