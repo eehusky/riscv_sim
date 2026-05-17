@@ -2,7 +2,12 @@ module tb_ibex (
     input logic i_clk,
     input logic i_rst
 );
-    import ibex_pkg::*;
+    parameter bit [31:0] BOOT_ADDRESS = 32'h8000_0000;
+    parameter int HART_ID = 0;
+    parameter bit [31:0] DM_BASE_ADDR = 32'h0010_0000;
+    parameter bit [31:0] DM_ADDR_MASK = 32'h0000_0003;
+    parameter bit [31:0] DM_HALT_ADDR = 32'h0010_0000;
+    parameter bit [31:0] DM_EXCEPTION_ADDR = 32'h0010_0000;
     parameter bit SecureIbex = 1'b0;
     parameter int unsigned LockstepOffset = 1;
     parameter bit ICacheScramble = 1'b0;
@@ -23,95 +28,19 @@ module tb_ibex (
     parameter bit ICacheECC = 1'b0;
     parameter bit ICacheTweakInfection = 1'b0;
     parameter bit BranchPredictor = 1'b1;
-    parameter SRAMInitFile = "";
-
-    // M(ultiply) extension select:
-    //     “ibex_pkg::RV32MNone”: No M-extension
-    //     “ibex_pkg::RV32MSlow”: Slow multi-cycle multiplier, iterative divider
-    //     “ibex_pkg::RV32MFast”: 3-4 cycle multiplier, iterative divider
-    //     “ibex_pkg::RV32MSingleCycle”: 1-2 cycle multiplier, iterative divider
-
-    // Clock and Reset
-    logic                                                              clk_i;
-    logic                                                              rst_i;
-
-    // enable all clock gates for testing
-    logic                                                              test_en_i;
-    logic                                                              scan_rst_ni;
-    prim_ram_1p_pkg::ram_1p_cfg_t                                      ram_cfg_icache_tag_i;
-    prim_ram_1p_pkg::ram_1p_cfg_rsp_t [     ibex_pkg::IC_NUM_WAYS-1:0] ram_cfg_rsp_icache_tag_o;
-    prim_ram_1p_pkg::ram_1p_cfg_t                                      ram_cfg_icache_data_i;
-    prim_ram_1p_pkg::ram_1p_cfg_rsp_t [     ibex_pkg::IC_NUM_WAYS-1:0] ram_cfg_rsp_icache_data_o;
 
 
-    logic                             [                          31:0] hart_id_i;
-    logic                             [                          31:0] boot_addr_i;
+    logic [31:0] irq_i;
+    obi_if instr_dport ();
+    obi_if data_dport ();
 
-    // Instruction memory interface
-    logic                                                              instr_req_o;
-    logic                                                              instr_gnt_i;
-    logic                                                              instr_rvalid_i;
-    logic                             [                          31:0] instr_addr_o;
-    logic                             [                          31:0] instr_rdata_i;
-    logic                             [                           6:0] instr_rdata_intg_i;
-    logic                                                              instr_err_i;
-
-    // Data memory interface
-    logic                                                              data_req_o;
-    logic                                                              data_gnt_i;
-    logic                                                              data_rvalid_i;
-    logic                                                              data_we_o;
-    logic                             [                           3:0] data_be_o;
-    logic                             [                          31:0] data_addr_o;
-    logic                             [                          31:0] data_wdata_o;
-    logic                             [                           6:0] data_wdata_intg_o;
-    logic                             [                          31:0] data_rdata_i;
-    logic                             [                           6:0] data_rdata_intg_i;
-    logic                                                              data_err_i;
-
-    // Interrupt inputs
-    logic                                                              irq_software_i;
-    logic                                                              irq_timer_i;
-    logic                                                              irq_external_i;
-    logic                             [                          14:0] irq_fast_i;
-    // non-maskable interrupt
-    logic                                                              irq_nm_i;
-
-    // Scrambling Interface
-    logic                                                              scramble_key_valid_i;
-    logic                             [  ibex_pkg::SCRAMBLE_KEY_W-1:0] scramble_key_i;
-    logic                             [ibex_pkg::SCRAMBLE_NONCE_W-1:0] scramble_nonce_i;
-    logic                                                              scramble_req_o;
-
-    // Debug Interface
-    logic                                                              debug_req_i;
-    crash_dump_t                                                       crash_dump_o;
-    logic                                                              double_fault_seen_o;
-
-    // CPU Control Signals
-    ibex_mubi_t                                                        fetch_enable_i;
-    logic                                                              alert_minor_o;
-    logic                                                              alert_major_internal_o;
-    logic                                                              alert_major_bus_o;
-    logic                                                              core_sleep_o;
-
-    // Lockstep signals
-    ibex_mubi_t                                                        lockstep_cmp_en_o;
-
-    // Shadow core data interface outputs
-    logic                                                              data_req_shadow_o;
-    logic                                                              data_we_shadow_o;
-    logic                             [                           3:0] data_be_shadow_o;
-    logic                             [                          31:0] data_addr_shadow_o;
-    logic                             [                          31:0] data_wdata_shadow_o;
-    logic                             [                           6:0] data_wdata_intg_shadow_o;
-
-    // Shadow core instruction interface outputs
-    logic                                                              instr_req_shadow_o;
-    logic                             [                          31:0] instr_addr_shadow_o;
-
-    logic                                                              timer_irq;
-    ibex_top #(
+    ibex_wrapper #(
+        .BOOT_ADDRESS        (BOOT_ADDRESS),
+        .HART_ID             (HART_ID),
+        .DM_BASE_ADDR        (DM_BASE_ADDR),
+        .DM_ADDR_MASK        (DM_ADDR_MASK),
+        .DM_HALT_ADDR        (DM_HALT_ADDR),
+        .DM_EXCEPTION_ADDR   (DM_EXCEPTION_ADDR),
         .SecureIbex          (SecureIbex),
         .LockstepOffset      (LockstepOffset),
         .ICacheScramble      (ICacheScramble),
@@ -126,93 +55,27 @@ module tb_ibex (
         .RV32ZC              (RV32ZC),
         .RegFile             (RegFile),
         .BranchTargetALU     (BranchTargetALU),
+        .WritebackStage      (WritebackStage),
         .ICache              (ICache),
+        .DbgTriggerEn        (DbgTriggerEn),
         .ICacheECC           (ICacheECC),
         .ICacheTweakInfection(ICacheTweakInfection),
-        .WritebackStage      (WritebackStage),
-        .BranchPredictor     (BranchPredictor),
-        .DbgTriggerEn        (DbgTriggerEn),
-        .DmBaseAddr          (32'h00100000),
-        .DmAddrMask          (32'h00000003),
-        .DmHaltAddr          (32'h00100000),
-        .DmExceptionAddr     (32'h00100000)
-    ) u_top (
-        .clk_i (i_clk),
-        .rst_ni(~i_rst),
-
-        .test_en_i                (i_rst),
-        .scan_rst_ni              (~i_rst),
-        .ram_cfg_icache_tag_i     (prim_ram_1p_pkg::RAM_1P_CFG_DEFAULT),
-        .ram_cfg_rsp_icache_tag_o (),
-        .ram_cfg_icache_data_i    (prim_ram_1p_pkg::RAM_1P_CFG_DEFAULT),
-        .ram_cfg_rsp_icache_data_o(),
-
-        .hart_id_i  (32'b0),
-        // First instruction executed is at 0x0 + 0x80
-        .boot_addr_i(32'h80000000),
-
-        .instr_req_o       (instr_dport.req),
-        .instr_gnt_i       (instr_dport.gnt),
-        .instr_rvalid_i    (instr_dport.rvalid),
-        .instr_addr_o      (instr_dport.addr),
-        .instr_rdata_i     (instr_dport.rdata),
-        .instr_rdata_intg_i(0),
-        .instr_err_i       (instr_dport.err),
-
-        .data_req_o       (data_dport.req),
-        .data_gnt_i       (data_dport.gnt),
-        .data_rvalid_i    (data_dport.rvalid),
-        .data_we_o        (data_dport.we),
-        .data_be_o        (data_dport.be),
-        .data_addr_o      (data_dport.addr),
-        .data_wdata_o     (data_dport.wdata),
-        .data_wdata_intg_o(),
-        .data_rdata_i     (data_dport.rdata),
-        .data_rdata_intg_i(0),
-        .data_err_i       (data_dport.err),
-
-        .irq_software_i(1'b0),
-        .irq_timer_i   (0),
-        .irq_external_i(1'b0),
-        .irq_fast_i    (15'b0),
-        .irq_nm_i      (1'b0),
-
-        .scramble_key_valid_i('0),
-        .scramble_key_i      ('0),
-        .scramble_nonce_i    ('0),
-        .scramble_req_o      (),
-
-        .debug_req_i        (1'b0),
-        .crash_dump_o       (),
-        .double_fault_seen_o(),
-
-        .fetch_enable_i        (ibex_pkg::IbexMuBiOn),
-        .alert_minor_o         (),
-        .alert_major_internal_o(),
-        .alert_major_bus_o     (),
-        .core_sleep_o          (),
-
-        .lockstep_cmp_en_o(),
-
-        .data_req_shadow_o       (),
-        .data_we_shadow_o        (),
-        .data_be_shadow_o        (),
-        .data_addr_shadow_o      (),
-        .data_wdata_shadow_o     (),
-        .data_wdata_intg_shadow_o(),
-
-        .instr_req_shadow_o (),
-        .instr_addr_shadow_o()
+        .BranchPredictor     (BranchPredictor)
+    ) i_ibex_wrapper (
+        .clk_i      (i_clk),
+        .rst_i      (i_rst),
+        .irq_i      (irq_i),
+        .instr_dport(instr_dport),
+        .data_dport (data_dport)
     );
-
-    assign clk_i             = i_clk;
-    assign rst_i             = i_rst;
-    assign data_dport.rready = 1;
 
 
     // ------------------------------------------------------------------------
+    logic clk_i;
+    logic rst_i;
+    assign clk_i = i_clk;
+    assign rst_i = i_rst;
 
-    obi_if instr_dport ();
     dport_ram #(
         .ADDR_WIDTH(17)
     ) i_instr_ram (
@@ -221,7 +84,6 @@ module tb_ibex (
         .dport(instr_dport)
     );
 
-    obi_if data_dport ();
     obi_if segments[dport_pkg::N_SEGMENTS] ();
 
     dport_mux i_dport_mux (
@@ -237,7 +99,7 @@ module tb_ibex (
         .clk_i       (clk_i),
         .rst_i       (rst_i),
         .dport       (segments[0]),
-        .intr_o      (timer_irq),
+        .intr_o      (irq_i[7]),
         .clear_intr_i(0)
     );
 
@@ -272,24 +134,13 @@ module tb_ibex (
         input [31:0] addr;
         input [7:0] data;
         begin
-            //$display("ITCM: %08X: %08X", addr, data);
-            case (addr[1:0])
-                2'd0: i_instr_ram.mem[addr/4][7:0] = data;
-                2'd1: i_instr_ram.mem[addr/4][15:8] = data;
-                2'd2: i_instr_ram.mem[addr/4][23:16] = data;
-                2'd3: i_instr_ram.mem[addr/4][31:24] = data;
-            endcase
+            i_instr_ram.write(addr, data);
         end
     endfunction
-    function [7:0] read_itcm;  /*verilator public*/
+    function static bit [7:0] read_itcm;  /*verilator public*/
         input [31:0] addr;
         begin
-            case (addr[1:0])
-                2'd0: read_itcm = i_instr_ram.mem[addr/4][7:0];
-                2'd1: read_itcm = i_instr_ram.mem[addr/4][15:8];
-                2'd2: read_itcm = i_instr_ram.mem[addr/4][23:16];
-                2'd3: read_itcm = i_instr_ram.mem[addr/4][31:24];
-            endcase
+            read_itcm = i_instr_ram.read(addr);
         end
     endfunction
 
@@ -297,24 +148,13 @@ module tb_ibex (
         input [31:0] addr;
         input [7:0] data;
         begin
-            //$display("DTCM: %08X: %08X", addr, data);
-            case (addr[1:0])
-                2'd0: i_dport_dtcm.mem[addr/4][7:0] = data;
-                2'd1: i_dport_dtcm.mem[addr/4][15:8] = data;
-                2'd2: i_dport_dtcm.mem[addr/4][23:16] = data;
-                2'd3: i_dport_dtcm.mem[addr/4][31:24] = data;
-            endcase
+            i_dport_dtcm.write(addr, data);
         end
     endfunction
-    function [7:0] read_dtcm;  /*verilator public*/
+    function static bit [7:0] read_dtcm;  /*verilator public*/
         input [31:0] addr;
         begin
-            case (addr[1:0])
-                2'd0: read_dtcm = i_dport_dtcm.mem[addr/4][7:0];
-                2'd1: read_dtcm = i_dport_dtcm.mem[addr/4][15:8];
-                2'd2: read_dtcm = i_dport_dtcm.mem[addr/4][23:16];
-                2'd3: read_dtcm = i_dport_dtcm.mem[addr/4][31:24];
-            endcase
+            read_dtcm = i_dport_dtcm.read(addr);
         end
     endfunction
 

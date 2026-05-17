@@ -163,7 +163,8 @@ verilate(tb_ibex
         ${VERILOG_AXI}/rtl/axi_ram_rd_if.v
         #${VERILOG_AXI}/rtl/axil_ram.v
         #${VERILOG_AXI}/rtl/axi_ram.v
-
+        #
+        ibex_wrapper.sv
         tb_ibex.sv
         tb_ibex.vlt
         #

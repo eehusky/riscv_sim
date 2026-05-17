@@ -42,7 +42,7 @@ module tb_cv32e40p (
         .FPU_OTHERS_LAT(FPU_OTHERS_LAT),
         .ZFINX(ZFINX),
         .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS)
-    ) i_biriscv_wrapper (
+    ) i_cv32e40p_wrapper (
         .clk_i      (i_clk),
         .rst_i      (i_rst),
         .irq_i      (irq_i),
