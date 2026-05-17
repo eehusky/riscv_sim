@@ -69,7 +69,7 @@ set(PROJECT_C_FLAGS
     -MD
     -mcmodel=medany
     -mstrict-align
-    -DITERATIONS=100
+    -DITERATIONS=10
     -DCLOCKS_PER_SEC=100000000
     -DHAS_FLOAT=0
     -DMULTITHREAD=1

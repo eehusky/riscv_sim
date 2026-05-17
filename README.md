@@ -22,6 +22,7 @@ Notes and observations made in the pursuit of finding the perfect RISCV core.  T
     * Vector Interrupts dont work
     * wfi doesnt wait for anything
     * mtime is csr based instead of mm and isnt 64 bits
+    * requires modification to breakout external timer interrupt
     * the dcache line invalidate extension doesnt seem to work correctly
         * ```asm volatile("csrw pmpcfg2, %0" : : "r"(addr));```
         * this means when something is DMA'd into a cacheable region of ram you need to do a full dcache flush inorder to retrieve the contents instead of just invalidating the region of interest.
@@ -101,6 +102,7 @@ Memory: 0x80004150 - 0x8000a3e7 (Size=24KB) [.bss]
 | chipsalliance |             |
 |---------------|-------------|
 | [VeeR EH1](https://github.com/chipsalliance/Cores-VeeR-EH1) | RV32IMC     |
+| [VeeR EH2](https://github.com/chipsalliance/Cores-VeeR-EH2) | RV32IMC     |
 | [VeeR EL2](https://github.com/chipsalliance/Cores-VeeR-EL2) |             |
 
 | AleksandarLilic |             |
