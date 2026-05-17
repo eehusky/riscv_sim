@@ -231,7 +231,7 @@ verilate(tb_cv32e40p
         ##
         #${BIRISCV}/src/core/biriscv_trace_sim.v
         #
-        cv32e40p_wrapper.sv
+        ../cv32e40p_wrapper.sv
         tb_cv32e40p.sv
         tb_cv32e40p.vlt
         #

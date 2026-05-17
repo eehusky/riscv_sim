@@ -156,7 +156,7 @@ verilate(tb_biriscv
         #${VERILOG_AXI}/rtl/axi_ram.v
 
         ##
-        biriscv_wrapper.sv
+        ../biriscv_wrapper.sv
         tb_biriscv.sv
         #
     VERILATOR_ARGS
