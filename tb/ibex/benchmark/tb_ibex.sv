@@ -86,7 +86,7 @@ module tb_ibex (
 
     obi_if segments[dport_pkg::N_SEGMENTS] ();
 
-    dport_mux i_dport_mux (
+    dport_demux i_dport_demux (
         .clk_i   (clk_i),
         .rst_i   (rst_i),
         .cpu     (data_dport),

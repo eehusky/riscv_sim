@@ -25,3 +25,9 @@
 [submodule "cores/ibex"]
 	path = cores/ibex
 	url = git@github.com:lowRISC/ibex.git
+[submodule "cores/Cores-VeeR-EL2"]
+	path = cores/Cores-VeeR-EL2
+	url = git@github.com:chipsalliance/Cores-VeeR-EL2.git
+[submodule "cores/riscv-dbg"]
+	path = cores/riscv-dbg
+	url = git@github.com:pulp-platform/riscv-dbg.git

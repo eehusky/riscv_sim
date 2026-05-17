@@ -1,4 +1,4 @@
-module dport_mux #(
+module dport_demux #(
     parameter N_SEGMENTS = dport_pkg::N_SEGMENTS,
     parameter SLAVE_ADDR = dport_pkg::SLAVE_ADDR,
     parameter SLAVE_MASK = dport_pkg::SLAVE_MASK
@@ -214,5 +214,5 @@ module dport_mux #(
         assert ((decode_valid && |req_grant) || ~decode_valid);
     end
 
-endmodule : dport_mux
+endmodule : dport_demux
 
