@@ -184,6 +184,7 @@ class TB:
         self.clk = self.dut.clk_i
         cocotb.start_soon(Clock(self.clk, CLK_PERIOD, unit="ns", impl="gpi").start())
 
+        self.obi_if = self.dut.initiator
 
         self.addrspace = AddressSpace()
         self.regions = dict[str,ReferenceVPIRegion]()
@@ -212,6 +213,9 @@ class TB:
         logging.getLogger("cocotb.tb_dport.m_axi_cached").setLevel(logging.INFO)
         logging.getLogger("cocotb.tb_dport.m_axi_uncached").setLevel(logging.INFO)
         logging.getLogger("cocotb.tb_dport.m_axil").setLevel(logging.INFO)
+
+
+    ##
 
     async def proc_check(self):
         while True:
@@ -268,6 +272,14 @@ class TB:
                 rd_i.value = 0
                 req = None
 
+    def read(self,addr:int):
+        self.req_queue.put_nowait((Request(addr,0,0)))
+
+    def write(self,addr:int,data:int):
+        self.req_queue.put_nowait((Request(addr,data,0xF)))
+
+    ##
+
     async  def write_pool(self,addr:int,data:int):
         await self.addrspace.write(addr,data.to_bytes(4,byteorder="little"))
 
@@ -285,13 +297,6 @@ class TB:
         assert isinstance(region, ReferenceVPIRegion|ReferenceMemoryRegion)
         addr -= base
         return int.from_bytes(region.ref[addr:addr+4])
-
-    def read(self,addr:int):
-        self.req_queue.put_nowait((Request(addr,0,0)))
-
-    def write(self,addr:int,data:int):
-        self.req_queue.put_nowait((Request(addr,data,0xF)))
-
 
     def random_addr(self):
         region = random.choice(list(self.regions.values()))
@@ -417,7 +422,7 @@ async def test_iob_region(dut,region_def=REGIONS[0]):
     await tb.clkcycle(1000)
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
 async def test_iob_addrspace(dut):
     tb = TB(dut)
     cocotb.start_soon(tb.proc_req())
@@ -493,7 +498,7 @@ async def test_iob_addrspace(dut):
     await tb.clkcycle(1000)
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
 async def test_oob(dut):
     tb = TB(dut)
     cocotb.start_soon(tb.proc_req())

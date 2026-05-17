@@ -46,25 +46,25 @@ module tb_dport ();
     logic        mem_writeback_i;
     logic        mem_flush_i;
 
-    obi_if cpu ();
+    obi_if initiator ();
 
-    assign mem_accept_o  = cpu.gnt;
-    assign mem_ack_o     = cpu.rvalid;
-    assign mem_data_rd_o = cpu.rdata;
-    assign mem_error_o   = cpu.err;
-    assign cpu.addr      = cpu.req ? mem_addr_i : 0;
-    assign cpu.wdata     = cpu.req ? mem_data_wr_i : 0;
-    assign cpu.be        = cpu.req ? mem_wr_i : 0;
-    assign cpu.we        = cpu.req && |mem_wr_i;
-    assign cpu.req       = |mem_wr_i || mem_rd_i;
-    assign cpu.rready    = 1;
+    assign mem_accept_o  = initiator.gnt;
+    assign mem_ack_o     = initiator.rvalid;
+    assign mem_data_rd_o = initiator.rdata;
+    assign mem_error_o   = initiator.err;
+    assign initiator.addr      = initiator.req ? mem_addr_i : 0;
+    assign initiator.wdata     = initiator.req ? mem_data_wr_i : 0;
+    assign initiator.be        = initiator.req ? mem_wr_i : 0;
+    assign initiator.we        = initiator.req && |mem_wr_i;
+    assign initiator.req       = |mem_wr_i || mem_rd_i;
+    assign initiator.rready    = 1;
 
     obi_if segments [N_SEGMENTS] ();
 
     dport_demux i_dport_demux (
         .clk_i   (clk_i),
         .rst_i   (rst_i),
-        .cpu     (cpu),
+        .cpu     (initiator),
         .segments(segments)
     );
 

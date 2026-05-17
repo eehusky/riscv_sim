@@ -21,8 +21,8 @@ find_package(SystemCLanguage
 
 set(CMAKE_CXX_STANDARD          ${SystemC_CXX_STANDARD})
 set(CMAKE_CXX_STANDARD_REQUIRED ${SystemC_CXX_STANDARD_REQUIRED})
-set(CMAKE_CXX_FLAGS             "-Og -fstrict-aliasing -march=native -Wall -Wno-sign-compare -Wno-unused-variable -Wno-bool-operation")
-set(CMAKE_C_FLAGS               "-Og -fstrict-aliasing -march=native -Wall -Wno-sign-compare -Wno-unused-variable -Wno-bool-operation")
+set(CMAKE_CXX_FLAGS             "-Og -fstrict-aliasing -march=native -Wall -Wno-maybe-uninitialized -Wno-sign-compare -Wno-unused-variable -Wno-bool-operation")
+set(CMAKE_C_FLAGS               "-Og -fstrict-aliasing -march=native -Wall -Wno-maybe-uninitialized -Wno-sign-compare -Wno-unused-variable -Wno-bool-operation")
 
 
 ############################################################
