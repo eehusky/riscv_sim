@@ -16,7 +16,7 @@ print = get_console().print
 from tb_dport import TB, REGIONS, OBI, random_int, INITIATORS
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
 @cocotb.parametrize(region_def=REGIONS)
 @cocotb.parametrize(init_def=INITIATORS)
 async def test_demux_by_region(dut,region_def=REGIONS[0], init_def=INITIATORS[1]):
@@ -89,7 +89,7 @@ async def test_demux_by_region(dut,region_def=REGIONS[0], init_def=INITIATORS[1]
     await tb.clkcycle(1000)
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
 async def test_demux_addrspace(dut):
     tb = TB(dut)
     obis = [

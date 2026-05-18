@@ -1,43 +1,43 @@
 //import obi_pkg::*;
 module tb_dport ();
-    localparam bit [31:0] N_SEGMENTS = obi_pkg::N_SEGMENTS;
-    localparam bit [31:0] LGN_SEGMENTS = $clog2(obi_pkg::N_SEGMENTS);
+    localparam bit [31:0] N_TARGETS = obi_pkg::N_TARGETS;
+    localparam bit [31:0] N_INITIATORS = obi_pkg::N_INITIATORS;
     //
-    localparam bit [31:0] MTIME_ADDR = obi_pkg::MTIME_ADDR;
-    localparam bit [31:0] MTIME_SIZE = obi_pkg::MTIME_SIZE;
-    localparam bit [31:0] MTIME_WIDTH = obi_pkg::MTIME_WIDTH;
-    localparam bit [31:0] MTIME_MASK = obi_pkg::MTIME_MASK;
-    //
-    localparam bit [31:0] SIMCTRL_ADDR = obi_pkg::SIMCTRL_ADDR;
-    localparam bit [31:0] SIMCTRL_SIZE = obi_pkg::SIMCTRL_SIZE;
-    localparam bit [31:0] SIMCTRL_WIDTH = obi_pkg::SIMCTRL_WIDTH;
-    localparam bit [31:0] SIMCTRL_MASK = obi_pkg::SIMCTRL_MASK;
-    //
-    localparam bit [31:0] DTCM_ADDR = obi_pkg::DTCM_ADDR;
-    localparam bit [31:0] DTCM_SIZE = obi_pkg::DTCM_SIZE;
-    localparam bit [31:0] DTCM_WIDTH = obi_pkg::DTCM_WIDTH;
-    localparam bit [31:0] DTCM_MASK = obi_pkg::DTCM_MASK;
-    //
-    localparam bit [31:0] CACHED_ADDR = obi_pkg::CACHED_ADDR;
-    localparam bit [31:0] CACHED_SIZE = obi_pkg::CACHED_SIZE;
-    localparam bit [31:0] CACHED_WIDTH = obi_pkg::CACHED_WIDTH;
-    localparam bit [31:0] CACHED_MASK = obi_pkg::CACHED_MASK;
-    //
-    localparam bit [31:0] UNCACHED_ADDR = obi_pkg::UNCACHED_ADDR;
-    localparam bit [31:0] UNCACHED_SIZE = obi_pkg::UNCACHED_SIZE;
-    localparam bit [31:0] UNCACHED_WIDTH = obi_pkg::UNCACHED_WIDTH;
-    localparam bit [31:0] UNCACHED_MASK = obi_pkg::UNCACHED_MASK;
-    //
-    localparam bit [31:0] AXIL_ADDR = obi_pkg::AXIL_ADDR;
-    localparam bit [31:0] AXIL_SIZE = obi_pkg::AXIL_SIZE;
-    localparam bit [31:0] AXIL_WIDTH = obi_pkg::AXIL_WIDTH;
-    localparam bit [31:0] AXIL_MASK = obi_pkg::AXIL_MASK;
+    //localparam bit [31:0] MTIME_ADDR = obi_pkg::MTIME_ADDR;
+    //localparam bit [31:0] MTIME_SIZE = obi_pkg::MTIME_SIZE;
+    //localparam bit [31:0] MTIME_WIDTH = obi_pkg::MTIME_WIDTH;
+    //localparam bit [31:0] MTIME_MASK = obi_pkg::MTIME_MASK;
+    ////
+    //localparam bit [31:0] SIMCTRL_ADDR = obi_pkg::SIMCTRL_ADDR;
+    //localparam bit [31:0] SIMCTRL_SIZE = obi_pkg::SIMCTRL_SIZE;
+    //localparam bit [31:0] SIMCTRL_WIDTH = obi_pkg::SIMCTRL_WIDTH;
+    //localparam bit [31:0] SIMCTRL_MASK = obi_pkg::SIMCTRL_MASK;
+    ////
+    //localparam bit [31:0] DTCM_ADDR = obi_pkg::DTCM_ADDR;
+    //localparam bit [31:0] DTCM_SIZE = obi_pkg::DTCM_SIZE;
+    //localparam bit [31:0] DTCM_WIDTH = obi_pkg::DTCM_WIDTH;
+    //localparam bit [31:0] DTCM_MASK = obi_pkg::DTCM_MASK;
+    ////
+    //localparam bit [31:0] CACHED_ADDR = obi_pkg::CACHED_ADDR;
+    //localparam bit [31:0] CACHED_SIZE = obi_pkg::CACHED_SIZE;
+    //localparam bit [31:0] CACHED_WIDTH = obi_pkg::CACHED_WIDTH;
+    //localparam bit [31:0] CACHED_MASK = obi_pkg::CACHED_MASK;
+    ////
+    //localparam bit [31:0] UNCACHED_ADDR = obi_pkg::UNCACHED_ADDR;
+    //localparam bit [31:0] UNCACHED_SIZE = obi_pkg::UNCACHED_SIZE;
+    //localparam bit [31:0] UNCACHED_WIDTH = obi_pkg::UNCACHED_WIDTH;
+    //localparam bit [31:0] UNCACHED_MASK = obi_pkg::UNCACHED_MASK;
+    ////
+    //localparam bit [31:0] AXIL_ADDR = obi_pkg::AXIL_ADDR;
+    //localparam bit [31:0] AXIL_SIZE = obi_pkg::AXIL_SIZE;
+    //localparam bit [31:0] AXIL_WIDTH = obi_pkg::AXIL_WIDTH;
+    //localparam bit [31:0] AXIL_MASK = obi_pkg::AXIL_MASK;
 
     logic rst_i;
     logic clk_i;
 
-    localparam int N_INITIATORS = 4;
-    localparam int N_TARGETS = 6;
+    //localparam int N_INITIATORS = 4;
+    //localparam int N_TARGETS = 6;
 
     obi_if #(.ID_WIDTH(2)) xbar_initiators[N_INITIATORS] ();
     obi_if #(.ID_WIDTH(2+$clog2(N_INITIATORS))) xbar_targets[N_TARGETS] ();
@@ -75,6 +75,16 @@ module tb_dport ();
 
     // ------------------------------------------------------------------------
 
+    obi_ram #(
+        .ADDR_WIDTH(obi_pkg::ITCM_WIDTH)
+    ) i_obi_itcm (
+        .clk_i(clk_i),
+        .rst_i(rst_i),
+        .dport(xbar_targets[2])
+    );
+
+    // ------------------------------------------------------------------------
+
     axi_if s_axi_dtcm ();
     obi_dtcm #(
         .DATA_WIDTH       (s_axi_dtcm.DATA_WIDTH),
@@ -86,7 +96,7 @@ module tb_dport ();
     ) i_obi_dtcm (
         .a_clk(clk_i),
         .a_rst(rst_i),
-        .dport(xbar_targets[2]),
+        .dport(xbar_targets[3]),
         .s_axi(s_axi_dtcm)
     );
 
@@ -96,7 +106,7 @@ module tb_dport ();
     obi2axi i_dport2axi_cached (
         .clk_i(clk_i),
         .rst_i(rst_i),
-        .dport(xbar_targets[3]),
+        .dport(xbar_targets[4]),
         .m_axi(m_axi_cached)
     );
 
@@ -151,7 +161,7 @@ module tb_dport ();
     obi2axi i_dport2axi_uncached (
         .clk_i(clk_i),
         .rst_i(rst_i),
-        .dport(xbar_targets[4]),
+        .dport(xbar_targets[5]),
         .m_axi(m_axi_uncached)
     );
 
@@ -206,7 +216,7 @@ module tb_dport ();
     obi2axil i_dport2axil (
         .clk_i (clk_i),
         .rst_i (rst_i),
-        .dport (xbar_targets[5]),
+        .dport (xbar_targets[6]),
         .m_axil(m_axil)
     );
 
@@ -238,4 +248,16 @@ module tb_dport ();
         .s_axil_rvalid (m_axil.rvalid),
         .s_axil_rready (m_axil.rready)
     );
+
+    // ------------------------------------------------------------------------
+
+    obi_ram #(
+        .ADDR_WIDTH(obi_pkg::DEBUG_WIDTH)
+    ) i_obi_debug (
+        .clk_i(clk_i),
+        .rst_i(rst_i),
+        .dport(xbar_targets[7])
+    );
+
+
 endmodule : tb_dport

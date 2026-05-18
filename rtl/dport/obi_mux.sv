@@ -1,5 +1,5 @@
 module obi_mux #(
-    parameter N_SEGMENTS = obi_pkg::N_SEGMENTS
+    parameter N_SEGMENTS
 ) (
     input logic clk_i,
     input logic rst_i,

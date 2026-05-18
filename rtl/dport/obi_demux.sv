@@ -1,7 +1,7 @@
 module obi_demux #(
-    parameter N_SEGMENTS = obi_pkg::N_SEGMENTS,
-    parameter SLAVE_ADDR = obi_pkg::SLAVE_ADDR,
-    parameter SLAVE_MASK = obi_pkg::SLAVE_MASK
+    parameter N_SEGMENTS,
+    parameter SLAVE_ADDR,
+    parameter SLAVE_MASK
 ) (
     input logic clk_i,
     input logic rst_i,
