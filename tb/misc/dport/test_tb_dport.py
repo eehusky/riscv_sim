@@ -1,34 +1,19 @@
 from __future__ import annotations
-import logging
 
-import enum
-import mmap
-from typing import NamedTuple
 import warnings
-from collections import deque
 
-from cocotbext.axi.axi_master import AxiReadResp, AxiWriteResp
 
 warnings.simplefilter("ignore")
 
-import asyncio
-import os
 import random
 
 import cocotb
-from cocotb.clock import Clock
-from cocotb.queue import Queue, QueueEmpty
-from cocotb.handle import HierarchyObject, Immediate
-from cocotb.triggers import ClockCycles, Combine, RisingEdge, ValueChange
-from cocotbext.axi import AddressSpace, AxiBus, AxiLiteBus, AxiResp, AxiSlave, AxiMaster, AxiLiteSlave, MemoryInterface, MemoryRegion, Pool, Region, Window
 from rich import get_console
-from rich.text import Text
-from rich.tree import Tree
 
 _print = print
 print = get_console().print
 
-from tb_dport import TB, REGIONS, OBI, random_int, random_addr
+from tb_dport import TB, REGIONS, OBI, random_int
 
 
 @cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
