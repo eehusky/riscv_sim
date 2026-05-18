@@ -108,7 +108,7 @@ verilate(Vtop
         #-Wno-WIDTHTRUNC
         #--runtime-debug
         --report-unoptflat
-        #--Wall
+        --Wall
         -CFLAGS "${CMAKE_CXX_FLAGS}"
         --timing
         --vpi

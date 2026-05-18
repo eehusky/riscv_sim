@@ -11,7 +11,6 @@ module dport_ram #(
 
     logic   [WORD_ADDR_WIDTH-1:0] word_addr;
     logic   [ dport.DATA_WIDTH-1:0] mem       [(2**WORD_ADDR_WIDTH)-1];
-    integer                       i;
 
     assign word_addr = dport.addr[ADDR_WIDTH-1:ADDR_WIDTH-WORD_ADDR_WIDTH];
 
@@ -33,7 +32,7 @@ module dport_ram #(
                 dport.rvalid <= 1;
                 dport.rdata  <= 0;
                 dport.rid    <= dport.aid;
-                for (i = 0; i < dport.STRB_WIDTH; i = i + 1) begin
+                for (int i = 0; i < dport.STRB_WIDTH; i = i + 1) begin
                     if (dport.be[i]) begin
                         mem[word_addr][8*i+:8] <= dport.wdata[8*i+:8];
                     end

@@ -187,13 +187,11 @@ module dport_dtcm #(
     wire [VALID_ADDR_WIDTH-1:0] word_addr_b;
     assign word_addr_b = ram_b_cmd_addr[ADDR_WIDTH-1:ADDR_WIDTH-VALID_ADDR_WIDTH];
 
-    integer i, j;
-
     initial begin
         // two nested loops for smaller number of iterations per loop
         // workaround for synthesizer complaints about large loop counts
-        for (i = 0; i < 2 ** VALID_ADDR_WIDTH; i = i + 2 ** (VALID_ADDR_WIDTH / 2)) begin
-            for (j = i; j < i + 2 ** (VALID_ADDR_WIDTH / 2); j = j + 1) begin
+        for (int i = 0; i < 2 ** VALID_ADDR_WIDTH; i = i + 2 ** (VALID_ADDR_WIDTH / 2)) begin
+            for (int j = i; j < i + 2 ** (VALID_ADDR_WIDTH / 2); j = j + 1) begin
                 mem[j] = 0;
             end
         end
@@ -217,7 +215,7 @@ module dport_dtcm #(
                 dport.rvalid <= 1;
                 dport.rdata  <= 0;
                 dport.rid    <= dport.aid;
-                for (i = 0; i < 4; i = i + 1) begin
+                for (int i = 0; i < 4; i = i + 1) begin
                     if (dport.be[i]) begin
                         mem[word_addr_a][8*i+:8] <= dport.wdata[8*i+:8];
                     end
@@ -241,7 +239,7 @@ module dport_dtcm #(
             ram_b_rd_resp_last_reg  <= ram_b_cmd_last;
             ram_b_rd_resp_valid_reg <= 1'b1;
         end else if (ram_b_cmd_wr_en && ram_b_cmd_ready) begin
-            for (i = 0; i < WORD_WIDTH; i = i + 1) begin
+            for (int i = 0; i < WORD_WIDTH; i = i + 1) begin
                 if (ram_b_cmd_wr_strb[i]) begin
                     mem[word_addr_b][WORD_SIZE*i+:WORD_SIZE] <= ram_b_cmd_wr_data[WORD_SIZE*i+:WORD_SIZE];
                 end

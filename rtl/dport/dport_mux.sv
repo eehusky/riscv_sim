@@ -10,6 +10,12 @@ module dport_mux #(
     localparam int NS = N_SEGMENTS;
     localparam int LGNS = $clog2(N_SEGMENTS);
 
+    generate
+        if (target.ID_WIDTH != (initiators.ID_WIDTH + LGNS))begin: g_id_check
+            $error("Mismatched ID Width %d %d", target.ID_WIDTH, initiators.ID_WIDTH + LGNS);
+        end
+    endgenerate
+
     typedef struct packed {
         logic [initiators.ADDR_WIDTH-1:0] addr;
         logic                             we;
@@ -93,13 +99,15 @@ module dport_mux #(
     //);
 
     logic [LGNS-1:0] rid;
+    logic [initiators.ID_WIDTH-1:0] target_rid;
     assign rid = target.rid[target.ID_WIDTH-1:initiators.ID_WIDTH];
+    assign target_rid = target.rid[initiators.ID_WIDTH-1:0];
     generate
         for (genvar i = 0; i < NS; i++) begin : g_resp
             assign initiators[i].rvalid = target.rvalid && rid == initiators.ID_WIDTH'(i);
             assign initiators[i].rdata  = initiators[i].rvalid ? target.rdata : 0;
             assign initiators[i].err    = initiators[i].rvalid ? target.err : 0;
-            assign initiators[i].rid    = initiators[i].rvalid ? target.rid[initiators.ID_WIDTH-1:0] : 0;
+            assign initiators[i].rid    = initiators[i].rvalid ? target_rid : 0;
         end
     endgenerate
 endmodule : dport_mux

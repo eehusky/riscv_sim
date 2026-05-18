@@ -34,9 +34,9 @@ module tb_dport ();
     logic clk_i;
 
 
-    obi_if #(.ID_WIDTH(2)) initiators[4] ();
-    obi_if #(.ID_WIDTH(2+LGN_SEGMENTS-1)) target ();
-    dport_mux #(4) i_dport_mux (
+    obi_if #(.ID_WIDTH(2)) initiators[3] ();
+    obi_if #(.ID_WIDTH(2+3-1)) target ();
+    dport_mux #(3) i_dport_mux (
         .rst_i,
         .clk_i,
         .initiators,

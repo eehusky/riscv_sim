@@ -359,7 +359,7 @@ class Range(NamedTuple):
         return self.low+self.size-1
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
 @cocotb.parametrize(region_def=REGIONS)
 async def test_demux_by_region(dut,region_def=REGIONS[0]):
     tb = TB(dut)
@@ -429,7 +429,7 @@ async def test_demux_by_region(dut,region_def=REGIONS[0]):
     await tb.clkcycle(1000)
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
 async def test_demux_addrspace(dut):
     tb = TB(dut)
     obi = OBI(dut.initiator, tb, 0)
@@ -496,7 +496,7 @@ async def test_demux_addrspace(dut):
     await tb.clkcycle(1000)
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
 async def test_demux_oob(dut):
     tb = TB(dut)
     obi = OBI(dut.initiator, tb, 0)
@@ -534,7 +534,7 @@ async def test_mux_1(dut):
         OBI(dut.initiators[0], tb, 0),
         OBI(dut.initiators[1], tb, 1),
         OBI(dut.initiators[2], tb, 2),
-        OBI(dut.initiators[3], tb, 3),
+        #OBI(dut.initiators[3], tb, 3),
     ]
     #obi = obis[1]
     name, _,_  = REGIONS[0]
