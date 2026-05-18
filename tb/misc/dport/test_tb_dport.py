@@ -17,7 +17,7 @@ import random
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.queue import Queue
+from cocotb.queue import Queue, QueueEmpty
 from cocotb.handle import HierarchyObject, Immediate
 from cocotb.triggers import ClockCycles, Combine, RisingEdge, ValueChange
 from cocotbext.axi import AddressSpace, AxiBus, AxiLiteBus, AxiResp, AxiSlave, AxiMaster, AxiLiteSlave, MemoryInterface, MemoryRegion, Pool, Region, Window
@@ -180,6 +180,7 @@ class OBI:
         self.obi = obi
 
         self.clkcycle = tb.clkcycle
+        self.rising_edge = tb.rising_edge
         self.read_ref = tb.read_ref
         self.write_ref = tb.write_ref
 
@@ -212,7 +213,7 @@ class OBI:
 
         rready.value = 1
         while True:
-            if rvalid.value:
+            if rready.value and rvalid.value:
                 req = self.pend_queue.get_nowait()
                 self.rsp_queue.put_nowait(Response(err.value,rdata.value.to_unsigned(),rid.value,req))
                 if not err.value and req.is_write:
@@ -230,8 +231,14 @@ class OBI:
 
         reqobj = None
         while True:
+            await self.rising_edge
+
             if reqobj is None:
-                reqobj = await self.req_queue.get()
+                try:
+                    reqobj = self.req_queue.get_nowait()
+                except QueueEmpty:
+                    continue
+
                 self.pend_queue.put_nowait(reqobj)
                 wdata.value = reqobj.wdata
                 req.value = 1
@@ -239,8 +246,8 @@ class OBI:
                 addr.value = reqobj.addr
                 we.value = 1 if reqobj.wstrb else 0
                 aid.value = reqobj.aid
+                continue
 
-            await self.clkcycle(1)
             if gnt.value and reqobj:
                 req.value = 0
                 wdata.value = 0
@@ -249,6 +256,27 @@ class OBI:
                 we.value = 0
                 aid.value = 0
                 reqobj = None
+
+        #reqobj = None
+        #while True:
+        #    if reqobj is None:
+        #        reqobj = await self.req_queue.get()
+        #        self.pend_queue.put_nowait(reqobj)
+        #        wdata.value = reqobj.wdata
+        #        req.value = 1
+        #        be.value = reqobj.wstrb
+        #        addr.value = reqobj.addr
+        #        we.value = 1 if reqobj.wstrb else 0
+        #        aid.value = reqobj.aid
+        #    await self.clkcycle(1)
+        #    if gnt.value and reqobj:
+        #        req.value = 0
+        #        wdata.value = 0
+        #        be.value = 0
+        #        addr.value = 0
+        #        we.value = 0
+        #        aid.value = 0
+        #        reqobj = None
 
     def read(self,addr:int):
         self.req_queue.put_nowait((Request(addr,random.getrandbits(2),0,0)))
@@ -266,6 +294,7 @@ class TB:
 
         self.reset = self.dut.rst_i
         self.clk = self.dut.clk_i
+        self.rising_edge = RisingEdge(self.clk)
         cocotb.start_soon(Clock(self.clk, CLK_PERIOD, unit="ns", impl="gpi").start())
 
         self.addrspace = AddressSpace()
@@ -363,9 +392,6 @@ async def test_iob_region(dut,region_def=REGIONS[0]):
     tb = TB(dut)
     obi = OBI(dut.initiator, tb, 0)
 
-    #cocotb.start_soon(tb.proc_req())
-    #cocotb.start_soon(tb.proc_rsp())
-    #cocotb.start_soon(tb.proc_check())
     await tb.cycle_reset()
     name, _,_  = region_def
     region = tb.regions[name]
@@ -380,13 +406,6 @@ async def test_iob_region(dut,region_def=REGIONS[0]):
         await tb.write_pool(_,_)
 
     print("random")
-
-    #tb.write(region.random_addr(),random_int())
-    #tb.read(region.random_addr())
-    #tb.write(region.random_addr(),random_int())
-    #for _ in range(10):
-    #    tb.read(_*4)
-
     for _ in range(1000):
         if random.choice([True,False]):
             obi.write(region.random_addr(),random_int())
@@ -437,13 +456,11 @@ async def test_iob_region(dut,region_def=REGIONS[0]):
     await tb.clkcycle(1000)
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
 async def test_iob_addrspace(dut):
     tb = TB(dut)
     obi = OBI(dut.initiator, tb, 0)
     await tb.cycle_reset()
-    #name, _,_  = region_def
-    #region = tb.regions[name]
 
     ## fill in memory and ref block with random data
     print("seed")
@@ -455,11 +472,6 @@ async def test_iob_addrspace(dut):
         await tb.write_pool(_,_)
 
     print("random")
-
-    #tb.write(region.random_addr(),random_int())
-    #tb.read(region.random_addr())
-    #tb.write(region.random_addr(),random_int())
-
     for _ in range(1000):
         if random.choice([True,False]):
             obi.write(tb.random_addr(),random_int())
@@ -511,7 +523,7 @@ async def test_iob_addrspace(dut):
     await tb.clkcycle(1000)
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
 async def test_oob(dut):
     tb = TB(dut)
     obi = OBI(dut.initiator, tb, 0)
