@@ -97,7 +97,7 @@ verilate(Vtop
         #
         ${COCOTB_SHARE}/lib/verilator/verilator.cpp
     VERILATOR_ARGS
-        -O1
+        -O3
         #--main
         --timescale-override 1ns/1ns
         #--x-assign fast
