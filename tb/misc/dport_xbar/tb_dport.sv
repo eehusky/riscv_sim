@@ -1,37 +1,37 @@
-//import dport_pkg::*;
+//import obi_pkg::*;
 module tb_dport ();
-    localparam bit [31:0] N_SEGMENTS = dport_pkg::N_SEGMENTS;
-    localparam bit [31:0] LGN_SEGMENTS = $clog2(dport_pkg::N_SEGMENTS);
+    localparam bit [31:0] N_SEGMENTS = obi_pkg::N_SEGMENTS;
+    localparam bit [31:0] LGN_SEGMENTS = $clog2(obi_pkg::N_SEGMENTS);
     //
-    localparam bit [31:0] MTIME_ADDR = dport_pkg::MTIME_ADDR;
-    localparam bit [31:0] MTIME_SIZE = dport_pkg::MTIME_SIZE;
-    localparam bit [31:0] MTIME_WIDTH = dport_pkg::MTIME_WIDTH;
-    localparam bit [31:0] MTIME_MASK = dport_pkg::MTIME_MASK;
+    localparam bit [31:0] MTIME_ADDR = obi_pkg::MTIME_ADDR;
+    localparam bit [31:0] MTIME_SIZE = obi_pkg::MTIME_SIZE;
+    localparam bit [31:0] MTIME_WIDTH = obi_pkg::MTIME_WIDTH;
+    localparam bit [31:0] MTIME_MASK = obi_pkg::MTIME_MASK;
     //
-    localparam bit [31:0] SIMCTRL_ADDR = dport_pkg::SIMCTRL_ADDR;
-    localparam bit [31:0] SIMCTRL_SIZE = dport_pkg::SIMCTRL_SIZE;
-    localparam bit [31:0] SIMCTRL_WIDTH = dport_pkg::SIMCTRL_WIDTH;
-    localparam bit [31:0] SIMCTRL_MASK = dport_pkg::SIMCTRL_MASK;
+    localparam bit [31:0] SIMCTRL_ADDR = obi_pkg::SIMCTRL_ADDR;
+    localparam bit [31:0] SIMCTRL_SIZE = obi_pkg::SIMCTRL_SIZE;
+    localparam bit [31:0] SIMCTRL_WIDTH = obi_pkg::SIMCTRL_WIDTH;
+    localparam bit [31:0] SIMCTRL_MASK = obi_pkg::SIMCTRL_MASK;
     //
-    localparam bit [31:0] DTCM_ADDR = dport_pkg::DTCM_ADDR;
-    localparam bit [31:0] DTCM_SIZE = dport_pkg::DTCM_SIZE;
-    localparam bit [31:0] DTCM_WIDTH = dport_pkg::DTCM_WIDTH;
-    localparam bit [31:0] DTCM_MASK = dport_pkg::DTCM_MASK;
+    localparam bit [31:0] DTCM_ADDR = obi_pkg::DTCM_ADDR;
+    localparam bit [31:0] DTCM_SIZE = obi_pkg::DTCM_SIZE;
+    localparam bit [31:0] DTCM_WIDTH = obi_pkg::DTCM_WIDTH;
+    localparam bit [31:0] DTCM_MASK = obi_pkg::DTCM_MASK;
     //
-    localparam bit [31:0] CACHED_ADDR = dport_pkg::CACHED_ADDR;
-    localparam bit [31:0] CACHED_SIZE = dport_pkg::CACHED_SIZE;
-    localparam bit [31:0] CACHED_WIDTH = dport_pkg::CACHED_WIDTH;
-    localparam bit [31:0] CACHED_MASK = dport_pkg::CACHED_MASK;
+    localparam bit [31:0] CACHED_ADDR = obi_pkg::CACHED_ADDR;
+    localparam bit [31:0] CACHED_SIZE = obi_pkg::CACHED_SIZE;
+    localparam bit [31:0] CACHED_WIDTH = obi_pkg::CACHED_WIDTH;
+    localparam bit [31:0] CACHED_MASK = obi_pkg::CACHED_MASK;
     //
-    localparam bit [31:0] UNCACHED_ADDR = dport_pkg::UNCACHED_ADDR;
-    localparam bit [31:0] UNCACHED_SIZE = dport_pkg::UNCACHED_SIZE;
-    localparam bit [31:0] UNCACHED_WIDTH = dport_pkg::UNCACHED_WIDTH;
-    localparam bit [31:0] UNCACHED_MASK = dport_pkg::UNCACHED_MASK;
+    localparam bit [31:0] UNCACHED_ADDR = obi_pkg::UNCACHED_ADDR;
+    localparam bit [31:0] UNCACHED_SIZE = obi_pkg::UNCACHED_SIZE;
+    localparam bit [31:0] UNCACHED_WIDTH = obi_pkg::UNCACHED_WIDTH;
+    localparam bit [31:0] UNCACHED_MASK = obi_pkg::UNCACHED_MASK;
     //
-    localparam bit [31:0] AXIL_ADDR = dport_pkg::AXIL_ADDR;
-    localparam bit [31:0] AXIL_SIZE = dport_pkg::AXIL_SIZE;
-    localparam bit [31:0] AXIL_WIDTH = dport_pkg::AXIL_WIDTH;
-    localparam bit [31:0] AXIL_MASK = dport_pkg::AXIL_MASK;
+    localparam bit [31:0] AXIL_ADDR = obi_pkg::AXIL_ADDR;
+    localparam bit [31:0] AXIL_SIZE = obi_pkg::AXIL_SIZE;
+    localparam bit [31:0] AXIL_WIDTH = obi_pkg::AXIL_WIDTH;
+    localparam bit [31:0] AXIL_MASK = obi_pkg::AXIL_MASK;
 
     logic rst_i;
     logic clk_i;
@@ -41,12 +41,12 @@ module tb_dport ();
 
     obi_if #(.ID_WIDTH(2)) xbar_initiators[N_INITIATORS] ();
     obi_if #(.ID_WIDTH(2+$clog2(N_INITIATORS))) xbar_targets[N_TARGETS] ();
-    dport_xbar #(
+    obi_xbar #(
         .N_INITIATORS(N_INITIATORS),
         .N_TARGETS(N_TARGETS)
         //.CONNECT({{1'b1,1'b1},{1'b1,1'b1}})
         //.CONNECT([[1'b1,1'b1],[1'b1,1'b1]])
-    ) i_dport_xbar (
+    ) i_obi_xbar (
         .rst_i,
         .clk_i,
         .initiators(xbar_initiators),
@@ -55,9 +55,9 @@ module tb_dport ();
 
     // ------------------------------------------------------------------------
 
-    dport_ram #(
-        .ADDR_WIDTH(dport_pkg::MTIME_WIDTH)
-    ) i_dport_mtime (
+    obi_ram #(
+        .ADDR_WIDTH(obi_pkg::MTIME_WIDTH)
+    ) i_obi_mtime (
         .clk_i(clk_i),
         .rst_i(rst_i),
         .dport(xbar_targets[0])
@@ -65,9 +65,9 @@ module tb_dport ();
 
     // ------------------------------------------------------------------------
 
-    dport_ram #(
-        .ADDR_WIDTH(dport_pkg::SIMCTRL_WIDTH)
-    ) i_dport_simctrl (
+    obi_ram #(
+        .ADDR_WIDTH(obi_pkg::SIMCTRL_WIDTH)
+    ) i_obi_simctrl (
         .clk_i(clk_i),
         .rst_i(rst_i),
         .dport(xbar_targets[1])
@@ -76,14 +76,14 @@ module tb_dport ();
     // ------------------------------------------------------------------------
 
     axi_if s_axi_dtcm ();
-    dport_dtcm #(
+    obi_dtcm #(
         .DATA_WIDTH       (s_axi_dtcm.DATA_WIDTH),
-        .ADDR_WIDTH       (dport_pkg::DTCM_WIDTH),
+        .ADDR_WIDTH       (obi_pkg::DTCM_WIDTH),
         .STRB_WIDTH       (s_axi_dtcm.STRB_WIDTH),
         .ID_WIDTH         (s_axi_dtcm.ID_WIDTH),
         .B_PIPELINE_OUTPUT(0),
         .B_INTERLEAVE     (0)
-    ) i_dport_dtcm (
+    ) i_obi_dtcm (
         .a_clk(clk_i),
         .a_rst(rst_i),
         .dport(xbar_targets[2]),
@@ -93,7 +93,7 @@ module tb_dport ();
     // ------------------------------------------------------------------------
 
     axi_if m_axi_cached ();
-    dport2axi i_dport2axi_cached (
+    obi2axi i_dport2axi_cached (
         .clk_i(clk_i),
         .rst_i(rst_i),
         .dport(xbar_targets[3]),
@@ -102,14 +102,14 @@ module tb_dport ();
 
     axi_ram #(
         .DATA_WIDTH(m_axi_cached.DATA_WIDTH),
-        .ADDR_WIDTH(dport_pkg::CACHED_WIDTH),
+        .ADDR_WIDTH(obi_pkg::CACHED_WIDTH),
         .STRB_WIDTH(m_axi_cached.STRB_WIDTH),
         .ID_WIDTH  (m_axi_cached.ID_WIDTH)
     ) i_axi_cached_ram (
         .clk          (clk_i),
         .rst          (rst_i),
         .s_axi_awid   (m_axi_cached.awid),
-        .s_axi_awaddr (m_axi_cached.awaddr[dport_pkg::CACHED_WIDTH-1:0]),
+        .s_axi_awaddr (m_axi_cached.awaddr[obi_pkg::CACHED_WIDTH-1:0]),
         .s_axi_awlen  (m_axi_cached.awlen),
         .s_axi_awsize (m_axi_cached.awsize),
         .s_axi_awburst(m_axi_cached.awburst),
@@ -128,7 +128,7 @@ module tb_dport ();
         .s_axi_bvalid (m_axi_cached.bvalid),
         .s_axi_bready (m_axi_cached.bready),
         .s_axi_arid   (m_axi_cached.arid),
-        .s_axi_araddr (m_axi_cached.araddr[dport_pkg::CACHED_WIDTH-1:0]),
+        .s_axi_araddr (m_axi_cached.araddr[obi_pkg::CACHED_WIDTH-1:0]),
         .s_axi_arlen  (m_axi_cached.arlen),
         .s_axi_arsize (m_axi_cached.arsize),
         .s_axi_arburst(m_axi_cached.arburst),
@@ -148,7 +148,7 @@ module tb_dport ();
     // ------------------------------------------------------------------------
 
     axi_if m_axi_uncached ();
-    dport2axi i_dport2axi_uncached (
+    obi2axi i_dport2axi_uncached (
         .clk_i(clk_i),
         .rst_i(rst_i),
         .dport(xbar_targets[4]),
@@ -157,14 +157,14 @@ module tb_dport ();
 
     axi_ram #(
         .DATA_WIDTH(m_axi_uncached.DATA_WIDTH),
-        .ADDR_WIDTH(dport_pkg::UNCACHED_WIDTH),
+        .ADDR_WIDTH(obi_pkg::UNCACHED_WIDTH),
         .STRB_WIDTH(m_axi_uncached.STRB_WIDTH),
         .ID_WIDTH  (m_axi_uncached.ID_WIDTH)
     ) i_axi_uncached_ram (
         .clk          (clk_i),
         .rst          (rst_i),
         .s_axi_awid   (m_axi_uncached.awid),
-        .s_axi_awaddr (m_axi_uncached.awaddr[dport_pkg::UNCACHED_WIDTH-1:0]),
+        .s_axi_awaddr (m_axi_uncached.awaddr[obi_pkg::UNCACHED_WIDTH-1:0]),
         .s_axi_awlen  (m_axi_uncached.awlen),
         .s_axi_awsize (m_axi_uncached.awsize),
         .s_axi_awburst(m_axi_uncached.awburst),
@@ -183,7 +183,7 @@ module tb_dport ();
         .s_axi_bvalid (m_axi_uncached.bvalid),
         .s_axi_bready (m_axi_uncached.bready),
         .s_axi_arid   (m_axi_uncached.arid),
-        .s_axi_araddr (m_axi_uncached.araddr[dport_pkg::UNCACHED_WIDTH-1:0]),
+        .s_axi_araddr (m_axi_uncached.araddr[obi_pkg::UNCACHED_WIDTH-1:0]),
         .s_axi_arlen  (m_axi_uncached.arlen),
         .s_axi_arsize (m_axi_uncached.arsize),
         .s_axi_arburst(m_axi_uncached.arburst),
@@ -203,7 +203,7 @@ module tb_dport ();
     // ------------------------------------------------------------------------
 
     axil_if m_axil ();
-    dport2axil i_dport2axil (
+    obi2axil i_dport2axil (
         .clk_i (clk_i),
         .rst_i (rst_i),
         .dport (xbar_targets[5]),
@@ -212,13 +212,13 @@ module tb_dport ();
 
     axil_ram #(
         .DATA_WIDTH     (m_axil.DATA_WIDTH),
-        .ADDR_WIDTH     (dport_pkg::AXIL_WIDTH),
+        .ADDR_WIDTH     (obi_pkg::AXIL_WIDTH),
         .STRB_WIDTH     (m_axil.STRB_WIDTH),
         .PIPELINE_OUTPUT(0)
     ) i_axil_ram (
         .clk           (clk_i),
         .rst           (rst_i),
-        .s_axil_awaddr (m_axil.awaddr[dport_pkg::AXIL_WIDTH-1:0]),
+        .s_axil_awaddr (m_axil.awaddr[obi_pkg::AXIL_WIDTH-1:0]),
         .s_axil_awprot (m_axil.awprot),
         .s_axil_awvalid(m_axil.awvalid),
         .s_axil_awready(m_axil.awready),
@@ -229,7 +229,7 @@ module tb_dport ();
         .s_axil_bresp  (m_axil.bresp),
         .s_axil_bvalid (m_axil.bvalid),
         .s_axil_bready (m_axil.bready),
-        .s_axil_araddr (m_axil.araddr[dport_pkg::AXIL_WIDTH-1:0]),
+        .s_axil_araddr (m_axil.araddr[obi_pkg::AXIL_WIDTH-1:0]),
         .s_axil_arprot (m_axil.arprot),
         .s_axil_arvalid(m_axil.arvalid),
         .s_axil_arready(m_axil.arready),

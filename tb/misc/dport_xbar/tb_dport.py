@@ -161,9 +161,9 @@ class Response(NamedTuple):
     req: Request
 
 REGIONS = [
-    ("mtime",    0x0000_2000, "i_dport_mtime.mem"),
-    ("simctrl",  0x0000_3000, "i_dport_simctrl.mem"),
-    ("dtcm",     0x8002_0000, "i_dport_dtcm.mem"),
+    ("mtime",    0x0000_2000, "i_obi_mtime.mem"),
+    ("simctrl",  0x0000_3000, "i_obi_simctrl.mem"),
+    ("dtcm",     0x8002_0000, "i_obi_dtcm.mem"),
     ("cached",   0x9000_0000, "i_axi_cached_ram.mem"),
     ("uncached", 0xA000_0000, "i_axi_uncached_ram.mem"),
     ("axil",     0xB000_0000, "i_axil_ram.mem"),

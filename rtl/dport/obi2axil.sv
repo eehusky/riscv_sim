@@ -48,7 +48,7 @@ module obi2axil (
     assign axi.bvalid     = m_axil.bvalid;
     //assign axi.bid        = 0;
 
-    dport2axi i_dport2axil (
+    obi2axi i_dport2axil (
         .clk_i(clk_i),
         .rst_i(rst_i),
         .dport(dport),
