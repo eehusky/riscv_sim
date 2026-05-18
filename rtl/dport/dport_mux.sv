@@ -100,11 +100,11 @@ module dport_mux #(
 
     logic [LGNS-1:0] rid;
     logic [initiators.ID_WIDTH-1:0] target_rid;
-    assign rid = target.rid[target.ID_WIDTH-1:initiators.ID_WIDTH];
+    assign rid = target.rid[target.ID_WIDTH-1-:LGNS];
     assign target_rid = target.rid[initiators.ID_WIDTH-1:0];
     generate
         for (genvar i = 0; i < NS; i++) begin : g_resp
-            assign initiators[i].rvalid = target.rvalid && rid == initiators.ID_WIDTH'(i);
+            assign initiators[i].rvalid = target.rvalid && rid == LGNS'(i);
             assign initiators[i].rdata  = initiators[i].rvalid ? target.rdata : 0;
             assign initiators[i].err    = initiators[i].rvalid ? target.err : 0;
             assign initiators[i].rid    = initiators[i].rvalid ? target_rid : 0;

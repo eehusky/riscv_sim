@@ -1,0 +1,25 @@
+`verilator_config
+
+public_flat_rw -module "tb_dport" -var "*"
+public_flat_rw -module "tb_dport.i_dport" -var "*"
+public_flat_rw -module "tb_dport.i_dport.i_dport_mux" -var "*"
+
+lint_off -rule WIDTHTRUNC       -file "*addrdecode.sv"
+lint_off -rule PROCASSINIT      -file "*axi_ram_rd_if.v"
+lint_off -rule WIDTHEXPAND      -file "*axi_ram_rd_if.v"
+lint_off -rule WIDTHTRUNC       -file "*axi_ram_rd_if.v"
+lint_off -rule PROCASSINIT      -file "*axi_ram_wr_if.v"
+lint_off -rule WIDTHEXPAND      -file "*axi_ram_wr_if.v"
+lint_off -rule WIDTHTRUNC       -file "*axi_ram_wr_if.v"
+lint_off -rule CASEINCOMPLETE   -file "*axi_ram_wr_if.v"
+lint_off -rule PROCASSINIT      -file "*axi_ram_wr_rd_if.v"
+lint_off -rule WIDTHTRUNC       -file "*axil_ram.v"
+lint_off -rule PROCASSINIT      -file "*axil_ram.v"
+lint_off -rule WIDTHTRUNC       -file "*axi_ram.v"
+lint_off -rule PROCASSINIT      -file "*axi_ram.v"
+lint_off -rule WIDTHEXPAND      -file "*axi_ram.v"
+lint_off -rule CASEINCOMPLETE   -file "*axi_ram.v"
+
+lint_off -rule UNUSEDPARAM      -file "*"
+lint_off -rule PINCONNECTEMPTY  -file "*"
+lint_off -rule DECLFILENAME     -file "*"

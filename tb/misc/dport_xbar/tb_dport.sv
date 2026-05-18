@@ -36,31 +36,21 @@ module tb_dport ();
     logic rst_i;
     logic clk_i;
 
-    obi_if #(.ID_WIDTH(2)) initiators[3] ();
-    obi_if #(.ID_WIDTH(2+3-1)) target ();
-    dport_mux #(3) i_dport_mux (
+    localparam int N_INITIATORS = 4;
+    localparam int N_TARGETS = 6;
+
+    obi_if #(.ID_WIDTH(2)) xbar_initiators[N_INITIATORS] ();
+    obi_if #(.ID_WIDTH(2+$clog2(N_INITIATORS))) xbar_targets[N_TARGETS] ();
+    dport_xbar #(
+        .N_INITIATORS(N_INITIATORS),
+        .N_TARGETS(N_TARGETS)
+        //.CONNECT({{1'b1,1'b1},{1'b1,1'b1}})
+        //.CONNECT([[1'b1,1'b1],[1'b1,1'b1]])
+    ) i_dport_xbar (
         .rst_i,
         .clk_i,
-        .initiators,
-        .target
-    );
-    dport_ram #(
-        .ADDR_WIDTH(dport_pkg::MTIME_WIDTH)
-    ) i_mux_dummy_ram (
-        .clk_i(clk_i),
-        .rst_i(rst_i),
-        .dport(target)
-    );
-
-
-    obi_if #(.ID_WIDTH(2)) initiator ();
-    obi_if #(.ID_WIDTH(2)) segments[N_SEGMENTS] ();
-
-    dport_demux i_dport_demux (
-        .clk_i   (clk_i),
-        .rst_i   (rst_i),
-        .cpu     (initiator),
-        .segments(segments)
+        .initiators(xbar_initiators),
+        .targets(xbar_targets)
     );
 
     // ------------------------------------------------------------------------
@@ -70,7 +60,7 @@ module tb_dport ();
     ) i_dport_mtime (
         .clk_i(clk_i),
         .rst_i(rst_i),
-        .dport(segments[0])
+        .dport(xbar_targets[0])
     );
 
     // ------------------------------------------------------------------------
@@ -80,7 +70,7 @@ module tb_dport ();
     ) i_dport_simctrl (
         .clk_i(clk_i),
         .rst_i(rst_i),
-        .dport(segments[1])
+        .dport(xbar_targets[1])
     );
 
     // ------------------------------------------------------------------------
@@ -96,7 +86,7 @@ module tb_dport ();
     ) i_dport_dtcm (
         .a_clk(clk_i),
         .a_rst(rst_i),
-        .dport(segments[2]),
+        .dport(xbar_targets[2]),
         .s_axi(s_axi_dtcm)
     );
 
@@ -106,7 +96,7 @@ module tb_dport ();
     dport2axi i_dport2axi_cached (
         .clk_i(clk_i),
         .rst_i(rst_i),
-        .dport(segments[3]),
+        .dport(xbar_targets[3]),
         .m_axi(m_axi_cached)
     );
 
@@ -161,7 +151,7 @@ module tb_dport ();
     dport2axi i_dport2axi_uncached (
         .clk_i(clk_i),
         .rst_i(rst_i),
-        .dport(segments[4]),
+        .dport(xbar_targets[4]),
         .m_axi(m_axi_uncached)
     );
 
@@ -216,7 +206,7 @@ module tb_dport ();
     dport2axil i_dport2axil (
         .clk_i (clk_i),
         .rst_i (rst_i),
-        .dport (segments[5]),
+        .dport (xbar_targets[5]),
         .m_axil(m_axil)
     );
 
