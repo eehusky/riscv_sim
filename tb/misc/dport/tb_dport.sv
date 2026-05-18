@@ -31,35 +31,35 @@ module tb_dport ();
 
     logic        rst_i;
     logic        clk_i;
-    logic        mem_accept_o;
-    logic        mem_ack_o;
-    logic [31:0] mem_data_rd_o;
-    logic [31:0] mem_addr_i;
-    logic [31:0] mem_data_wr_i;
-    logic        mem_error_o;
-    logic        mem_rd_i;
-    logic [ 3:0] mem_wr_i;
-    logic [10:0] mem_req_tag_i;
-    logic [10:0] mem_resp_tag_o;
-    logic        mem_cacheable_i;
-    logic        mem_invalidate_i;
-    logic        mem_writeback_i;
-    logic        mem_flush_i;
+    //logic        mem_accept_o;
+    //logic        mem_ack_o;
+    //logic [31:0] mem_data_rd_o;
+    //logic [31:0] mem_addr_i;
+    //logic [31:0] mem_data_wr_i;
+    //logic        mem_error_o;
+    //logic        mem_rd_i;
+    //logic [ 3:0] mem_wr_i;
+    //logic [10:0] mem_req_tag_i;
+    //logic [10:0] mem_resp_tag_o;
+    //logic        mem_cacheable_i;
+    //logic        mem_invalidate_i;
+    //logic        mem_writeback_i;
+    //logic        mem_flush_i;
 
-    obi_if initiator ();
+    obi_if #(.ID_WIDTH(2)) initiator ();
 
-    assign mem_accept_o  = initiator.gnt;
-    assign mem_ack_o     = initiator.rvalid;
-    assign mem_data_rd_o = initiator.rdata;
-    assign mem_error_o   = initiator.err;
-    assign initiator.addr      = initiator.req ? mem_addr_i : 0;
-    assign initiator.wdata     = initiator.req ? mem_data_wr_i : 0;
-    assign initiator.be        = initiator.req ? mem_wr_i : 0;
-    assign initiator.we        = initiator.req && |mem_wr_i;
-    assign initiator.req       = |mem_wr_i || mem_rd_i;
-    assign initiator.rready    = 1;
+    //assign mem_accept_o  = initiator.gnt;
+    //assign mem_ack_o     = initiator.rvalid;
+    //assign mem_data_rd_o = initiator.rdata;
+    //assign mem_error_o   = initiator.err;
+    //assign initiator.addr      = initiator.req ? mem_addr_i : 0;
+    //assign initiator.wdata     = initiator.req ? mem_data_wr_i : 0;
+    //assign initiator.be        = initiator.req ? mem_wr_i : 0;
+    //assign initiator.we        = initiator.req && |mem_wr_i;
+    //assign initiator.req       = |mem_wr_i || mem_rd_i;
+    //assign initiator.rready    = 1;
 
-    obi_if segments [N_SEGMENTS] ();
+    obi_if #(.ID_WIDTH(2)) segments [N_SEGMENTS] ();
 
     dport_demux i_dport_demux (
         .clk_i   (clk_i),

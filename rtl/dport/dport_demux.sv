@@ -12,7 +12,12 @@ module dport_demux #(
     localparam int NS = N_SEGMENTS;
 
 
-    obi_if dummy ();
+    obi_if #(
+        .DATA_WIDTH(cpu.DATA_WIDTH),
+        .ADDR_WIDTH(cpu.ADDR_WIDTH),
+        .STRB_WIDTH(cpu.STRB_WIDTH),
+        .ID_WIDTH(cpu.ID_WIDTH)
+    ) dummy ();
 
     dport_dummy i_dport_dummy(
         .clk_i(clk_i),
@@ -153,7 +158,12 @@ module dport_demux #(
     logic [NS:0] rsp_ack;
     logic [NS:0] rsp_grant;
 
-    obi_if segment_rsp[NS+1] ();
+    obi_if #(
+            .DATA_WIDTH(cpu.DATA_WIDTH),
+            .ADDR_WIDTH(cpu.ADDR_WIDTH),
+            .STRB_WIDTH(cpu.STRB_WIDTH),
+            .ID_WIDTH(cpu.ID_WIDTH)
+    ) segment_rsp[NS+1] ();
     assign rsp_grant = rsp_data_out.decode;
     assign rsp_ack = rsp_ready & rsp_grant;
 

@@ -149,6 +149,7 @@ class ReferenceVPIRegion(VPIRegion):
 
 class Request(NamedTuple):
     addr:int
+    aid:int
     wdata:int
     wstrb:int
 
@@ -160,6 +161,7 @@ class Request(NamedTuple):
 class Response(NamedTuple):
     error: int
     rdata: int
+    rid:int
     req: Request
 
 REGIONS = [
@@ -171,6 +173,88 @@ REGIONS = [
     ("axil",     0xB000_0000, "i_axil_ram.mem"),
 ]
 
+
+class OBI:
+    def __init__(self, obi, tb, aid=0):
+        self.aid = aid
+        self.obi = obi
+
+        self.clkcycle = tb.clkcycle
+        self.read_ref = tb.read_ref
+        self.write_ref = tb.write_ref
+
+        self.req_queue:Queue[Request] = Queue()
+        self.rsp_queue:Queue[Response] = Queue()
+        self.pend_queue:Queue[Request] = Queue()
+
+        cocotb.start_soon(self.proc_check())
+        cocotb.start_soon(self.proc_rsp())
+        cocotb.start_soon(self.proc_req())
+
+    async def proc_check(self):
+        while True:
+            rsp:Response = await self.rsp_queue.get()
+            req = rsp.req
+            if rsp.error:
+                continue
+            assert req.aid == rsp.rid
+            if not req.wstrb:
+                ref = await self.read_ref(req.addr)
+                #print(f"{req.addr:04X}: {rsp.rdata:08X} == {self.read_ref(req.addr):08X}")
+                assert rsp.rdata == ref, f"{req.addr:04X}: {rsp.rdata:08X} == {ref:08X}"
+
+    async def proc_rsp(self):
+        rready = self.obi.rready
+        rvalid = self.obi.rvalid
+        rdata = self.obi.rdata
+        err = self.obi.err
+        rid = self.obi.rid
+
+        rready.value = 1
+        while True:
+            if rvalid.value:
+                req = self.pend_queue.get_nowait()
+                self.rsp_queue.put_nowait(Response(err.value,rdata.value.to_unsigned(),rid.value,req))
+                if not err.value and req.is_write:
+                    await self.write_ref(req.addr,req.wdata)
+            await self.clkcycle()
+
+    async def proc_req(self):
+        req = self.obi.req
+        gnt = self.obi.gnt
+        addr = self.obi.addr
+        we = self.obi.we
+        be = self.obi.be
+        wdata = self.obi.wdata
+        aid = self.obi.aid
+
+        reqobj = None
+        while True:
+            if reqobj is None:
+                reqobj = await self.req_queue.get()
+                self.pend_queue.put_nowait(reqobj)
+                wdata.value = reqobj.wdata
+                req.value = 1
+                be.value = reqobj.wstrb
+                addr.value = reqobj.addr
+                we.value = 1 if reqobj.wstrb else 0
+                aid.value = reqobj.aid
+
+            await self.clkcycle(1)
+            if gnt.value and reqobj:
+                req.value = 0
+                wdata.value = 0
+                be.value = 0
+                addr.value = 0
+                we.value = 0
+                aid.value = 0
+                reqobj = None
+
+    def read(self,addr:int):
+        self.req_queue.put_nowait((Request(addr,random.getrandbits(2),0,0)))
+
+    def write(self,addr:int,data:int):
+        self.req_queue.put_nowait((Request(addr,random.getrandbits(2),data,0xF)))
 
 class TB:
     def __init__(self, dut):
@@ -192,9 +276,9 @@ class TB:
             self.regions[name] = ReferenceVPIRegion(getattr(dut,vpi))
             self.addrspace.register_region(self.regions[name],base)
 
-        self.req_queue:Queue[Request] = Queue()
-        self.rsp_queue:Queue[Response] = Queue()
-        self.pend_queue:Queue[Request] = Queue()
+        self._req_queue:Queue[Request] = Queue()
+        self._rsp_queue:Queue[Response] = Queue()
+        self._pend_queue:Queue[Request] = Queue()
 
 
     async def clkcycle(self, n=1):
@@ -203,10 +287,10 @@ class TB:
     async def cycle_reset(self):
         self.reset.value = 1
         await self.clkcycle(1)
-        self.dut.mem_data_wr_i.value = 0
-        self.dut.mem_wr_i.value = 0
-        self.dut.mem_addr_i.value = 0
-        self.dut.mem_rd_i.value = 0
+        #self.dut.mem_data_wr_i.value = 0
+        #self.dut.mem_wr_i.value = 0
+        #self.dut.mem_addr_i.value = 0
+        #self.dut.mem_rd_i.value = 0
         await self.clkcycle(10)
         self.reset.value = 0
         await self.clkcycle(10)
@@ -217,7 +301,7 @@ class TB:
 
     ##
 
-    async def proc_check(self):
+    async def _proc_check(self):
         while True:
             rsp:Response = await self.rsp_queue.get()
             req = rsp.req
@@ -228,7 +312,7 @@ class TB:
                 #print(f"{req.addr:04X}: {rsp.rdata:08X} == {self.read_ref(req.addr):08X}")
                 assert rsp.rdata == ref, f"{req.addr:04X}: {rsp.rdata:08X} == {ref:08X}"
 
-    async def proc_rsp(self):
+    async def _proc_rsp(self):
         data_wr_i = self.dut.mem_data_wr_i
         wr_i = self.dut.mem_wr_i
         addr_i = self.dut.mem_addr_i
@@ -245,7 +329,7 @@ class TB:
                     await self.write_ref(req.addr,req.wdata)
             await self.clkcycle()
 
-    async def proc_req(self):
+    async def _proc_req(self):
         data_wr_i = self.dut.mem_data_wr_i
         wr_i = self.dut.mem_wr_i
         addr_i = self.dut.mem_addr_i
@@ -272,10 +356,10 @@ class TB:
                 rd_i.value = 0
                 req = None
 
-    def read(self,addr:int):
+    def _read(self,addr:int):
         self.req_queue.put_nowait((Request(addr,0,0)))
 
-    def write(self,addr:int,data:int):
+    def _write(self,addr:int,data:int):
         self.req_queue.put_nowait((Request(addr,data,0xF)))
 
     ##
@@ -348,9 +432,11 @@ class Range(NamedTuple):
 @cocotb.parametrize(region_def=REGIONS)
 async def test_iob_region(dut,region_def=REGIONS[0]):
     tb = TB(dut)
-    cocotb.start_soon(tb.proc_req())
-    cocotb.start_soon(tb.proc_rsp())
-    cocotb.start_soon(tb.proc_check())
+    obi = OBI(dut.initiator, tb, 0)
+
+    #cocotb.start_soon(tb.proc_req())
+    #cocotb.start_soon(tb.proc_rsp())
+    #cocotb.start_soon(tb.proc_check())
     await tb.cycle_reset()
     name, _,_  = region_def
     region = tb.regions[name]
@@ -374,22 +460,22 @@ async def test_iob_region(dut,region_def=REGIONS[0]):
 
     for _ in range(1000):
         if random.choice([True,False]):
-            tb.write(region.random_addr(),random_int())
+            obi.write(region.random_addr(),random_int())
         else:
-            tb.read(region.random_addr())
+            obi.read(region.random_addr())
 
     print("wait random")
     for _ in range(1000):
-        if tb.rsp_queue.empty() and tb.req_queue.empty() and tb.pend_queue.empty():
+        if obi.rsp_queue.empty() and obi.req_queue.empty() and obi.pend_queue.empty():
             break
         await tb.clkcycle(100)
     else:
-        print(f"{tb.rsp_queue.qsize()}")
-        print(f"{tb.req_queue.qsize()}")
-        print(f"{tb.pend_queue.qsize()}")
-        assert tb.rsp_queue.empty()
-        assert tb.req_queue.empty()
-        assert tb.pend_queue.empty()
+        print(f"{obi.rsp_queue.qsize()}")
+        print(f"{obi.req_queue.qsize()}")
+        print(f"{obi.pend_queue.qsize()}")
+        assert obi.rsp_queue.empty()
+        assert obi.req_queue.empty()
+        assert obi.pend_queue.empty()
 
     await tb.clkcycle(100)
 
@@ -401,16 +487,16 @@ async def test_iob_region(dut,region_def=REGIONS[0]):
     ## wait for pipe line to clear
     print("wait readback")
     for _ in range(5000):
-        if tb.rsp_queue.empty() and tb.req_queue.empty() and tb.pend_queue.empty():
+        if obi.rsp_queue.empty() and obi.req_queue.empty() and obi.pend_queue.empty():
             break
         await tb.clkcycle(100)
     else:
-        print(f"{tb.rsp_queue.qsize()}")
-        print(f"{tb.req_queue.qsize()}")
-        print(f"{tb.pend_queue.qsize()}")
-        assert tb.rsp_queue.empty()
-        assert tb.req_queue.empty()
-        assert tb.pend_queue.empty()
+        print(f"{obi.rsp_queue.qsize()}")
+        print(f"{obi.req_queue.qsize()}")
+        print(f"{obi.pend_queue.qsize()}")
+        assert obi.rsp_queue.empty()
+        assert obi.req_queue.empty()
+        assert obi.pend_queue.empty()
 
     ## check the memory pool against the reference pool
     print("verify")
