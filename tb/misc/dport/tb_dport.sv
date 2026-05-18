@@ -1,65 +1,55 @@
 //import dport_pkg::*;
 module tb_dport ();
-    localparam bit[31:0] N_SEGMENTS = dport_pkg::N_SEGMENTS;
+    localparam bit [31:0] N_SEGMENTS = dport_pkg::N_SEGMENTS;
     //
-    localparam bit[31:0] MTIME_ADDR = dport_pkg::MTIME_ADDR;
-    localparam bit[31:0] MTIME_SIZE = dport_pkg::MTIME_SIZE;
-    localparam bit[31:0] MTIME_WIDTH = dport_pkg::MTIME_WIDTH;
-    localparam bit[31:0] MTIME_MASK = dport_pkg::MTIME_MASK;
-    localparam bit[31:0] SIMCTRL_ADDR = dport_pkg::SIMCTRL_ADDR;
-    localparam bit[31:0] SIMCTRL_SIZE = dport_pkg::SIMCTRL_SIZE;
-    localparam bit[31:0] SIMCTRL_WIDTH = dport_pkg::SIMCTRL_WIDTH;
-    localparam bit[31:0] SIMCTRL_MASK = dport_pkg::SIMCTRL_MASK;
+    localparam bit [31:0] MTIME_ADDR = dport_pkg::MTIME_ADDR;
+    localparam bit [31:0] MTIME_SIZE = dport_pkg::MTIME_SIZE;
+    localparam bit [31:0] MTIME_WIDTH = dport_pkg::MTIME_WIDTH;
+    localparam bit [31:0] MTIME_MASK = dport_pkg::MTIME_MASK;
+    localparam bit [31:0] SIMCTRL_ADDR = dport_pkg::SIMCTRL_ADDR;
+    localparam bit [31:0] SIMCTRL_SIZE = dport_pkg::SIMCTRL_SIZE;
+    localparam bit [31:0] SIMCTRL_WIDTH = dport_pkg::SIMCTRL_WIDTH;
+    localparam bit [31:0] SIMCTRL_MASK = dport_pkg::SIMCTRL_MASK;
     //
-    localparam bit[31:0] DTCM_ADDR = dport_pkg::DTCM_ADDR;
-    localparam bit[31:0] DTCM_SIZE = dport_pkg::DTCM_SIZE;
-    localparam bit[31:0] DTCM_WIDTH = dport_pkg::DTCM_WIDTH;
-    localparam bit[31:0] DTCM_MASK = dport_pkg::DTCM_MASK;
+    localparam bit [31:0] DTCM_ADDR = dport_pkg::DTCM_ADDR;
+    localparam bit [31:0] DTCM_SIZE = dport_pkg::DTCM_SIZE;
+    localparam bit [31:0] DTCM_WIDTH = dport_pkg::DTCM_WIDTH;
+    localparam bit [31:0] DTCM_MASK = dport_pkg::DTCM_MASK;
     //
-    localparam bit[31:0] CACHED_ADDR = dport_pkg::CACHED_ADDR;
-    localparam bit[31:0] CACHED_SIZE = dport_pkg::CACHED_SIZE;
-    localparam bit[31:0] CACHED_WIDTH = dport_pkg::CACHED_WIDTH;
-    localparam bit[31:0] CACHED_MASK = dport_pkg::CACHED_MASK;
-    localparam bit[31:0] UNCACHED_ADDR = dport_pkg::UNCACHED_ADDR;
-    localparam bit[31:0] UNCACHED_SIZE = dport_pkg::UNCACHED_SIZE;
-    localparam bit[31:0] UNCACHED_WIDTH = dport_pkg::UNCACHED_WIDTH;
-    localparam bit[31:0] UNCACHED_MASK = dport_pkg::UNCACHED_MASK;
-    localparam bit[31:0] AXIL_ADDR = dport_pkg::AXIL_ADDR;
-    localparam bit[31:0] AXIL_SIZE = dport_pkg::AXIL_SIZE;
-    localparam bit[31:0] AXIL_WIDTH = dport_pkg::AXIL_WIDTH;
-    localparam bit[31:0] AXIL_MASK = dport_pkg::AXIL_MASK;
+    localparam bit [31:0] CACHED_ADDR = dport_pkg::CACHED_ADDR;
+    localparam bit [31:0] CACHED_SIZE = dport_pkg::CACHED_SIZE;
+    localparam bit [31:0] CACHED_WIDTH = dport_pkg::CACHED_WIDTH;
+    localparam bit [31:0] CACHED_MASK = dport_pkg::CACHED_MASK;
+    localparam bit [31:0] UNCACHED_ADDR = dport_pkg::UNCACHED_ADDR;
+    localparam bit [31:0] UNCACHED_SIZE = dport_pkg::UNCACHED_SIZE;
+    localparam bit [31:0] UNCACHED_WIDTH = dport_pkg::UNCACHED_WIDTH;
+    localparam bit [31:0] UNCACHED_MASK = dport_pkg::UNCACHED_MASK;
+    localparam bit [31:0] AXIL_ADDR = dport_pkg::AXIL_ADDR;
+    localparam bit [31:0] AXIL_SIZE = dport_pkg::AXIL_SIZE;
+    localparam bit [31:0] AXIL_WIDTH = dport_pkg::AXIL_WIDTH;
+    localparam bit [31:0] AXIL_MASK = dport_pkg::AXIL_MASK;
 
-    logic        rst_i;
-    logic        clk_i;
-    //logic        mem_accept_o;
-    //logic        mem_ack_o;
-    //logic [31:0] mem_data_rd_o;
-    //logic [31:0] mem_addr_i;
-    //logic [31:0] mem_data_wr_i;
-    //logic        mem_error_o;
-    //logic        mem_rd_i;
-    //logic [ 3:0] mem_wr_i;
-    //logic [10:0] mem_req_tag_i;
-    //logic [10:0] mem_resp_tag_o;
-    //logic        mem_cacheable_i;
-    //logic        mem_invalidate_i;
-    //logic        mem_writeback_i;
-    //logic        mem_flush_i;
+    logic rst_i;
+    logic clk_i;
+
+    obi_if #(.ID_WIDTH(2)) initiators[4] ();
+    obi_if #(.ID_WIDTH(2)) target ();
+    dport_mux #(4) i_dport_mux (
+        .rst_i,
+        .clk_i,
+        .initiators,
+        .target
+    );
+    dport_dummy i_dummy (
+        .clk_i   (clk_i),
+        .rst_i   (rst_i),
+        .dport(target)
+    );
+
+
 
     obi_if #(.ID_WIDTH(2)) initiator ();
-
-    //assign mem_accept_o  = initiator.gnt;
-    //assign mem_ack_o     = initiator.rvalid;
-    //assign mem_data_rd_o = initiator.rdata;
-    //assign mem_error_o   = initiator.err;
-    //assign initiator.addr      = initiator.req ? mem_addr_i : 0;
-    //assign initiator.wdata     = initiator.req ? mem_data_wr_i : 0;
-    //assign initiator.be        = initiator.req ? mem_wr_i : 0;
-    //assign initiator.we        = initiator.req && |mem_wr_i;
-    //assign initiator.req       = |mem_wr_i || mem_rd_i;
-    //assign initiator.rready    = 1;
-
-    obi_if #(.ID_WIDTH(2)) segments [N_SEGMENTS] ();
+    obi_if #(.ID_WIDTH(2)) segments[N_SEGMENTS] ();
 
     dport_demux i_dport_demux (
         .clk_i   (clk_i),
@@ -72,7 +62,7 @@ module tb_dport ();
 
     dport_ram #(
         .ADDR_WIDTH(dport_pkg::MTIME_WIDTH)
-    )i_dport_mtime (
+    ) i_dport_mtime (
         .clk_i(clk_i),
         .rst_i(rst_i),
         .dport(segments[0])
@@ -82,7 +72,7 @@ module tb_dport ();
 
     dport_ram #(
         .ADDR_WIDTH(dport_pkg::SIMCTRL_WIDTH)
-    )i_dport_simctrl (
+    ) i_dport_simctrl (
         .clk_i(clk_i),
         .rst_i(rst_i),
         .dport(segments[1])
@@ -92,12 +82,12 @@ module tb_dport ();
 
     axi_if s_axi_dtcm ();
     dport_dtcm #(
-        .DATA_WIDTH(s_axi_dtcm.DATA_WIDTH),
-        .ADDR_WIDTH(dport_pkg::DTCM_WIDTH),
-        .STRB_WIDTH(s_axi_dtcm.STRB_WIDTH),
-        .ID_WIDTH(s_axi_dtcm.ID_WIDTH),
+        .DATA_WIDTH       (s_axi_dtcm.DATA_WIDTH),
+        .ADDR_WIDTH       (dport_pkg::DTCM_WIDTH),
+        .STRB_WIDTH       (s_axi_dtcm.STRB_WIDTH),
+        .ID_WIDTH         (s_axi_dtcm.ID_WIDTH),
         .B_PIPELINE_OUTPUT(0),
-        .B_INTERLEAVE(0)
+        .B_INTERLEAVE     (0)
     ) i_dport_dtcm (
         .a_clk(clk_i),
         .a_rst(rst_i),

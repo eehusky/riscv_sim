@@ -8,14 +8,8 @@ module dport_dummy (
         dport.gnt   <= 1;
         dport.err   <= 1;
         dport.rdata <= 0;
-        dport.rid <= 0;
-        if (dport.req) begin
-            dport.rvalid <= 1;
-            dport.rid <= dport.aid;
-        end else begin
-            dport.rvalid <= 0;
-            dport.rid <= 0;
-        end
+        dport.rvalid <= dport.req;
+        dport.rid <= dport.aid;
     end
 
 endmodule : dport_dummy

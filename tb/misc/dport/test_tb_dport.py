@@ -268,18 +268,11 @@ class TB:
         self.clk = self.dut.clk_i
         cocotb.start_soon(Clock(self.clk, CLK_PERIOD, unit="ns", impl="gpi").start())
 
-        self.obi_if = self.dut.initiator
-
         self.addrspace = AddressSpace()
         self.regions = dict[str,ReferenceVPIRegion]()
         for name, base, vpi in REGIONS:
             self.regions[name] = ReferenceVPIRegion(getattr(dut,vpi))
             self.addrspace.register_region(self.regions[name],base)
-
-        self._req_queue:Queue[Request] = Queue()
-        self._rsp_queue:Queue[Response] = Queue()
-        self._pend_queue:Queue[Request] = Queue()
-
 
     async def clkcycle(self, n=1):
         await ClockCycles(self.clk, n)
@@ -297,70 +290,6 @@ class TB:
         logging.getLogger("cocotb.tb_dport.m_axi_cached").setLevel(logging.INFO)
         logging.getLogger("cocotb.tb_dport.m_axi_uncached").setLevel(logging.INFO)
         logging.getLogger("cocotb.tb_dport.m_axil").setLevel(logging.INFO)
-
-
-    ##
-
-    async def _proc_check(self):
-        while True:
-            rsp:Response = await self.rsp_queue.get()
-            req = rsp.req
-            if rsp.error:
-                continue
-            if not req.wstrb:
-                ref = await self.read_ref(req.addr)
-                #print(f"{req.addr:04X}: {rsp.rdata:08X} == {self.read_ref(req.addr):08X}")
-                assert rsp.rdata == ref, f"{req.addr:04X}: {rsp.rdata:08X} == {ref:08X}"
-
-    async def _proc_rsp(self):
-        data_wr_i = self.dut.mem_data_wr_i
-        wr_i = self.dut.mem_wr_i
-        addr_i = self.dut.mem_addr_i
-        rd_i = self.dut.mem_rd_i
-        data_rd_o = self.dut.mem_data_rd_o
-        accept_o = self.dut.mem_accept_o
-        ack_o = self.dut.mem_ack_o
-        err_o = self.dut.mem_error_o
-        while True:
-            if ack_o.value:
-                req = self.pend_queue.get_nowait()
-                self.rsp_queue.put_nowait(Response(err_o.value,data_rd_o.value.to_unsigned(),req))
-                if not err_o.value and req.is_write:
-                    await self.write_ref(req.addr,req.wdata)
-            await self.clkcycle()
-
-    async def _proc_req(self):
-        data_wr_i = self.dut.mem_data_wr_i
-        wr_i = self.dut.mem_wr_i
-        addr_i = self.dut.mem_addr_i
-        rd_i = self.dut.mem_rd_i
-        data_rd_o = self.dut.mem_data_rd_o
-        accept_o = self.dut.mem_accept_o
-        ack_o = self.dut.mem_ack_o
-
-        req = None
-        while True:
-            if req is None:
-                req = await self.req_queue.get()
-                self.pend_queue.put_nowait(req)
-                data_wr_i.value = req.wdata
-                wr_i.value = req.wstrb
-                addr_i.value = req.addr
-                rd_i.value = 0 if req.wstrb else 1
-
-            await self.clkcycle(1)
-            if accept_o.value and req:
-                data_wr_i.value = 0
-                wr_i.value = 0
-                addr_i.value = 0
-                rd_i.value = 0
-                req = None
-
-    def _read(self,addr:int):
-        self.req_queue.put_nowait((Request(addr,0,0)))
-
-    def _write(self,addr:int,data:int):
-        self.req_queue.put_nowait((Request(addr,data,0xF)))
 
     ##
 
@@ -508,12 +437,10 @@ async def test_iob_region(dut,region_def=REGIONS[0]):
     await tb.clkcycle(1000)
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
 async def test_iob_addrspace(dut):
     tb = TB(dut)
-    cocotb.start_soon(tb.proc_req())
-    cocotb.start_soon(tb.proc_rsp())
-    cocotb.start_soon(tb.proc_check())
+    obi = OBI(dut.initiator, tb, 0)
     await tb.cycle_reset()
     #name, _,_  = region_def
     #region = tb.regions[name]
@@ -535,23 +462,23 @@ async def test_iob_addrspace(dut):
 
     for _ in range(1000):
         if random.choice([True,False]):
-            tb.write(tb.random_addr(),random_int())
+            obi.write(tb.random_addr(),random_int())
         else:
-            tb.read(tb.random_addr())
+            obi.read(tb.random_addr())
         #await tb.clkcycle(2)
 
     print("wait random")
     for _ in range(5000):
-        if tb.rsp_queue.empty() and tb.req_queue.empty() and tb.pend_queue.empty():
+        if obi.rsp_queue.empty() and obi.req_queue.empty() and obi.pend_queue.empty():
             break
         await tb.clkcycle(100)
     else:
-        print(f"{tb.rsp_queue.qsize()}")
-        print(f"{tb.req_queue.qsize()}")
-        print(f"{tb.pend_queue.qsize()}")
-        assert tb.rsp_queue.empty()
-        assert tb.req_queue.empty()
-        assert tb.pend_queue.empty()
+        print(f"{obi.rsp_queue.qsize()}")
+        print(f"{obi.req_queue.qsize()}")
+        print(f"{obi.pend_queue.qsize()}")
+        assert obi.rsp_queue.empty()
+        assert obi.req_queue.empty()
+        assert obi.pend_queue.empty()
 
     await tb.clkcycle(100)
 
@@ -563,16 +490,16 @@ async def test_iob_addrspace(dut):
     ## wait for pipe line to clear
     print("wait readback")
     for _ in range(5000):
-        if tb.rsp_queue.empty() and tb.req_queue.empty() and tb.pend_queue.empty():
+        if obi.rsp_queue.empty() and obi.req_queue.empty() and obi.pend_queue.empty():
             break
         await tb.clkcycle(100)
     else:
-        print(f"{tb.rsp_queue.qsize()}")
-        print(f"{tb.req_queue.qsize()}")
-        print(f"{tb.pend_queue.qsize()}")
-        assert tb.rsp_queue.empty()
-        assert tb.req_queue.empty()
-        assert tb.pend_queue.empty()
+        print(f"{obi.rsp_queue.qsize()}")
+        print(f"{obi.req_queue.qsize()}")
+        print(f"{obi.pend_queue.qsize()}")
+        assert obi.rsp_queue.empty()
+        assert obi.req_queue.empty()
+        assert obi.pend_queue.empty()
 
     ## check the memory pool against the reference pool
     print("verify")
@@ -584,12 +511,10 @@ async def test_iob_addrspace(dut):
     await tb.clkcycle(1000)
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
 async def test_oob(dut):
     tb = TB(dut)
-    cocotb.start_soon(tb.proc_req())
-    cocotb.start_soon(tb.proc_rsp())
-    cocotb.start_soon(tb.proc_check())
+    obi = OBI(dut.initiator, tb, 0)
     await tb.cycle_reset()
 
     print("seed")
@@ -599,18 +524,18 @@ async def test_oob(dut):
         await tb.write_pool(_,_)
 
 
-    tb.write(0,random_int())
-    tb.read(0)
+    obi.write(0,random_int())
+    obi.read(0)
 
     print("wait readback")
     for _ in range(5000):
-        if tb.rsp_queue.empty() and tb.req_queue.empty() and tb.pend_queue.empty():
+        if obi.rsp_queue.empty() and obi.req_queue.empty() and obi.pend_queue.empty():
             break
         await tb.clkcycle(100)
     else:
-        print(f"{tb.rsp_queue.qsize()}")
-        print(f"{tb.req_queue.qsize()}")
-        print(f"{tb.pend_queue.qsize()}")
-        assert tb.rsp_queue.empty()
-        assert tb.req_queue.empty()
-        assert tb.pend_queue.empty()
+        print(f"{obi.rsp_queue.qsize()}")
+        print(f"{obi.req_queue.qsize()}")
+        print(f"{obi.pend_queue.qsize()}")
+        assert obi.rsp_queue.empty()
+        assert obi.req_queue.empty()
+        assert obi.pend_queue.empty()
