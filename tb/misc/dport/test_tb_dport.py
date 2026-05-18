@@ -229,54 +229,27 @@ class OBI:
         wdata = self.obi.wdata
         aid = self.obi.aid
 
-        reqobj = None
+        NULL_REQ = Request(0,0,0,0)
+
+        def get_next():
+            try:
+                return self.req_queue.get_nowait()
+            except QueueEmpty:
+                return NULL_REQ
+
         while True:
             await self.rising_edge
-
-            if reqobj is None:
-                try:
-                    reqobj = self.req_queue.get_nowait()
-                except QueueEmpty:
-                    continue
-
-                self.pend_queue.put_nowait(reqobj)
+            if req.value and gnt.value or not req.value:
+                reqobj = get_next()
+                if reqobj is not NULL_REQ:
+                    self.pend_queue.put_nowait(reqobj)
+                req.value = 0 if reqobj is NULL_REQ else 1
                 wdata.value = reqobj.wdata
-                req.value = 1
                 be.value = reqobj.wstrb
                 addr.value = reqobj.addr
                 we.value = 1 if reqobj.wstrb else 0
                 aid.value = reqobj.aid
-                continue
 
-            if gnt.value and reqobj:
-                req.value = 0
-                wdata.value = 0
-                be.value = 0
-                addr.value = 0
-                we.value = 0
-                aid.value = 0
-                reqobj = None
-
-        #reqobj = None
-        #while True:
-        #    if reqobj is None:
-        #        reqobj = await self.req_queue.get()
-        #        self.pend_queue.put_nowait(reqobj)
-        #        wdata.value = reqobj.wdata
-        #        req.value = 1
-        #        be.value = reqobj.wstrb
-        #        addr.value = reqobj.addr
-        #        we.value = 1 if reqobj.wstrb else 0
-        #        aid.value = reqobj.aid
-        #    await self.clkcycle(1)
-        #    if gnt.value and reqobj:
-        #        req.value = 0
-        #        wdata.value = 0
-        #        be.value = 0
-        #        addr.value = 0
-        #        we.value = 0
-        #        aid.value = 0
-        #        reqobj = None
 
     def read(self,addr:int):
         self.req_queue.put_nowait((Request(addr,random.getrandbits(2),0,0)))

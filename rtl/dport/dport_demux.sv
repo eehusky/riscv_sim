@@ -16,10 +16,10 @@ module dport_demux #(
         .DATA_WIDTH(cpu.DATA_WIDTH),
         .ADDR_WIDTH(cpu.ADDR_WIDTH),
         .STRB_WIDTH(cpu.STRB_WIDTH),
-        .ID_WIDTH(cpu.ID_WIDTH)
+        .ID_WIDTH  (cpu.ID_WIDTH)
     ) dummy ();
 
-    dport_dummy i_dport_dummy(
+    dport_dummy i_dport_dummy (
         .clk_i(clk_i),
         .rst_i(rst_i),
         .dport(dummy)
@@ -32,11 +32,11 @@ module dport_demux #(
         logic [cpu.ID_WIDTH-1:0]   aid;
     } decode_data_t;
 
-    decode_data_t     decode_data;
-    logic             decode_stall;
-    logic             decode_valid;
-    logic      [31:0] decode_addr;
-    logic      [NS:0] req_grant;
+    decode_data_t        decode_data;
+    logic                decode_stall;
+    logic                decode_valid;
+    logic         [31:0] decode_addr;
+    logic         [NS:0] req_grant;
 
     dport_addrdecode #(
         .AW            (32),
@@ -63,59 +63,40 @@ module dport_demux #(
         //
         .o_decode(req_grant)
     );
-    typedef struct packed {
-        logic                      gnt;
-        logic                      req;
-        logic [cpu.ADDR_WIDTH-1:0] addr;
-        logic                      we;
-        logic [cpu.STRB_WIDTH-1:0] be;
-        logic [cpu.DATA_WIDTH-1:0] wdata;
-        logic [cpu.ID_WIDTH-1:0]   aid;
-    } obi_req_t;
+    typedef struct packed {logic gnt;} obi_req_t;
 
 
     // move interfaces into local struct array and append
     // our no decode dummy device
-    obi_req_t req_data[NS+1];
-    for (genvar i = 0; i < NS; i++) begin : g_channel_data
-        assign segments[i].req   = req_data[i].req;
-        assign segments[i].addr  = req_data[i].addr;
-        assign segments[i].we    = req_data[i].we;
-        assign segments[i].be    = req_data[i].be;
-        assign segments[i].wdata = req_data[i].wdata;
-        assign segments[i].aid   = req_data[i].aid;
-        assign req_data[i].gnt   = segments[i].gnt;
-    end
-    assign dummy.req   = req_data[NS].req;
-    assign dummy.addr  = req_data[NS].addr;
-    assign dummy.we    = req_data[NS].we;
-    assign dummy.be    = req_data[NS].be;
-    assign dummy.wdata = req_data[NS].wdata;
-    assign dummy.aid   = req_data[NS].aid;
-    assign req_data[NS].gnt   = dummy.gnt;
+    obi_req_t        req_data[NS+1];
+    logic     [NS:0] request;
 
     always_comb begin
         decode_stall = 1;
         for (int i = 0; i < NS + 1; i++) begin
-            req_data[i].req   = 0;
-            req_data[i].addr  = 0;
-            req_data[i].we    = 0;
-            req_data[i].be    = 0;
-            req_data[i].wdata = 0;
-            req_data[i].aid   = 0;
-        end
-        for (int i = 0; i < NS + 1; i++) begin
             if (req_grant == 1 << i) begin
-                req_data[i].req   = decode_valid;
-                req_data[i].addr  = decode_addr;
-                req_data[i].we    = decode_data.we;
-                req_data[i].be    = decode_data.be;
-                req_data[i].wdata = decode_data.wdata;
-                req_data[i].aid   = decode_data.aid;
-                decode_stall      = req_data[i].gnt;
+                decode_stall = req_data[i].gnt;
             end
         end
     end
+
+    for (genvar i = 0; i < NS; i++) begin : g_channel_data
+        assign segments[i].req   = decode_valid && req_grant[i];
+        assign segments[i].addr  = decode_addr;
+        assign segments[i].we    = decode_data.we;
+        assign segments[i].be    = decode_data.be;
+        assign segments[i].wdata = decode_data.wdata;
+        assign segments[i].aid   = decode_data.aid;
+        assign req_data[i].gnt   = segments[i].gnt;
+    end
+    assign dummy.req        = decode_valid && req_grant[NS];
+    assign dummy.addr       = decode_addr;
+    assign dummy.we         = decode_data.we;
+    assign dummy.be         = decode_data.be;
+    assign dummy.wdata      = decode_data.wdata;
+    assign dummy.aid        = decode_data.aid;
+    assign req_data[NS].gnt = dummy.gnt;
+
 
     // ------------------------------------------------------------------------
     // ------------------------------------------------------------------------
@@ -159,16 +140,16 @@ module dport_demux #(
     logic [NS:0] rsp_grant;
 
     obi_if #(
-            .DATA_WIDTH(cpu.DATA_WIDTH),
-            .ADDR_WIDTH(cpu.ADDR_WIDTH),
-            .STRB_WIDTH(cpu.STRB_WIDTH),
-            .ID_WIDTH(cpu.ID_WIDTH)
+        .DATA_WIDTH(cpu.DATA_WIDTH),
+        .ADDR_WIDTH(cpu.ADDR_WIDTH),
+        .STRB_WIDTH(cpu.STRB_WIDTH),
+        .ID_WIDTH  (cpu.ID_WIDTH)
     ) segment_rsp[NS+1] ();
     assign rsp_grant = rsp_data_out.decode;
-    assign rsp_ack = rsp_ready & rsp_grant;
+    assign rsp_ack   = rsp_ready & rsp_grant;
 
-    for (genvar i = 0; i < NS+1; i++) begin : g_rspack
-        assign rsp_ready[i] = segment_rsp[i].rvalid;
+    for (genvar i = 0; i < NS + 1; i++) begin : g_rspack
+        assign rsp_ready[i]          = segment_rsp[i].rvalid;
         assign segment_rsp[i].rready = rsp_ack[i];
     end
 
@@ -196,18 +177,18 @@ module dport_demux #(
     } obi_rsp_t;
 
     obi_rsp_t rsp_data[NS+1];
-    for (genvar i = 0; i < NS+1; i++) begin : g_rsp_data
+    for (genvar i = 0; i < NS + 1; i++) begin : g_rsp_data
         assign rsp_data[i].rvalid = segment_rsp[i].rvalid;
-        assign rsp_data[i].rdata = segment_rsp[i].rdata;
-        assign rsp_data[i].err = segment_rsp[i].err;
-        assign rsp_data[i].rid = segment_rsp[i].rid;
+        assign rsp_data[i].rdata  = segment_rsp[i].rdata;
+        assign rsp_data[i].err    = segment_rsp[i].err;
+        assign rsp_data[i].rid    = segment_rsp[i].rid;
     end
 
     always_comb begin
         cpu.rvalid = 0;
-        cpu.rdata = 0;
-        cpu.err = 0;
-        cpu.rid = 0;
+        cpu.rdata  = 0;
+        cpu.err    = 0;
+        cpu.rid    = 0;
         for (int i = 0; i < NS + 1; i++) begin
             if (rsp_ack == 1 << i) begin
                 cpu.rvalid = rsp_data[i].rvalid;

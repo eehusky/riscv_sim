@@ -97,7 +97,7 @@ verilate(Vtop
         #
         ${COCOTB_SHARE}/lib/verilator/verilator.cpp
     VERILATOR_ARGS
-        -O3
+        -O1
         #--main
         --timescale-override 1ns/1ns
         #--x-assign fast
@@ -113,6 +113,7 @@ verilate(Vtop
         --timing
         --vpi
         --trace-fst
+        --trace-structs
         +incdir+${IOBCACHE}/hardware/src/
 
         #--json-only-output tree_temp.json
