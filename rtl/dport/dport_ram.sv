@@ -23,7 +23,7 @@ module dport_ram #(
             dport.rid    <= 0;
             dport.err    <= 0;
         end else begin
-            dport.gnt <= 1;
+            dport.gnt <= dport.rready;
             dport.err <= 0;
             if (dport.req && ~dport.we) begin
                 dport.rvalid <= 1;

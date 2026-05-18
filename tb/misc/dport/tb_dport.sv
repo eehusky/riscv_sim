@@ -1,6 +1,7 @@
 //import dport_pkg::*;
 module tb_dport ();
     localparam bit [31:0] N_SEGMENTS = dport_pkg::N_SEGMENTS;
+    localparam bit [31:0] LGN_SEGMENTS = $clog2(dport_pkg::N_SEGMENTS);
     //
     localparam bit [31:0] MTIME_ADDR = dport_pkg::MTIME_ADDR;
     localparam bit [31:0] MTIME_SIZE = dport_pkg::MTIME_SIZE;
@@ -32,20 +33,22 @@ module tb_dport ();
     logic rst_i;
     logic clk_i;
 
+
     obi_if #(.ID_WIDTH(2)) initiators[4] ();
-    obi_if #(.ID_WIDTH(2)) target ();
+    obi_if #(.ID_WIDTH(2+LGN_SEGMENTS-1)) target ();
     dport_mux #(4) i_dport_mux (
         .rst_i,
         .clk_i,
         .initiators,
         .target
     );
-    dport_dummy i_dummy (
-        .clk_i   (clk_i),
-        .rst_i   (rst_i),
+    dport_ram #(
+        .ADDR_WIDTH(dport_pkg::MTIME_WIDTH)
+    ) i_mux_dummy_ram (
+        .clk_i(clk_i),
+        .rst_i(rst_i),
         .dport(target)
     );
-
 
 
     obi_if #(.ID_WIDTH(2)) initiator ();

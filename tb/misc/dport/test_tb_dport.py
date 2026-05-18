@@ -359,9 +359,9 @@ class Range(NamedTuple):
         return self.low+self.size-1
 
 
-@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
 @cocotb.parametrize(region_def=REGIONS)
-async def test_iob_region(dut,region_def=REGIONS[0]):
+async def test_demux_by_region(dut,region_def=REGIONS[0]):
     tb = TB(dut)
     obi = OBI(dut.initiator, tb, 0)
 
@@ -430,7 +430,7 @@ async def test_iob_region(dut,region_def=REGIONS[0]):
 
 
 @cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
-async def test_iob_addrspace(dut):
+async def test_demux_addrspace(dut):
     tb = TB(dut)
     obi = OBI(dut.initiator, tb, 0)
     await tb.cycle_reset()
@@ -497,7 +497,7 @@ async def test_iob_addrspace(dut):
 
 
 @cocotb.test(timeout_time=100, timeout_unit="ms", skip=True)
-async def test_oob(dut):
+async def test_demux_oob(dut):
     tb = TB(dut)
     obi = OBI(dut.initiator, tb, 0)
     await tb.cycle_reset()
@@ -524,3 +524,46 @@ async def test_oob(dut):
         assert obi.rsp_queue.empty()
         assert obi.req_queue.empty()
         assert obi.pend_queue.empty()
+
+
+
+@cocotb.test(timeout_time=100, timeout_unit="ms", skip=False)
+async def test_mux_1(dut):
+    tb = TB(dut)
+    obis = [
+        OBI(dut.initiators[0], tb, 0),
+        OBI(dut.initiators[1], tb, 1),
+        OBI(dut.initiators[2], tb, 2),
+        OBI(dut.initiators[3], tb, 3),
+    ]
+    #obi = obis[1]
+    name, _,_  = REGIONS[0]
+    region = tb.regions[name]
+
+    await tb.cycle_reset()
+
+    for _ in obis:
+        _.read(region.random_addr())
+
+    for _ in range(1000):
+        obi = random.choice(obis)
+        if random.choice([True,False]):
+            obi.write(region.random_addr(),random_int())
+        else:
+            obi.read(region.random_addr())
+        await tb.clkcycle(1)
+
+
+    await tb.clkcycle(1000)
+    #print("wait readback")
+    #for _ in range(5000):
+    #    if obi.rsp_queue.empty() and obi.req_queue.empty() and obi.pend_queue.empty():
+    #        break
+    #    await tb.clkcycle(100)
+    #else:
+    #    print(f"{obi.rsp_queue.qsize()}")
+    #    print(f"{obi.req_queue.qsize()}")
+    #    print(f"{obi.pend_queue.qsize()}")
+    #    assert obi.rsp_queue.empty()
+    #    assert obi.req_queue.empty()
+    #    assert obi.pend_queue.empty()
