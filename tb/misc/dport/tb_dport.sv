@@ -21,10 +21,12 @@ module tb_dport ();
     localparam bit [31:0] CACHED_SIZE = dport_pkg::CACHED_SIZE;
     localparam bit [31:0] CACHED_WIDTH = dport_pkg::CACHED_WIDTH;
     localparam bit [31:0] CACHED_MASK = dport_pkg::CACHED_MASK;
+    //
     localparam bit [31:0] UNCACHED_ADDR = dport_pkg::UNCACHED_ADDR;
     localparam bit [31:0] UNCACHED_SIZE = dport_pkg::UNCACHED_SIZE;
     localparam bit [31:0] UNCACHED_WIDTH = dport_pkg::UNCACHED_WIDTH;
     localparam bit [31:0] UNCACHED_MASK = dport_pkg::UNCACHED_MASK;
+    //
     localparam bit [31:0] AXIL_ADDR = dport_pkg::AXIL_ADDR;
     localparam bit [31:0] AXIL_SIZE = dport_pkg::AXIL_SIZE;
     localparam bit [31:0] AXIL_WIDTH = dport_pkg::AXIL_WIDTH;
