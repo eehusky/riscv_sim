@@ -1,4 +1,4 @@
-module dport2axi #(
+module obi2axi #(
 ) (
     input logic clk_i,
     input logic rst_i,
@@ -176,4 +176,4 @@ module dport2axi #(
         assert (~(mem_rsp_pop && mem_rsp_empty));
     end
 
-endmodule : dport2axi
+endmodule : obi2axi

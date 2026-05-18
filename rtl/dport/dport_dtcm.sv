@@ -28,7 +28,7 @@ THE SOFTWARE.
 
 */
 
-module dport_dtcm #(
+module obi_dtcm #(
     // Width of data bus in bits
     parameter DATA_WIDTH        = 32,
     // Width of address bus in bits
@@ -276,6 +276,6 @@ module dport_dtcm #(
         end
     endfunction
 
-endmodule : dport_dtcm
+endmodule : obi_dtcm
 
 

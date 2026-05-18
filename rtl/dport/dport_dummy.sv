@@ -1,4 +1,4 @@
-module dport_dummy (
+module obi_dummy (
     input logic clk_i,
     input logic rst_i,
 
@@ -12,4 +12,4 @@ module dport_dummy (
         dport.rid <= dport.aid;
     end
 
-endmodule : dport_dummy
+endmodule : obi_dummy

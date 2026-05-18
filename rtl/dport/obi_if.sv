@@ -50,42 +50,4 @@ interface obi_if #(
     output rid
     );
 
-
-    modport ma(
-    input gnt,
-    output req,
-    output addr,
-    output we,
-    output be,
-    output wdata,
-    output aid
-    );
-
-    modport mr(
-    output rready,
-    input rvalid,
-    input rdata,
-    input err,
-    input rid
-    );
-
-
-    modport sa(
-    output gnt,
-    input req,
-    input addr,
-    input we,
-    input be,
-    input wdata,
-    input aid
-    );
-
-    modport sr(
-    input rready,
-    output rvalid,
-    output rdata,
-    output err,
-    output rid
-    );
-
 endinterface

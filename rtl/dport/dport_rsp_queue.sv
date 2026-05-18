@@ -1,4 +1,4 @@
-module dport_rsp_queue #(
+module obi_rsp_queue #(
     parameter int LGDEPTH = 3
 ) (
     input logic         clk_i,
@@ -54,5 +54,5 @@ module dport_rsp_queue #(
     end
 
 
-endmodule : dport_rsp_queue
+endmodule : obi_rsp_queue
 

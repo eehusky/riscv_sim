@@ -1,4 +1,4 @@
-module dport2axil (
+module obi2axil (
     input logic clk_i,
     input logic rst_i,
 
@@ -58,4 +58,4 @@ module dport2axil (
     assign m_axil.arprot = 0;
     assign m_axil.awprot = 0;
 
-endmodule : dport2axil
+endmodule : obi2axil

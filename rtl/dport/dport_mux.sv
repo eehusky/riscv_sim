@@ -1,5 +1,5 @@
-module dport_mux #(
-    parameter N_SEGMENTS = dport_pkg::N_SEGMENTS
+module obi_mux #(
+    parameter N_SEGMENTS = obi_pkg::N_SEGMENTS
 ) (
     input logic clk_i,
     input logic rst_i,
@@ -110,7 +110,7 @@ module dport_mux #(
             assign initiators[i].rid    = initiators[i].rvalid ? target_rid : 0;
         end
     endgenerate
-endmodule : dport_mux
+endmodule : obi_mux
 
 
 module priority_encoder #(

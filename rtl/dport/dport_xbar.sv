@@ -1,4 +1,4 @@
-module dport_xbar #(
+module obi_xbar #(
     parameter int N_INITIATORS,
     parameter int N_TARGETS
     //, parameter bit CONNECT[N_INITIATORS][N_TARGETS]
@@ -47,10 +47,10 @@ module dport_xbar #(
 
     generate
         for (genvar i = 0; i < N_INITIATORS; i++) begin : g_demux
-            dport_demux #(
+            obi_demux #(
                 .N_SEGMENTS(N_TARGETS),
-                .SLAVE_ADDR(dport_pkg::SLAVE_ADDR),
-                .SLAVE_MASK(dport_pkg::SLAVE_MASK)
+                .SLAVE_ADDR(obi_pkg::SLAVE_ADDR),
+                .SLAVE_MASK(obi_pkg::SLAVE_MASK)
             ) i_demux (
                 .clk_i   (clk_i),
                 .rst_i   (rst_i),
@@ -70,7 +70,7 @@ module dport_xbar #(
 
     generate
         for (genvar i = 0; i < N_TARGETS; i++) begin : g_mux
-            dport_mux #(
+            obi_mux #(
                 .N_SEGMENTS(N_INITIATORS)
             ) i_mux_0 (
                 .clk_i     (clk_i),
@@ -81,20 +81,20 @@ module dport_xbar #(
         end
     endgenerate
 
-    //dport_demux #(
+    //obi_demux #(
     //    .N_SEGMENTS(N_TARGETS),
-    //    .SLAVE_ADDR(dport_pkg::SLAVE_ADDR),
-    //    .SLAVE_MASK(dport_pkg::SLAVE_MASK)
+    //    .SLAVE_ADDR(obi_pkg::SLAVE_ADDR),
+    //    .SLAVE_MASK(obi_pkg::SLAVE_MASK)
     //) i_demux_0 (
     //    .clk_i   (clk_i),
     //    .rst_i   (rst_i),
     //    .cpu     (initiators[0]),
     //    .segments(demux_0_out[(0*N_TARGETS)+:N_TARGETS])
     //);
-    //dport_demux #(
+    //obi_demux #(
     //    .N_SEGMENTS(N_TARGETS),
-    //    .SLAVE_ADDR(dport_pkg::SLAVE_ADDR),
-    //    .SLAVE_MASK(dport_pkg::SLAVE_MASK)
+    //    .SLAVE_ADDR(obi_pkg::SLAVE_ADDR),
+    //    .SLAVE_MASK(obi_pkg::SLAVE_MASK)
     //) i_demux_1 (
     //    .clk_i   (clk_i),
     //    .rst_i   (rst_i),
@@ -115,7 +115,7 @@ module dport_xbar #(
     //`CONNECT_BUS(demux_0_out[(N_TARGETS*1)+4], mux_0_in[(N_INITIATORS*4)+1]);
     //`CONNECT_BUS(demux_0_out[(N_TARGETS*1)+5], mux_0_in[(N_INITIATORS*5)+1]);
 
-    //dport_mux #(
+    //obi_mux #(
     //    .N_SEGMENTS(N_INITIATORS)
     //) i_mux_0 (
     //    .clk_i   (clk_i),
@@ -123,7 +123,7 @@ module dport_xbar #(
     //    .initiators(mux_0_in[(0*N_INITIATORS)+:N_INITIATORS]),
     //    .target    (targets[0])
     //);
-    //dport_mux #(
+    //obi_mux #(
     //    .N_SEGMENTS(N_INITIATORS)
     //) i_mux_1 (
     //    .clk_i   (clk_i),
@@ -131,7 +131,7 @@ module dport_xbar #(
     //    .initiators(mux_0_in[(1*N_INITIATORS)+:N_INITIATORS]),
     //    .target    (targets[1])
     //);
-    //dport_mux #(
+    //obi_mux #(
     //    .N_SEGMENTS(N_INITIATORS)
     //) i_mux_2 (
     //    .clk_i   (clk_i),
@@ -139,7 +139,7 @@ module dport_xbar #(
     //    .initiators(mux_0_in[(2*N_INITIATORS)+:N_INITIATORS]),
     //    .target    (targets[2])
     //);
-    //dport_mux #(
+    //obi_mux #(
     //    .N_SEGMENTS(N_INITIATORS)
     //) i_mux_3 (
     //    .clk_i   (clk_i),
@@ -147,7 +147,7 @@ module dport_xbar #(
     //    .initiators(mux_0_in[(3*N_INITIATORS)+:N_INITIATORS]),
     //    .target    (targets[3])
     //);
-    //dport_mux #(
+    //obi_mux #(
     //    .N_SEGMENTS(N_INITIATORS)
     //) i_mux_4 (
     //    .clk_i   (clk_i),
@@ -155,7 +155,7 @@ module dport_xbar #(
     //    .initiators(mux_0_in[(4*N_INITIATORS)+:N_INITIATORS]),
     //    .target    (targets[4])
     //);
-    //dport_mux #(
+    //obi_mux #(
     //    .N_SEGMENTS(N_INITIATORS)
     //) i_mux_5 (
     //    .clk_i   (clk_i),
@@ -164,4 +164,4 @@ module dport_xbar #(
     //    .target    (targets[5])
     //);
 
-endmodule : dport_xbar
+endmodule : obi_xbar

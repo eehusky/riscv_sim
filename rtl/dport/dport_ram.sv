@@ -1,4 +1,4 @@
-module dport_ram #(
+module obi_ram #(
     parameter int ADDR_WIDTH = 16
 ) (
     input logic clk_i,
@@ -69,4 +69,4 @@ module dport_ram #(
         end
     endfunction
 
-endmodule : dport_ram
+endmodule : obi_ram

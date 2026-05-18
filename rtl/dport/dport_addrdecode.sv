@@ -65,7 +65,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-module dport_addrdecode #(
+module obi_addrdecode #(
     parameter NS = 8,
     parameter AW = 32,
     parameter DW = 32 + 32 / 8 + 1 + 1,
@@ -232,4 +232,4 @@ module dport_addrdecode #(
         end
     endgenerate
 
-endmodule : dport_addrdecode
+endmodule : obi_addrdecode

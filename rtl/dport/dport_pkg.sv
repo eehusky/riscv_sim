@@ -1,7 +1,7 @@
-package dport_pkg;
+package obi_pkg;
 
 
-    //    class dport_config;
+    //    class obi_config;
     //        string        name;
     //        bit    [31:0] addr;
     //        bit    [31:0] size;
@@ -24,10 +24,10 @@ package dport_pkg;
     //    class addrspace_config #(
     //        int N_SEMGENTS = 5
     //    );
-    //        dport_config                     segments   [N_SEMGENTS];
+    //        obi_config                     segments   [N_SEMGENTS];
     //        bit          [N_SEMGENTS*32-1:0] SLAVE_ADDR;
     //        bit          [N_SEMGENTS*32-1:0] SLAVE_MASK;
-    //        function new(dport_config segments[N_SEMGENTS]);
+    //        function new(obi_config segments[N_SEMGENTS]);
     //            this.segments = segments;
     //            foreach (this.segments[i]) begin
     //                this.SLAVE_ADDR[i*32+:32] = this.segments[i].addr;
@@ -41,12 +41,12 @@ package dport_pkg;
     //            end
     //        endfunction
     //    endclass
-    //    dport_config local_cfg = new("local", 32'h0000_0000, 32'h0000_1000);
-    //    dport_config dtcm_cfg = new("dtcm", 32'h8002_0000, 32'h0002_0000);
-    //    dport_config cached_cfg = new("cached", 32'h9000_0000, 32'h0002_0000);
-    //    dport_config uncached_cfg = new("uncached", 32'hA000_0000, 32'h0002_0000);
-    //    dport_config axil_cfg = new("axil", 32'hB000_0000, 32'h0002_0000);
-    //    dport_config segments[5] = {local_cfg, dtcm_cfg, cached_cfg, uncached_cfg, axil_cfg};
+    //    obi_config local_cfg = new("local", 32'h0000_0000, 32'h0000_1000);
+    //    obi_config dtcm_cfg = new("dtcm", 32'h8002_0000, 32'h0002_0000);
+    //    obi_config cached_cfg = new("cached", 32'h9000_0000, 32'h0002_0000);
+    //    obi_config uncached_cfg = new("uncached", 32'hA000_0000, 32'h0002_0000);
+    //    obi_config axil_cfg = new("axil", 32'hB000_0000, 32'h0002_0000);
+    //    obi_config segments[5] = {local_cfg, dtcm_cfg, cached_cfg, uncached_cfg, axil_cfg};
     //    addrspace_config addr_cfg = new(segments);
     //
     localparam bit [31:0] ITCM_ADDR = 32'h8000_0000;
@@ -94,4 +94,4 @@ package dport_pkg;
     };
 
 
-endpackage : dport_pkg
+endpackage : obi_pkg

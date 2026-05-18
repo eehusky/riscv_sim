@@ -1,7 +1,7 @@
-module dport_demux #(
-    parameter N_SEGMENTS = dport_pkg::N_SEGMENTS,
-    parameter SLAVE_ADDR = dport_pkg::SLAVE_ADDR,
-    parameter SLAVE_MASK = dport_pkg::SLAVE_MASK
+module obi_demux #(
+    parameter N_SEGMENTS = obi_pkg::N_SEGMENTS,
+    parameter SLAVE_ADDR = obi_pkg::SLAVE_ADDR,
+    parameter SLAVE_MASK = obi_pkg::SLAVE_MASK
 ) (
     input logic clk_i,
     input logic rst_i,
@@ -19,7 +19,7 @@ module dport_demux #(
         .ID_WIDTH  (cpu.ID_WIDTH)
     ) dummy ();
 
-    dport_dummy i_dport_dummy (
+    obi_dummy i_obi_dummy (
         .clk_i(clk_i),
         .rst_i(rst_i),
         .dport(dummy)
@@ -38,7 +38,7 @@ module dport_demux #(
     logic         [31:0] decode_addr;
     logic         [NS:0] req_grant;
 
-    dport_addrdecode #(
+    obi_addrdecode #(
         .AW            (32),
         .DW            ($size(decode_data_t)),
         .NS            (NS),
@@ -154,14 +154,14 @@ module dport_demux #(
     end
 
     for (genvar i = 0; i < NS; i++) begin : g_segrspq
-        dport_rsp_queue i_dport_rsp_queue_periph (
+        obi_rsp_queue i_obi_rsp_queue_periph (
             .clk_i(clk_i),
             .rst_i(rst_i),
             .in   (segments[i]),
             .out  (segment_rsp[i])
         );
     end
-    dport_rsp_queue i_dport_rsp_queue_periph (
+    obi_rsp_queue i_obi_rsp_queue_periph (
         .clk_i(clk_i),
         .rst_i(rst_i),
         .in   (dummy),
@@ -205,5 +205,5 @@ module dport_demux #(
         assert ((decode_valid && |req_grant) || ~decode_valid);
     end
 
-endmodule : dport_demux
+endmodule : obi_demux
 
