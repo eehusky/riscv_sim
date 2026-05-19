@@ -38,7 +38,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS   "ON")
 set(CXX_WARNING                     "-Wall -Wno-unused-but-set-variable -Wno-sign-compare -Wno-unused-variable -Wno-bool-operation -Wno-uninitialized")
 set(CMAKE_CXX_FLAGS                 "${PGO_FLAGS} -O3 -flto -fstrict-aliasing -march=native ${CXX_WARNING}")
 set(CMAKE_C_FLAGS                   "${PGO_FLAGS} -O3 -flto -fstrict-aliasing -march=native ${CXX_WARNING}")
-set(LD_FLAGS                        "${PGO_FLAGS} -fwhole-program")
+set(LD_FLAGS                        "${PGO_FLAGS} -flto=auto -fwhole-program")
 
 #set(CMAKE_CXX_FLAGS                 "${PGO_FLAGS} -Og -fstrict-aliasing -march=native ${CXX_WARNING}")
 #set(CMAKE_C_FLAGS                   "${PGO_FLAGS} -Og -fstrict-aliasing -march=native ${CXX_WARNING}")
@@ -72,6 +72,8 @@ set(MY_VERILATOR_ARGS
     --report-unoptflat
     #--expand-limit 100000
     #--trace-fst
+    --trace-structs
+    --no-trace-params
     #--unroll-count 512
     -CFLAGS "${CMAKE_CXX_FLAGS}"
     -LDFLAGS "-lelf -lbfd ${LD_FLAGS}"

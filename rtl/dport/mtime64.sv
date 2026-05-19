@@ -129,8 +129,12 @@ module mtime64 #(
     always_ff @(posedge clk_i) begin
         if (rst_i) begin
             rvalid_q <= 1'b0;
+            dport.rid <= 0;
+            dport.gnt <= 0;
         end else begin
             rvalid_q <= dport.req;
+            dport.rid <= dport.aid;
+            dport.gnt <= dport.rready;
         end
     end
 

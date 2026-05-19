@@ -21,9 +21,11 @@ module sim_ctrl (
             dport.rvalid <= 0;
             dport.rdata <= 0;
             dport.gnt <= 0;
+            dport.rid <= 0;
         end else begin
-            dport.gnt <= 1;
+            dport.gnt <= dport.rready;
             dport.rvalid <= dport.req;
+            dport.rid <= dport.aid;
             if (req_wr) begin
                 dport.rdata <= 0;
                 case (ctrl_addr)

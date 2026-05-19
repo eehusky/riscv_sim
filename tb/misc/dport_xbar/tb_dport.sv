@@ -1,8 +1,5 @@
 //import obi_pkg::*;
 module tb_dport ();
-    localparam bit [31:0] N_TARGETS = obi_pkg::N_TARGETS;
-    localparam bit [31:0] N_INITIATORS = obi_pkg::N_INITIATORS;
-
 
     logic rst_i;
     logic clk_i;
@@ -10,11 +7,11 @@ module tb_dport ();
     //localparam int N_INITIATORS = 4;
     //localparam int N_TARGETS = 6;
 
-    obi_if #(.ID_WIDTH(2)) xbar_initiators[N_INITIATORS] ();
-    obi_if #(.ID_WIDTH(2+$clog2(N_INITIATORS))) xbar_targets[N_TARGETS] ();
+    obi_if #(.ID_WIDTH(2)) xbar_initiators[obi_pkg::N_INITIATORS] ();
+    obi_if #(.ID_WIDTH(2+$clog2(obi_pkg::N_INITIATORS))) xbar_targets[obi_pkg::N_TARGETS] ();
     obi_xbar #(
-        .N_INITIATORS(N_INITIATORS),
-        .N_TARGETS(N_TARGETS)
+        .N_INITIATORS(obi_pkg::N_INITIATORS),
+        .N_TARGETS(obi_pkg::N_TARGETS)
         //.CONNECT({{1'b1,1'b1},{1'b1,1'b1}})
         //.CONNECT([[1'b1,1'b1],[1'b1,1'b1]])
     ) i_obi_xbar (

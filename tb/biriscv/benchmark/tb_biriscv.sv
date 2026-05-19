@@ -22,19 +22,14 @@ module tb_biriscv #(
     parameter int        NUM_RAS_ENTRIES           = 8,
     parameter int        NUM_RAS_ENTRIES_W         = $clog2(NUM_RAS_ENTRIES)
 ) (
-    input i_clk,
-    input i_rst
+    input clk_i,
+    input rst_i
 );
 
-    logic        clk_i;
-    logic        rst_i;
     logic [31:0] irq_i;
 
     obi_if #(.DATA_WIDTH(64)) instr_dport ();
     obi_if data_dport ();
-
-    assign clk_i = i_clk;
-    assign rst_i = i_rst;
 
     biriscv_wrapper #(
         .BOOT_ADDRESS             (BOOT_ADDRESS),
@@ -60,8 +55,8 @@ module tb_biriscv #(
         .NUM_RAS_ENTRIES          (NUM_RAS_ENTRIES),
         .NUM_RAS_ENTRIES_W        (NUM_RAS_ENTRIES_W)
     ) i_biriscv_wrapper (
-        .clk_i      (i_clk),
-        .rst_i      (i_rst),
+        .clk_i      (clk_i),
+        .rst_i      (rst_i),
         .irq_i      (irq_i),
         .instr_dport(instr_dport),
         .data_dport (data_dport)
@@ -70,7 +65,7 @@ module tb_biriscv #(
     // ------------------------------------------------------------------------
 
 
-    obi_if segments[obi_pkg::N_TARGETS] ();
+    obi_if targets[obi_pkg::N_TARGETS] ();
 
     obi_demux #(
         .N_TARGETS (obi_pkg::N_TARGETS),
@@ -79,8 +74,8 @@ module tb_biriscv #(
     ) i_obi_demux (
         .clk_i   (clk_i),
         .rst_i   (rst_i),
-        .cpu     (data_dport),
-        .segments(segments)
+        .initiator     (data_dport),
+        .targets(targets)
     );
 
     // ------------------------------------------------------------------------
@@ -88,7 +83,7 @@ module tb_biriscv #(
     mtime32 i_mtime (
         .clk_i       (clk_i),
         .rst_i       (rst_i),
-        .dport       (segments[0]),
+        .dport       (targets[0]),
         .intr_o      (irq_i[7]),
         .clear_intr_i(0)
     );
@@ -98,7 +93,7 @@ module tb_biriscv #(
     sim_ctrl i_sim_ctrl (
         .clk_i(clk_i),
         .rst_i(rst_i),
-        .dport(segments[1])
+        .dport(targets[1])
     );
 
     // ------------------------------------------------------------------------
@@ -106,8 +101,8 @@ module tb_biriscv #(
     obi_ram #(
         .ADDR_WIDTH(17)
     ) i_instr_ram (
-        .clk_i(i_clk),
-        .rst_i(i_rst),
+        .clk_i(clk_i),
+        .rst_i(rst_i),
         .dport(instr_dport)
     );
 
@@ -124,7 +119,7 @@ module tb_biriscv #(
     ) i_obi_dtcm (
         .a_clk(clk_i),
         .a_rst(rst_i),
-        .dport(segments[3]),
+        .dport(targets[3]),
         .s_axi(s_axi_dtcm)
     );
 

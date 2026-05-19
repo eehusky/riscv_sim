@@ -6,14 +6,14 @@ module obi_demux #(
     input logic clk_i,
     input logic rst_i,
 
-    obi_if.slave  cpu,
-    obi_if.master segments[N_TARGETS]
+    obi_if.slave  initiator,
+    obi_if.master targets[N_TARGETS]
 );
     obi_if #(
-        .DATA_WIDTH(cpu.DATA_WIDTH),
-        .ADDR_WIDTH(cpu.ADDR_WIDTH),
-        .STRB_WIDTH(cpu.STRB_WIDTH),
-        .ID_WIDTH  (cpu.ID_WIDTH)
+        .DATA_WIDTH(initiator.DATA_WIDTH),
+        .ADDR_WIDTH(initiator.ADDR_WIDTH),
+        .STRB_WIDTH(initiator.STRB_WIDTH),
+        .ID_WIDTH  (initiator.ID_WIDTH)
     ) dummy ();
 
     obi_dummy i_obi_dummy (
@@ -24,9 +24,9 @@ module obi_demux #(
 
     typedef struct packed {
         logic                      we;
-        logic [cpu.STRB_WIDTH-1:0] be;
-        logic [cpu.DATA_WIDTH-1:0] wdata;
-        logic [cpu.ID_WIDTH-1:0]   aid;
+        logic [initiator.STRB_WIDTH-1:0] be;
+        logic [initiator.DATA_WIDTH-1:0] wdata;
+        logic [initiator.ID_WIDTH-1:0]   aid;
     } decode_data_t;
 
     decode_data_t               decode_data;
@@ -48,10 +48,10 @@ module obi_demux #(
         .i_clk   (clk_i),
         .i_reset (rst_i),
         //
-        .i_valid (cpu.req),
-        .o_stall (cpu.gnt),
-        .i_addr  (cpu.addr),
-        .i_data  ({cpu.we, cpu.be, cpu.wdata, cpu.aid}),
+        .i_valid (initiator.req),
+        .o_stall (initiator.gnt),
+        .i_addr  (initiator.addr),
+        .i_data  ({initiator.we, initiator.be, initiator.wdata, initiator.aid}),
         //
         .o_valid (decode_valid),
         .i_stall (decode_stall),
@@ -78,13 +78,13 @@ module obi_demux #(
     end
 
     for (genvar i = 0; i < N_TARGETS; i++) begin : g_channel_data
-        assign segments[i].req   = decode_valid && req_grant[i];
-        assign segments[i].addr  = decode_addr;
-        assign segments[i].we    = decode_data.we;
-        assign segments[i].be    = decode_data.be;
-        assign segments[i].wdata = decode_data.wdata;
-        assign segments[i].aid   = decode_data.aid;
-        assign req_data[i].gnt   = segments[i].gnt;
+        assign targets[i].req   = decode_valid && req_grant[i];
+        assign targets[i].addr  = decode_addr;
+        assign targets[i].we    = decode_data.we;
+        assign targets[i].be    = decode_data.be;
+        assign targets[i].wdata = decode_data.wdata;
+        assign targets[i].aid   = decode_data.aid;
+        assign req_data[i].gnt   = targets[i].gnt;
     end
     assign dummy.req               = decode_valid && req_grant[N_TARGETS];
     assign dummy.addr              = decode_addr;
@@ -112,7 +112,7 @@ module obi_demux #(
     logic                rsp_pop;
 
     assign rsp_push = decode_valid && decode_stall;
-    assign rsp_pop  = |rsp_ack && cpu.rready;
+    assign rsp_pop  = |rsp_ack && initiator.rready;
 
     sfifo #(
         .BW               ($size(rsp_data_t)),
@@ -137,10 +137,10 @@ module obi_demux #(
     logic [N_TARGETS:0] rsp_grant;
 
     obi_if #(
-        .DATA_WIDTH(cpu.DATA_WIDTH),
-        .ADDR_WIDTH(cpu.ADDR_WIDTH),
-        .STRB_WIDTH(cpu.STRB_WIDTH),
-        .ID_WIDTH  (cpu.ID_WIDTH)
+        .DATA_WIDTH(initiator.DATA_WIDTH),
+        .ADDR_WIDTH(initiator.ADDR_WIDTH),
+        .STRB_WIDTH(initiator.STRB_WIDTH),
+        .ID_WIDTH  (initiator.ID_WIDTH)
     ) segment_rsp[N_TARGETS+1] ();
     assign rsp_grant = rsp_data_out.decode;
     assign rsp_ack   = rsp_ready & rsp_grant;
@@ -154,7 +154,7 @@ module obi_demux #(
         obi_rsp_queue i_obi_rsp_queue_periph (
             .clk_i(clk_i),
             .rst_i(rst_i),
-            .in   (segments[i]),
+            .in   (targets[i]),
             .out  (segment_rsp[i])
         );
     end
@@ -168,9 +168,9 @@ module obi_demux #(
     typedef struct packed {
         logic                      rready;
         logic                      rvalid;
-        logic [cpu.DATA_WIDTH-1:0] rdata;
+        logic [initiator.DATA_WIDTH-1:0] rdata;
         logic                      err;
-        logic [cpu.ID_WIDTH-1:0]   rid;
+        logic [initiator.ID_WIDTH-1:0]   rid;
     } obi_rsp_t;
 
     obi_rsp_t rsp_data[N_TARGETS+1];
@@ -182,16 +182,16 @@ module obi_demux #(
     end
 
     always_comb begin
-        cpu.rvalid = 0;
-        cpu.rdata  = 0;
-        cpu.err    = 0;
-        cpu.rid    = 0;
+        initiator.rvalid = 0;
+        initiator.rdata  = 0;
+        initiator.err    = 0;
+        initiator.rid    = 0;
         for (int i = 0; i < N_TARGETS + 1; i++) begin
             if (rsp_ack == 1 << i) begin
-                cpu.rvalid = rsp_data[i].rvalid;
-                cpu.rdata  = rsp_data[i].rdata;
-                cpu.err    = rsp_data[i].err;
-                cpu.rid    = rsp_data[i].rid;
+                initiator.rvalid = rsp_data[i].rvalid;
+                initiator.rdata  = rsp_data[i].rdata;
+                initiator.err    = rsp_data[i].err;
+                initiator.rid    = rsp_data[i].rid;
             end
         end
     end

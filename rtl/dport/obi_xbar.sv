@@ -48,14 +48,14 @@ module obi_xbar #(
     generate
         for (genvar i = 0; i < N_INITIATORS; i++) begin : g_demux
             obi_demux #(
-                .N_SEGMENTS(N_TARGETS),
+                .N_TARGETS (N_TARGETS),
                 .SLAVE_ADDR(obi_pkg::SLAVE_ADDR),
                 .SLAVE_MASK(obi_pkg::SLAVE_MASK)
             ) i_demux (
-                .clk_i   (clk_i),
-                .rst_i   (rst_i),
-                .cpu     (initiators[i]),
-                .segments(demux_out[(i*N_TARGETS)+:N_TARGETS])
+                .clk_i    (clk_i),
+                .rst_i    (rst_i),
+                .initiator(initiators[i]),
+                .targets  (demux_out[(i*N_TARGETS)+:N_TARGETS])
             );
         end
     endgenerate

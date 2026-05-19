@@ -1,38 +1,40 @@
-module tb_ibex (
-    input logic i_clk,
-    input logic i_rst
+module tb_ibex #(
+    parameter bit                 [31:0] BOOT_ADDRESS         = 32'h8000_0000,
+    parameter int                        HART_ID              = 0,
+    parameter bit                 [31:0] DM_BASE_ADDR         = 32'h0010_0000,
+    parameter bit                 [31:0] DM_ADDR_MASK         = 32'h0000_0003,
+    parameter bit                 [31:0] DM_HALT_ADDR         = 32'h0010_0000,
+    parameter bit                 [31:0] DM_EXCEPTION_ADDR    = 32'h0010_0000,
+    parameter bit                        SecureIbex           = 1'b0,
+    parameter int unsigned               LockstepOffset       = 1,
+    parameter bit                        ICacheScramble       = 1'b0,
+    parameter bit                        PMPEnable            = 1'b0,
+    parameter int unsigned               PMPGranularity       = 0,
+    parameter int unsigned               PMPNumRegions        = 4,
+    parameter int unsigned               MHPMCounterNum       = 0,
+    parameter int unsigned               MHPMCounterWidth     = 40,
+    parameter bit                        RV32E                = 1'b0,
+    parameter ibex_pkg::rv32m_e          RV32M                = ibex_pkg::RV32MSingleCycle,
+    parameter ibex_pkg::rv32b_e          RV32B                = ibex_pkg::RV32BFull,
+    parameter ibex_pkg::rv32zc_e         RV32ZC               = ibex_pkg::RV32ZcaZcbZcmp,
+    parameter ibex_pkg::regfile_e        RegFile              = ibex_pkg::RegFileFF,
+    parameter bit                        BranchTargetALU      = 1'b1,
+    parameter bit                        WritebackStage       = 1'b1,
+    parameter bit                        ICache               = 1'b0,
+    parameter bit                        DbgTriggerEn         = 1'b0,
+    parameter bit                        ICacheECC            = 1'b0,
+    parameter bit                        ICacheTweakInfection = 1'b0,
+    parameter bit                        BranchPredictor      = 1'b1
+) (
+    input logic clk_i,
+    input logic rst_i
 );
-    parameter bit [31:0] BOOT_ADDRESS = 32'h8000_0000;
-    parameter int HART_ID = 0;
-    parameter bit [31:0] DM_BASE_ADDR = 32'h0010_0000;
-    parameter bit [31:0] DM_ADDR_MASK = 32'h0000_0003;
-    parameter bit [31:0] DM_HALT_ADDR = 32'h0010_0000;
-    parameter bit [31:0] DM_EXCEPTION_ADDR = 32'h0010_0000;
-    parameter bit SecureIbex = 1'b0;
-    parameter int unsigned LockstepOffset = 1;
-    parameter bit ICacheScramble = 1'b0;
-    parameter bit PMPEnable = 1'b0;
-    parameter int unsigned PMPGranularity = 0;
-    parameter int unsigned PMPNumRegions = 4;
-    parameter int unsigned MHPMCounterNum = 0;
-    parameter int unsigned MHPMCounterWidth = 40;
-    parameter bit RV32E = 1'b0;
-    parameter ibex_pkg::rv32m_e RV32M = ibex_pkg::RV32MSingleCycle;
-    parameter ibex_pkg::rv32b_e RV32B = ibex_pkg::RV32BFull;
-    parameter ibex_pkg::rv32zc_e RV32ZC = ibex_pkg::RV32ZcaZcbZcmp;
-    parameter ibex_pkg::regfile_e RegFile = ibex_pkg::RegFileFF;
-    parameter bit BranchTargetALU = 1'b1;
-    parameter bit WritebackStage = 1'b1;
-    parameter bit ICache = 1'b0;
-    parameter bit DbgTriggerEn = 1'b0;
-    parameter bit ICacheECC = 1'b0;
-    parameter bit ICacheTweakInfection = 1'b0;
-    parameter bit BranchPredictor = 1'b1;
-
+    localparam int INITIATOR_ID_WIDTH = 1;
+    localparam int TARGET_ID_WIDTH = INITIATOR_ID_WIDTH + $clog2(obi_pkg::N_INITIATORS);
 
     logic [31:0] irq_i;
-    obi_if instr_dport ();
-    obi_if data_dport ();
+    obi_if #(.ID_WIDTH(INITIATOR_ID_WIDTH)) initiators[obi_pkg::N_INITIATORS] ();
+    obi_if #(.ID_WIDTH(TARGET_ID_WIDTH)) targets[obi_pkg::N_TARGETS] ();
 
     ibex_wrapper #(
         .BOOT_ADDRESS        (BOOT_ADDRESS),
@@ -62,31 +64,25 @@ module tb_ibex (
         .ICacheTweakInfection(ICacheTweakInfection),
         .BranchPredictor     (BranchPredictor)
     ) i_ibex_wrapper (
-        .clk_i      (i_clk),
-        .rst_i      (i_rst),
+        .clk_i      (clk_i),
+        .rst_i      (rst_i),
         .irq_i      (irq_i),
-        .instr_dport(instr_dport),
-        .data_dport (data_dport)
+        .instr_dport(initiators[0]),
+        .data_dport (initiators[1])
     );
 
-
     // ------------------------------------------------------------------------
-    logic clk_i;
-    logic rst_i;
-    assign clk_i = i_clk;
-    assign rst_i = i_rst;
+    // ------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
-    obi_if segments[obi_pkg::N_TARGETS] ();
-
-    obi_demux #(
-        .N_TARGETS (obi_pkg::N_TARGETS),
-        .SLAVE_ADDR(obi_pkg::SLAVE_ADDR),
-        .SLAVE_MASK(obi_pkg::SLAVE_MASK)
-    ) i_obi_demux (
-        .clk_i   (clk_i),
-        .rst_i   (rst_i),
-        .cpu     (data_dport),
-        .segments(segments)
+    obi_xbar #(
+        .N_INITIATORS(obi_pkg::N_INITIATORS),
+        .N_TARGETS   (obi_pkg::N_TARGETS)
+    ) i_obi_xbar (
+        .rst_i,
+        .clk_i,
+        .initiators(initiators),
+        .targets   (targets)
     );
 
     // ------------------------------------------------------------------------
@@ -94,7 +90,7 @@ module tb_ibex (
     mtime32 i_mtime (
         .clk_i       (clk_i),
         .rst_i       (rst_i),
-        .dport       (segments[0]),
+        .dport       (targets[0]),
         .intr_o      (irq_i[7]),
         .clear_intr_i(0)
     );
@@ -104,17 +100,17 @@ module tb_ibex (
     sim_ctrl i_sim_ctrl (
         .clk_i(clk_i),
         .rst_i(rst_i),
-        .dport(segments[1])
+        .dport(targets[1])
     );
 
     // ------------------------------------------------------------------------
 
     obi_ram #(
-        .ADDR_WIDTH(17)
+        .ADDR_WIDTH(obi_pkg::ITCM_WIDTH)
     ) i_instr_ram (
-        .clk_i(i_clk),
-        .rst_i(i_rst),
-        .dport(instr_dport)
+        .clk_i(clk_i),
+        .rst_i(rst_i),
+        .dport(targets[2])
     );
 
     // ------------------------------------------------------------------------
@@ -130,7 +126,7 @@ module tb_ibex (
     ) i_obi_dtcm (
         .a_clk(clk_i),
         .a_rst(rst_i),
-        .dport(segments[3]),
+        .dport(targets[3]),
         .s_axi(s_axi_dtcm)
     );
 

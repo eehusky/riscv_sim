@@ -63,6 +63,8 @@ set(MY_VERILATOR_ARGS
     #--expand-limit 100000
     #--unroll-count 512
     #--trace-fst
+    --trace-structs
+    --no-trace-params
     -CFLAGS "${CMAKE_CXX_FLAGS}"
     -LDFLAGS "-lelf -lbfd"
 )
