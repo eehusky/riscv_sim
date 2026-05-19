@@ -4,9 +4,11 @@ project(tb_ibex_benchmark)
 set(REPO_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
 set(IBEX         ${REPO_DIR}/cores/ibex)
 set(BIRISCV      ${REPO_DIR}/cores/biriscv)
+set(CV32E40P      ${REPO_DIR}/cores/cv32e40p)
 set(VERILOG_AXI  ${REPO_DIR}/cores/verilog-axi/)
 set(VERILOG_UART ${REPO_DIR}/cores/verilog-uart/)
 set(WB2AXIP      ${REPO_DIR}/cores/wb2axip/)
+set(RISCVDBG     ${REPO_DIR}/cores/riscv-dbg/)
 
 find_package(verilator
     NO_DEFAULT_PATH
@@ -36,9 +38,9 @@ set(CMAKE_CXX_STANDARD              ${SystemC_CXX_STANDARD})
 set(CMAKE_CXX_STANDARD_REQUIRED     ${SystemC_CXX_STANDARD_REQUIRED})
 set(CMAKE_EXPORT_COMPILE_COMMANDS   "ON")
 set(CXX_WARNING                     "-Wall -Wno-unused-but-set-variable -Wno-sign-compare -Wno-unused-variable -Wno-bool-operation -Wno-uninitialized")
-set(CMAKE_CXX_FLAGS                 "${PGO_FLAGS} -O3 -flto -fstrict-aliasing -march=native ${CXX_WARNING}")
-set(CMAKE_C_FLAGS                   "${PGO_FLAGS} -O3 -flto -fstrict-aliasing -march=native ${CXX_WARNING}")
-set(LD_FLAGS                        "${PGO_FLAGS} -flto=auto -fwhole-program")
+set(CMAKE_CXX_FLAGS                 "${PGO_FLAGS} -Og -fstrict-aliasing -march=native ${CXX_WARNING}")
+set(CMAKE_C_FLAGS                   "${PGO_FLAGS} -Og -fstrict-aliasing -march=native ${CXX_WARNING}")
+#set(LD_FLAGS                        "${PGO_FLAGS} -flto=auto -fwhole-program")
 
 #set(CMAKE_CXX_FLAGS                 "${PGO_FLAGS} -Og -fstrict-aliasing -march=native ${CXX_WARNING}")
 #set(CMAKE_C_FLAGS                   "${PGO_FLAGS} -Og -fstrict-aliasing -march=native ${CXX_WARNING}")
@@ -68,13 +70,14 @@ set(MY_VERILATOR_ARGS
     #-Wno-SYMRSVDWORD
     #-Wno-MULTIDRIVEN
     -Wno-UNOPTFLAT
+    -Wno-REDEFMACRO
 
     --report-unoptflat
     #--expand-limit 100000
-    #--trace-fst
+    #--unroll-count 512
+    --trace-fst
     --trace-structs
     --no-trace-params
-    #--unroll-count 512
     -CFLAGS "${CMAKE_CXX_FLAGS}"
     -LDFLAGS "-lelf -lbfd ${LD_FLAGS}"
 
@@ -89,6 +92,8 @@ set(MY_VERILATOR_ARGS
 add_executable(tb_ibex
     ${REPO_DIR}/tb/common/elf_load.cpp
     sim_main.cpp
+    jtagdpi/jtagdpi.c
+    tcp_server/tcp_server.c
 )
 
 verilate(tb_ibex
@@ -105,6 +110,7 @@ verilate(tb_ibex
     INCLUDE_DIRS
         ${IBEX}/vendor/lowrisc_ip/ip/prim/rtl
         ${IBEX}/vendor/lowrisc_ip/dv/sv/dv_utils
+        ${REPO_DIR}/cores/common_cells/include
 
     SOURCES
         ## IBEX
@@ -165,10 +171,34 @@ verilate(tb_ibex
         ${VERILOG_AXI}/rtl/axi_ram_wr_rd_if.v
         ${VERILOG_AXI}/rtl/axi_ram_wr_if.v
         ${VERILOG_AXI}/rtl/axi_ram_rd_if.v
-        #${VERILOG_AXI}/rtl/axil_ram.v
-        #${VERILOG_AXI}/rtl/axi_ram.v
+        ${VERILOG_AXI}/rtl/axil_ram.v
+        ${VERILOG_AXI}/rtl/axi_ram.v
+        #
+        ${RISCVDBG}/src/dm_pkg.sv
+        ${RISCVDBG}/debug_rom/debug_rom.sv
+        ${RISCVDBG}/debug_rom/debug_rom_one_scratch.sv
+        ${RISCVDBG}/src/dm_csrs.sv
+        ${RISCVDBG}/src/dm_mem.sv
+        ${RISCVDBG}/src/dm_top.sv
+        dm_obi_top.sv
+        ${RISCVDBG}/src/dmi_cdc.sv
+        ${RISCVDBG}/src/dmi_jtag.sv
+        ${RISCVDBG}/src/dmi_jtag_tap.sv
+        ${RISCVDBG}/src/dm_sba.sv
+
+        ${REPO_DIR}/cores/common_cells/src/cdc_reset_ctrlr_pkg.sv
+        ${REPO_DIR}/cores/common_cells/src/cdc_2phase_clearable.sv
+        ${REPO_DIR}/cores/common_cells/src/cdc_4phase.sv
+        ${REPO_DIR}/cores/common_cells/src/cdc_reset_ctrlr.sv
+        ${REPO_DIR}/cores/common_cells/src/fifo_v3.sv
+        ${REPO_DIR}/cores/common_cells/src/sync.sv
+        ${REPO_DIR}/cores/common_cells/src/rstgen.sv
+        ${REPO_DIR}/cores/common_cells/src/rstgen_bypass.sv
+        ${REPO_DIR}/cores/tech_cells_generic/src/rtl/tc_clk.sv
+        #${CV32E40P}/rtl/vendor/pulp_platform_common_cells/src/fifo_v3.sv
         #
         ../ibex_wrapper.sv
+        jtagdpi/jtagdpi.sv
         tb_ibex.sv
         tb_ibex.vlt
         #
@@ -180,5 +210,7 @@ verilate(tb_ibex
 target_include_directories(tb_ibex
     PUBLIC
         ${.}
+        ./jtagdpi/
+        ./tcp_server/
         ${REPO_DIR}/tb/common/
 )

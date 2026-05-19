@@ -31,3 +31,9 @@
 [submodule "cores/riscv-dbg"]
 	path = cores/riscv-dbg
 	url = git@github.com:pulp-platform/riscv-dbg.git
+[submodule "cores/tech_cells_generic"]
+	path = cores/tech_cells_generic
+	url = https://github.com/pulp-platform/tech_cells_generic.git
+[submodule "cores/common_cells"]
+	path = cores/common_cells
+	url = https://github.com/pulp-platform/common_cells.git

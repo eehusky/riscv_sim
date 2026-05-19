@@ -74,6 +74,12 @@ cv32e40p_coremark:
 	../tb/cv32e40p/benchmark/build/tb_cv32e40p -f build/coremark.elf
 
 ##
+ibex_demo:
+	mkdir -p build
+	cmake -S ibex/apps/baremetal_demo -B build --fresh
+	cmake --build build/
+	../tb/ibex/demo/build/tb_ibex -f build/baremetal_demo.elf
+
 
 ibex_coremark:
 	mkdir -p build
@@ -81,6 +87,11 @@ ibex_coremark:
 	cmake --build build/
 	../tb/ibex/benchmark/build/tb_ibex -f build/coremark.elf
 
+ibex_debug:
+	mkdir -p build
+	cmake -S ibex/apps/baremetal_demo -B build --fresh
+	cmake --build build/
+	../tb/ibex/debug/build/tb_ibex -f build/baremetal_demo.elf
 
 
 clean:
@@ -90,7 +101,7 @@ clean:
 
 .PHONY: clean
 .PHONY: cv32e40p_demo cv32e40p_freertos cv32e40p_ringbuffer cv32e40p_coremark
-.PHONY: ibex_demo     ibex_freertos     ibex_ringbuffer     ibex_coremark
+.PHONY: ibex_demo     ibex_freertos     ibex_ringbuffer     ibex_coremark ibex_debug
 .PHONY: biriscv_demo  biriscv_freertos  biriscv_ringbuffer  biriscv_coremark
 .PHONY: rsd_demo      rsd_freertos      rsd_ringbuffer      rsd_coremark
 FORCE:

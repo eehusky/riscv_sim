@@ -51,6 +51,9 @@ module ibex_wrapper #(
     // CPU Control Signals
     logic        core_sleep_o;
 
+    logic debug_req;
+    ibex_pkg::crash_dump_t crash_dump;
+
     // irq_nm_i         31      Non-maskable interrupt (NMI)
     // irq_fast_i[14:0] 30:16   15 fast, local interrupts
     // irq_external_i   11      Connected to platform-level interrupt controller
@@ -139,8 +142,8 @@ module ibex_wrapper #(
         .scramble_nonce_i    ('0),
         .scramble_req_o      (),
 
-        .debug_req_i        (1'b0),
-        .crash_dump_o       (),
+        .debug_req_i        (debug_req),
+        .crash_dump_o       (crash_dump),
         .double_fault_seen_o(),
 
         .fetch_enable_i        (ibex_pkg::IbexMuBiOn),
