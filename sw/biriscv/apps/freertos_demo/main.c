@@ -159,6 +159,7 @@ static void prvQueueReceiveTask(void *pvParameters)
     const char *const pcMessage2 = "Blink2";
     const char *const pcFailMessage = "Unexpected value received\r\n";
     int f = 1;
+    int count = 0;
 
     /* Remove compiler warning about unused parameter. */
     (void)pvParameters;
@@ -170,6 +171,7 @@ static void prvQueueReceiveTask(void *pvParameters)
          * indefinitely provided INCLUDE_vTaskSuspend is set to 1 in
          * FreeRTOSConfig.h. */
         xQueueReceive(xQueue, &ulReceivedValue, portMAX_DELAY);
+        count++;
 
         /*  To get here something must have been received from the queue, but
          * is it the expected value?  If it is, toggle the LED. */
@@ -180,7 +182,12 @@ static void prvQueueReceiveTask(void *pvParameters)
 
             ulReceivedValue = 0U;
         } else {
-            //printf("%d: %s\n", mtime_get(), pcFailMessage);
+            printf("%d: %s\n", mtime_get(), pcFailMessage);
+        }
+
+        if(count == 10){
+            printf("%d: Exiting after %d loops\n", mtime_get(), count);
+            sim_exit(0);
         }
     }
 }

@@ -1,0 +1,235 @@
+[*]
+[*] GTKWave Analyzer v4.0.0-prealpha (36638f9) (w)1999-2022 BSI
+[*] Mon May 18 20:27:35 2026
+[*]
+[dumpfile] "/home/rbriggin/github/eehusky/riscv_sim/tb/misc/dport_xbar/dump.fst"
+[dumpfile_mtime] "Mon May 18 20:27:19 2026"
+[dumpfile_size] 25305
+[savefile] "/home/rbriggin/github/eehusky/riscv_sim/tb/misc/dport_xbar/xbar.gtkw"
+[timestart] 0
+[size] 1920 2088
+[pos] -1 -1
+*-19.461718 2184000 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+[markername] AA
+[markername] BB
+[markername] CC
+[markername] DD
+[markername] EE
+[markername] FF
+[markername] GG
+[markername] HH
+[markername] II
+[markername] JJ
+[markername] KK
+[markername] LL
+[markername] MM
+[markername] NN
+[markername] OO
+[markername] PP
+[markername] QQ
+[markername] RR
+[markername] SS
+[markername] TT
+[markername] UU
+[markername] VV
+[markername] WW
+[markername] XX
+[markername] YY
+[markername] ZZ
+[treeopen] tb_dport.
+[sst_width] 239
+[signals_width] 203
+[sst_expanded] 1
+[sst_vpaned_height] 670
+@800200
+-INIT0
+@28
+tb_dport.xbar_initiators[0].gnt
+tb_dport.xbar_initiators[0].req
+@22
+tb_dport.xbar_initiators[0].addr[31:0]
+@28
+tb_dport.xbar_initiators[0].aid[1:0]
+@22
+tb_dport.xbar_initiators[0].be[3:0]
+tb_dport.xbar_initiators[0].wdata[31:0]
+@28
+tb_dport.xbar_initiators[0].we
+tb_dport.xbar_initiators[0].rready
+tb_dport.xbar_initiators[0].rvalid
+tb_dport.xbar_initiators[0].err
+@22
+tb_dport.xbar_initiators[0].rdata[31:0]
+@28
+tb_dport.xbar_initiators[0].rid[1:0]
+@1000200
+-INIT0
+@800200
+-INIT1
+@29
+tb_dport.xbar_initiators[1].gnt
+tb_dport.xbar_initiators[1].req
+@22
+tb_dport.xbar_initiators[1].addr[31:0]
+@28
+tb_dport.xbar_initiators[1].aid[1:0]
+@22
+tb_dport.xbar_initiators[1].be[3:0]
+tb_dport.xbar_initiators[1].wdata[31:0]
+@28
+tb_dport.xbar_initiators[1].we
+tb_dport.xbar_initiators[1].err
+@22
+tb_dport.xbar_initiators[1].rdata[31:0]
+@28
+tb_dport.xbar_initiators[1].rid[1:0]
+tb_dport.xbar_initiators[1].rready
+tb_dport.xbar_initiators[1].rvalid
+@1000200
+-INIT1
+@800200
+-TGT0
+@22
+tb_dport.xbar_targets[0].addr[31:0]
+@28
+tb_dport.xbar_targets[0].aid[2:0]
+@22
+tb_dport.xbar_targets[0].be[3:0]
+@28
+tb_dport.xbar_targets[0].err
+tb_dport.xbar_targets[0].gnt
+@22
+tb_dport.xbar_targets[0].rdata[31:0]
+@28
+tb_dport.xbar_targets[0].req
+tb_dport.xbar_targets[0].rid[2:0]
+tb_dport.xbar_targets[0].rready
+tb_dport.xbar_targets[0].rvalid
+@22
+tb_dport.xbar_targets[0].wdata[31:0]
+@28
+tb_dport.xbar_targets[0].we
+@1000200
+-TGT0
+@800200
+-TGT1
+@22
+tb_dport.xbar_targets[1].addr[31:0]
+@28
+tb_dport.xbar_targets[1].aid[2:0]
+@22
+tb_dport.xbar_targets[1].be[3:0]
+@28
+tb_dport.xbar_targets[1].err
+tb_dport.xbar_targets[1].gnt
+@22
+tb_dport.xbar_targets[1].rdata[31:0]
+@28
+tb_dport.xbar_targets[1].req
+tb_dport.xbar_targets[1].rid[2:0]
+tb_dport.xbar_targets[1].rready
+tb_dport.xbar_targets[1].rvalid
+@22
+tb_dport.xbar_targets[1].wdata[31:0]
+@28
+tb_dport.xbar_targets[1].we
+@1000200
+-TGT1
+@800200
+-TGT2
+@22
+tb_dport.xbar_targets[2].addr[31:0]
+@28
+tb_dport.xbar_targets[2].aid[2:0]
+@22
+tb_dport.xbar_targets[2].be[3:0]
+@28
+tb_dport.xbar_targets[2].err
+tb_dport.xbar_targets[2].gnt
+@22
+tb_dport.xbar_targets[2].rdata[31:0]
+@28
+tb_dport.xbar_targets[2].req
+tb_dport.xbar_targets[2].rid[2:0]
+tb_dport.xbar_targets[2].rready
+tb_dport.xbar_targets[2].rvalid
+@22
+tb_dport.xbar_targets[2].wdata[31:0]
+@28
+tb_dport.xbar_targets[2].we
+@1000200
+-TGT2
+@800200
+-TGT3
+@22
+tb_dport.xbar_targets[3].addr[31:0]
+@28
+tb_dport.xbar_targets[3].aid[2:0]
+@22
+tb_dport.xbar_targets[3].be[3:0]
+@28
+tb_dport.xbar_targets[3].err
+tb_dport.xbar_targets[3].gnt
+@22
+tb_dport.xbar_targets[3].rdata[31:0]
+@28
+tb_dport.xbar_targets[3].req
+tb_dport.xbar_targets[3].rid[2:0]
+tb_dport.xbar_targets[3].rready
+tb_dport.xbar_targets[3].rvalid
+@22
+tb_dport.xbar_targets[3].wdata[31:0]
+@28
+tb_dport.xbar_targets[3].we
+@1000200
+-TGT3
+@800200
+-TGT4
+@22
+tb_dport.xbar_targets[4].addr[31:0]
+@28
+tb_dport.xbar_targets[4].aid[2:0]
+@22
+tb_dport.xbar_targets[4].be[3:0]
+@28
+tb_dport.xbar_targets[4].err
+tb_dport.xbar_targets[4].gnt
+@22
+tb_dport.xbar_targets[4].rdata[31:0]
+@28
+tb_dport.xbar_targets[4].req
+tb_dport.xbar_targets[4].rid[2:0]
+tb_dport.xbar_targets[4].rready
+tb_dport.xbar_targets[4].rvalid
+@22
+tb_dport.xbar_targets[4].wdata[31:0]
+@28
+tb_dport.xbar_targets[4].we
+@1000200
+-TGT4
+@800200
+-TGT5
+@22
+tb_dport.xbar_targets[5].addr[31:0]
+@28
+tb_dport.xbar_targets[5].aid[2:0]
+@22
+tb_dport.xbar_targets[5].be[3:0]
+@28
+tb_dport.xbar_targets[5].err
+tb_dport.xbar_targets[5].gnt
+@22
+tb_dport.xbar_targets[5].rdata[31:0]
+@28
+tb_dport.xbar_targets[5].req
+tb_dport.xbar_targets[5].rid[2:0]
+tb_dport.xbar_targets[5].rready
+tb_dport.xbar_targets[5].rvalid
+@22
+tb_dport.xbar_targets[5].wdata[31:0]
+@28
+tb_dport.xbar_targets[5].we
+@1000200
+-TGT5
+[pattern_trace] 1
+[pattern_trace] 0
