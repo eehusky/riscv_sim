@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(RISCV           ${CMAKE_CURRENT_SOURCE_DIR}/../../../riscv/)
-set(CV32E40P        ${CMAKE_CURRENT_SOURCE_DIR}/../../)
-set(REPO_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
+set(REPO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
+set(COREMARK ${REPO_DIR}/cores/coremark)
+set(RISCV ${REPO_DIR}/sw/riscv/)
+set(COMMON ${REPO_DIR}/sw/common/)
+set(CV32E40P ${REPO_DIR}/sw/cv32e40p/)
 set(FREERTOS        $ENV{HOME}/github/FreeRTOS/FreeRTOS/)
 set(RTOS_SOURCE_DIR ${FREERTOS}/FreeRTOS/Source)
-set(COMMON   ${CMAKE_CURRENT_SOURCE_DIR}/../../../common/)
+
 
 list(APPEND CMAKE_MODULE_PATH ${RISCV})
 include(riscv)
@@ -46,7 +48,6 @@ target_include_directories(${TARGET}.elf
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${RISCV}/
         ${CV32E40P}/
-        #${CV32E40P}/baremetal
         ${REPO_DIR}/cores/nanoprintf/
         ${CV32E40P}/freertos
         ${CV32E40P}/freertos/RISC-V_cv32e40p
