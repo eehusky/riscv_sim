@@ -2,36 +2,7 @@
 module tb_dport ();
     localparam bit [31:0] N_TARGETS = obi_pkg::N_TARGETS;
     localparam bit [31:0] N_INITIATORS = obi_pkg::N_INITIATORS;
-    //
-    //localparam bit [31:0] MTIME_ADDR = obi_pkg::MTIME_ADDR;
-    //localparam bit [31:0] MTIME_SIZE = obi_pkg::MTIME_SIZE;
-    //localparam bit [31:0] MTIME_WIDTH = obi_pkg::MTIME_WIDTH;
-    //localparam bit [31:0] MTIME_MASK = obi_pkg::MTIME_MASK;
-    ////
-    //localparam bit [31:0] SIMCTRL_ADDR = obi_pkg::SIMCTRL_ADDR;
-    //localparam bit [31:0] SIMCTRL_SIZE = obi_pkg::SIMCTRL_SIZE;
-    //localparam bit [31:0] SIMCTRL_WIDTH = obi_pkg::SIMCTRL_WIDTH;
-    //localparam bit [31:0] SIMCTRL_MASK = obi_pkg::SIMCTRL_MASK;
-    ////
-    //localparam bit [31:0] DTCM_ADDR = obi_pkg::DTCM_ADDR;
-    //localparam bit [31:0] DTCM_SIZE = obi_pkg::DTCM_SIZE;
-    //localparam bit [31:0] DTCM_WIDTH = obi_pkg::DTCM_WIDTH;
-    //localparam bit [31:0] DTCM_MASK = obi_pkg::DTCM_MASK;
-    ////
-    //localparam bit [31:0] CACHED_ADDR = obi_pkg::CACHED_ADDR;
-    //localparam bit [31:0] CACHED_SIZE = obi_pkg::CACHED_SIZE;
-    //localparam bit [31:0] CACHED_WIDTH = obi_pkg::CACHED_WIDTH;
-    //localparam bit [31:0] CACHED_MASK = obi_pkg::CACHED_MASK;
-    ////
-    //localparam bit [31:0] UNCACHED_ADDR = obi_pkg::UNCACHED_ADDR;
-    //localparam bit [31:0] UNCACHED_SIZE = obi_pkg::UNCACHED_SIZE;
-    //localparam bit [31:0] UNCACHED_WIDTH = obi_pkg::UNCACHED_WIDTH;
-    //localparam bit [31:0] UNCACHED_MASK = obi_pkg::UNCACHED_MASK;
-    ////
-    //localparam bit [31:0] AXIL_ADDR = obi_pkg::AXIL_ADDR;
-    //localparam bit [31:0] AXIL_SIZE = obi_pkg::AXIL_SIZE;
-    //localparam bit [31:0] AXIL_WIDTH = obi_pkg::AXIL_WIDTH;
-    //localparam bit [31:0] AXIL_MASK = obi_pkg::AXIL_MASK;
+
 
     logic rst_i;
     logic clk_i;

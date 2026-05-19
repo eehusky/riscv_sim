@@ -24,3 +24,9 @@
 #--no-try_wrap_long_lines false
 #--wrap_end_else_clauses false
 --line_break_penalty=50
+
+--ruleset=all
+--rules=-parameter-name-style,-line-length
+
+
+

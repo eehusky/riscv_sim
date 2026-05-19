@@ -66,6 +66,7 @@ module ibex_wrapper #(
     assign boot_addr_i       = BOOT_ADDRESS;
 
     assign data_dport.rready = 1;
+    assign instr_dport.rready = 1;
 
     ibex_top #(
         .SecureIbex          (SecureIbex),
