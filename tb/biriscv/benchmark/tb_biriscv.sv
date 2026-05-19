@@ -28,7 +28,7 @@ module tb_biriscv #(
 
     logic        clk_i;
     logic        rst_i;
-    logic [31:0] i_irq;
+    logic [31:0] irq_i;
 
     obi_if #(.DATA_WIDTH(64)) instr_dport ();
     obi_if data_dport ();
@@ -62,7 +62,7 @@ module tb_biriscv #(
     ) i_biriscv_wrapper (
         .clk_i      (i_clk),
         .rst_i      (i_rst),
-        .irq_i      (i_irq),
+        .irq_i      (irq_i),
         .instr_dport(instr_dport),
         .data_dport (data_dport)
     );
@@ -70,18 +70,13 @@ module tb_biriscv #(
     // ------------------------------------------------------------------------
 
 
-    dport_ram #(
-        .ADDR_WIDTH(17)
-    ) i_instr_ram (
-        .clk_i(i_clk),
-        .rst_i(i_rst),
-        .dport(instr_dport)
-    );
+    obi_if segments[obi_pkg::N_TARGETS] ();
 
-
-    obi_if segments[dport_pkg::N_SEGMENTS] ();
-
-    dport_demux i_dport_demux (
+    obi_demux #(
+        .N_TARGETS (obi_pkg::N_TARGETS),
+        .SLAVE_ADDR(obi_pkg::SLAVE_ADDR),
+        .SLAVE_MASK(obi_pkg::SLAVE_MASK)
+    ) i_obi_demux (
         .clk_i   (clk_i),
         .rst_i   (rst_i),
         .cpu     (data_dport),
@@ -94,7 +89,7 @@ module tb_biriscv #(
         .clk_i       (clk_i),
         .rst_i       (rst_i),
         .dport       (segments[0]),
-        .intr_o      (i_irq[7]),
+        .intr_o      (irq_i[7]),
         .clear_intr_i(0)
     );
 
@@ -108,18 +103,28 @@ module tb_biriscv #(
 
     // ------------------------------------------------------------------------
 
+    obi_ram #(
+        .ADDR_WIDTH(17)
+    ) i_instr_ram (
+        .clk_i(i_clk),
+        .rst_i(i_rst),
+        .dport(instr_dport)
+    );
+
+    // ------------------------------------------------------------------------
+
     axi_if s_axi_dtcm ();
-    dport_dtcm #(
+    obi_dtcm #(
         .DATA_WIDTH       (s_axi_dtcm.DATA_WIDTH),
-        .ADDR_WIDTH       (dport_pkg::DTCM_WIDTH),
+        .ADDR_WIDTH       (obi_pkg::DTCM_WIDTH),
         .STRB_WIDTH       (s_axi_dtcm.STRB_WIDTH),
         .ID_WIDTH         (s_axi_dtcm.ID_WIDTH),
         .B_PIPELINE_OUTPUT(0),
         .B_INTERLEAVE     (0)
-    ) i_dport_dtcm (
+    ) i_obi_dtcm (
         .a_clk(clk_i),
         .a_rst(rst_i),
-        .dport(segments[2]),
+        .dport(segments[3]),
         .s_axi(s_axi_dtcm)
     );
 
@@ -143,13 +148,13 @@ module tb_biriscv #(
         input [31:0] addr;
         input [7:0] data;
         begin
-            i_dport_dtcm.write(addr, data);
+            i_obi_dtcm.write(addr, data);
         end
     endfunction
     function static bit [7:0] read_dtcm;  /*verilator public*/
         input [31:0] addr;
         begin
-            read_dtcm = i_dport_dtcm.read(addr);
+            read_dtcm = i_obi_dtcm.read(addr);
         end
     endfunction
 
@@ -158,9 +163,6 @@ module tb_biriscv #(
         $dumpvars(0);
         $dumpon;
     end
-
-
-
 endmodule : tb_biriscv
 
 

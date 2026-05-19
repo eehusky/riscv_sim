@@ -75,9 +75,9 @@ module biriscv_wrapper #(
         .NUM_RAS_ENTRIES          (NUM_RAS_ENTRIES),
         .NUM_RAS_ENTRIES_W        (NUM_RAS_ENTRIES_W)
     ) u_core (
-        .clk_i             (i_clk),
-        .rst_i             (i_rst),
-        .intr_i            (i_irq[11]),
+        .clk_i             (clk_i),
+        .rst_i             (rst_i),
+        .intr_i            (irq_i[11]),
         .reset_vector_i    (BOOT_ADDRESS),
         .cpu_id_i          (HART_ID),
         //

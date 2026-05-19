@@ -59,30 +59,26 @@ module tb_cv32e40p (
     logic        irq_mei_clear;
 
 
-    assign irq_i[2:0]    = 3'b0;
-    assign irq_i[3]      = irq_msi;
-    assign irq_i[6:4]    = 3'b0;
-    assign irq_i[7]      = irq_mti;
-    assign irq_i[10:8]   = 3'b0;
-    assign irq_i[11]     = irq_mei;
-    assign irq_i[15:12]  = 3'b0;
+    //assign irq_i[2:0]    = 3'b0;
+    //assign irq_i[6:4]    = 3'b0;
+    //assign irq_i[10:8]   = 3'b0;
+    //assign irq_i[15:12]  = 3'b0;
+    assign irq_msi = irq_i[3];
+    assign irq_mti = irq_i[7];
+    assign irq_mei = irq_i[11];
 
     //assign irq_mti_clear = irq_ack_o && irq_id_o == 3;
     //assign irq_msi_clear = irq_ack_o && irq_id_o == 7;
     //assign irq_mei_clear = irq_ack_o && irq_id_o == 11;
 
 
-    dport_ram #(
-        .ADDR_WIDTH(17)
-    ) i_instr_ram (
-        .clk_i(i_clk),
-        .rst_i(i_rst),
-        .dport(instr_dport)
-    );
+    obi_if segments[obi_pkg::N_TARGETS] ();
 
-    obi_if segments[dport_pkg::N_SEGMENTS] ();
-
-    dport_demux i_dport_demux (
+    obi_demux #(
+        .N_TARGETS (obi_pkg::N_TARGETS),
+        .SLAVE_ADDR(obi_pkg::SLAVE_ADDR),
+        .SLAVE_MASK(obi_pkg::SLAVE_MASK)
+    ) i_obi_demux (
         .clk_i   (clk_i),
         .rst_i   (rst_i),
         .cpu     (data_dport),
@@ -95,8 +91,8 @@ module tb_cv32e40p (
         .clk_i       (clk_i),
         .rst_i       (rst_i),
         .dport       (segments[0]),
-        .intr_o      (irq_mti),
-        .clear_intr_i(irq_mti_clear)
+        .intr_o      (irq_i[7]),
+        .clear_intr_i(0)
     );
 
     // ------------------------------------------------------------------------
@@ -109,18 +105,28 @@ module tb_cv32e40p (
 
     // ------------------------------------------------------------------------
 
+    obi_ram #(
+        .ADDR_WIDTH(17)
+    ) i_instr_ram (
+        .clk_i(i_clk),
+        .rst_i(i_rst),
+        .dport(instr_dport)
+    );
+
+    // ------------------------------------------------------------------------
+
     axi_if s_axi_dtcm ();
-    dport_dtcm #(
+    obi_dtcm #(
         .DATA_WIDTH       (s_axi_dtcm.DATA_WIDTH),
-        .ADDR_WIDTH       (dport_pkg::DTCM_WIDTH),
+        .ADDR_WIDTH       (obi_pkg::DTCM_WIDTH),
         .STRB_WIDTH       (s_axi_dtcm.STRB_WIDTH),
         .ID_WIDTH         (s_axi_dtcm.ID_WIDTH),
         .B_PIPELINE_OUTPUT(0),
         .B_INTERLEAVE     (0)
-    ) i_dport_dtcm (
+    ) i_obi_dtcm (
         .a_clk(clk_i),
         .a_rst(rst_i),
-        .dport(segments[2]),
+        .dport(segments[3]),
         .s_axi(s_axi_dtcm)
     );
 
@@ -144,13 +150,13 @@ module tb_cv32e40p (
         input [31:0] addr;
         input [7:0] data;
         begin
-            i_dport_dtcm.write(addr, data);
+            i_obi_dtcm.write(addr, data);
         end
     endfunction
     function static bit [7:0] read_dtcm;  /*verilator public*/
         input [31:0] addr;
         begin
-            read_dtcm = i_dport_dtcm.read(addr);
+            read_dtcm = i_obi_dtcm.read(addr);
         end
     endfunction
 

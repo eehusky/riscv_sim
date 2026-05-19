@@ -79,7 +79,7 @@ module tb_ibex (
     obi_if segments[obi_pkg::N_TARGETS] ();
 
     obi_demux #(
-        .N_TARGETS(obi_pkg::N_TARGETS),
+        .N_TARGETS (obi_pkg::N_TARGETS),
         .SLAVE_ADDR(obi_pkg::SLAVE_ADDR),
         .SLAVE_MASK(obi_pkg::SLAVE_MASK)
     ) i_obi_demux (

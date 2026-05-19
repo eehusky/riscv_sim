@@ -175,61 +175,25 @@ verilate(tb_cv32e40p
         ${VERILOG_AXI}/rtl/axil_ram.v
         ${VERILOG_AXI}/rtl/axi_ram.v
         #
-        #${VERILOG_UART}/rtl/uart.v
-        #${VERILOG_UART}/rtl/uart_rx.v
-        #${VERILOG_UART}/rtl/uart_tx.v
-        #
         ${WB2AXIP}/rtl/sfifo.v
-        ${REPO_DIR}/rtl/dport/dport_pkg.sv
-        ${REPO_DIR}/rtl/dport/dport2iob.sv
-        ${REPO_DIR}/rtl/dport/dport2axi.sv
-        ${REPO_DIR}/rtl/dport/dport2axil.sv
-        ${REPO_DIR}/rtl/dport/dport_addrdecode.sv
-        ${REPO_DIR}/rtl/dport/dport_demux.sv
-        ${REPO_DIR}/rtl/dport/dport_ram.sv
-        ${REPO_DIR}/rtl/dport/dport_dummy.sv
+        ${REPO_DIR}/rtl/dport/obi_pkg.sv
+        ${REPO_DIR}/rtl/dport/obi2iob.sv
+        ${REPO_DIR}/rtl/dport/obi2axi.sv
+        ${REPO_DIR}/rtl/dport/obi2axil.sv
+        ${REPO_DIR}/rtl/dport/obi_addrdecode.sv
+        ${REPO_DIR}/rtl/dport/obi_mux.sv
+        ${REPO_DIR}/rtl/dport/obi_demux.sv
+        ${REPO_DIR}/rtl/dport/obi_ram.sv
+        ${REPO_DIR}/rtl/dport/obi_xbar.sv
+        ${REPO_DIR}/rtl/dport/obi_dummy.sv
         ${REPO_DIR}/rtl/dport/obi_if.sv
         ${REPO_DIR}/rtl/dport/axi_if.sv
         ${REPO_DIR}/rtl/dport/axil_if.sv
-        ${REPO_DIR}/rtl/dport/dport_rsp_queue.sv
-        ${REPO_DIR}/rtl/dport/dport_dtcm.sv
+        ${REPO_DIR}/rtl/dport/obi_rsp_queue.sv
+        ${REPO_DIR}/rtl/dport/obi_dtcm.sv
         #
         ${REPO_DIR}/rtl/dport/mtime32.sv
         ${REPO_DIR}/rtl/dport/sim_ctrl.sv
-        ## Ringbuffer
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_mm2s_fetch_if.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_mm2s_arbiter.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_mm2s_addr_pipelined.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_mm2s_addr_stage.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_mm2s_channel.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_mm2s_beatbox.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_mm2s_handshake.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_mm2s_gearbox.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_mm2s.vlt
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_mm2s.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_s2mm_req_if.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_s2mm_arbiter.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_s2mm_channel.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_s2mm_collapse.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_s2mm_addr.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_s2mm_handshake.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_s2mm.vlt
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_s2mm.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_csr_if.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_axis_if.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_level.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_fsm.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_arbiter.v
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_priority_encoder.v
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_sfifo.v
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_addrmap.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_addrmap.vlt
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_addrmap_pkg.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_addrmap_pkg.vlt
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_axil.sv
-        #${REPO_DIR}/cores/ringbuffer/ringbuffer_axil.vlt
-        ##
-        #${BIRISCV}/src/core/biriscv_trace_sim.v
         #
         ../cv32e40p_wrapper.sv
         tb_cv32e40p.sv
