@@ -1,36 +1,37 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(RISCV    ${CMAKE_CURRENT_SOURCE_DIR}/../../../riscv/)
-set(CV32E40P ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 set(REPO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
-set(COMMON   ${CMAKE_CURRENT_SOURCE_DIR}/../../../common/)
+set(COREMARK ${REPO_DIR}/cores/coremark)
+set(RISCV ${REPO_DIR}/sw/riscv/)
+set(COMMON ${REPO_DIR}/sw/common/)
+set(CV32E40P ${REPO_DIR}/sw/cv32e40p/)
 
 list(APPEND CMAKE_MODULE_PATH ${RISCV})
 include(riscv)
 
-project(app1)
+project(cv32e40p_baremetal_demo)
 enable_language(ASM)
 set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 
 set(STACK_SIZE    0x1000 )
-set(TARGET        app1 )
+set(TARGET        baremetal_demo )
 set(LINKER_SCRIPT ${CV32E40P}/baremetal/linker.ld)
 
 
 
 add_executable(${TARGET}.elf
     main.c
-    prj_nanoprintf.c
-    ${CV32E40P}/baremetal/start.s
+    ${COMMON}/prj_nanoprintf.c
+    ${CV32E40P}/baremetal/start.S
     ${CV32E40P}/baremetal/entry.c
     ${CV32E40P}/baremetal/vector_table.c
     ${CV32E40P}/syscalls.c
-    #${RISCV}/mtvec.c
 )
 target_include_directories(${TARGET}.elf
     PRIVATE
         ${RISCV}/
+        ${COMMON}/
         ${CV32E40P}/
         ${CV32E40P}/baremetal
         ${REPO_DIR}/cores/nanoprintf/

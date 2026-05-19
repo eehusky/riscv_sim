@@ -43,16 +43,19 @@ cv32e40p_demo:
 	mkdir -p build
 	cmake -S cv32e40p/apps/baremetal_demo -B build
 	make -C build/
+	../tb/cv32e40p/demo/build/tb_cv32e40p -f build/baremetal_demo.elf
 
 cv32e40p_freertos:
 	mkdir -p build
 	cmake -S cv32e40p/apps/freertos_demo -B build
 	make -C build/
+	../tb/cv32e40p/demo/build/tb_cv32e40p -f build/freertos_demo.elf
 
 cv32e40p_ringbuffer:
 	mkdir -p build
 	cmake -S cv32e40p/apps/ringbuffer_demo -B build
 	make -C build/
+	../tb/cv32e40p/ringbuffer/build/tb_cv32e40p -f build/ringbuffer_demo.elf
 
 cv32e40p_coremark:
 	mkdir -p build

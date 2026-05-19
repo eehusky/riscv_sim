@@ -128,7 +128,9 @@ int main(int argc, char** argv) {
 
     contextp->debug(0);
     contextp->randReset(0);
+    #ifdef VM_TRACE
     contextp->traceEverOn(true);
+    #endif
     contextp->commandArgs(argc, argv);
 
 
@@ -162,8 +164,8 @@ int main(int argc, char** argv) {
     bootstrap *boot = new bootstrap(top.get());
 
 
-    top->i_clk = 0;
-    top->i_rst = 1;
+    top->clk_i = 0;
+    top->rst_i = 1;
     top->eval();
 
     elf_load elf(filename, boot);
@@ -174,7 +176,7 @@ int main(int argc, char** argv) {
 
     while (!contextp->gotFinish()) {
         contextp->timeInc(CLK_PERIOD/2);
-        top->i_clk = !top->i_clk;
+        top->clk_i = !top->clk_i;
         top->eval();
         if (contextp->time() > 1000) {
             break;
@@ -182,11 +184,11 @@ int main(int argc, char** argv) {
     }
 
     //boot->dump();
-    top->i_rst = 0;
+    top->rst_i = 0;
 
     while (!contextp->gotFinish() && !(max_cycles != -1 && cycles >= max_cycles)) {
         contextp->timeInc(CLK_PERIOD/2);
-        top->i_clk = !top->i_clk;
+        top->clk_i = !top->clk_i;
         top->eval();
         cycles += 1;
     }
@@ -198,7 +200,7 @@ int main(int argc, char** argv) {
 
     top->final();
 
-    //contextp->statsPrintSummary();
+    contextp->statsPrintSummary();
 
     return 0;
 }

@@ -59,6 +59,8 @@ set(MY_VERILATOR_ARGS
     --report-unoptflat
     #--expand-limit 100000
     --trace-fst
+    --trace-structs
+    --no-trace-params
     #--unroll-count 512
     -CFLAGS "${CMAKE_CXX_FLAGS}"
     -LDFLAGS "-lelf -lbfd ${LD_FLAGS}"
@@ -187,23 +189,26 @@ verilate(tb_cv32e40p
         ${VERILOG_AXI}/rtl/axi_ram.v
         #
         ${WB2AXIP}/rtl/sfifo.v
-        ${REPO_DIR}/rtl/dport/dport_pkg.sv
-        ${REPO_DIR}/rtl/dport/dport2iob.sv
-        ${REPO_DIR}/rtl/dport/dport2axi.sv
-        ${REPO_DIR}/rtl/dport/dport2axil.sv
-        ${REPO_DIR}/rtl/dport/dport_addrdecode.sv
-        ${REPO_DIR}/rtl/dport/dport_mux.sv
-        ${REPO_DIR}/rtl/dport/dport_ram.sv
-        ${REPO_DIR}/rtl/dport/dport_dummy.sv
+        ${REPO_DIR}/rtl/dport/obi_pkg.sv
+        ${REPO_DIR}/rtl/dport/obi2iob.sv
+        ${REPO_DIR}/rtl/dport/obi2axi.sv
+        ${REPO_DIR}/rtl/dport/obi2axil.sv
+        ${REPO_DIR}/rtl/dport/obi_addrdecode.sv
+        ${REPO_DIR}/rtl/dport/obi_mux.sv
+        ${REPO_DIR}/rtl/dport/obi_demux.sv
+        ${REPO_DIR}/rtl/dport/obi_ram.sv
+        ${REPO_DIR}/rtl/dport/obi_xbar.sv
+        ${REPO_DIR}/rtl/dport/obi_dummy.sv
         ${REPO_DIR}/rtl/dport/obi_if.sv
         ${REPO_DIR}/rtl/dport/axi_if.sv
         ${REPO_DIR}/rtl/dport/axil_if.sv
-        ${REPO_DIR}/rtl/dport/dport_rsp_queue.sv
-        ${REPO_DIR}/rtl/dport/dport_dtcm.sv
+        ${REPO_DIR}/rtl/dport/obi_rsp_queue.sv
+        ${REPO_DIR}/rtl/dport/obi_dtcm.sv
         #
         ${REPO_DIR}/rtl/dport/mtime32.sv
         ${REPO_DIR}/rtl/dport/sim_ctrl.sv
         #
+        ../cv32e40p_wrapper.sv
         tb_cv32e40p.sv
         tb_cv32e40p.vlt
         #

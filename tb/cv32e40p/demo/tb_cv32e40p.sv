@@ -1,186 +1,68 @@
-module tb_cv32e40p (
-    input logic i_clk,
-    input logic i_rst
+module tb_cv32e40p #(
+    parameter bit [31:0] BOOT_ADDRESS      = 32'h8000_0000,
+    parameter int        HART_ID           = 0,
+    parameter bit [31:0] MTVEC_ADDR        = 32'h8000_1000,
+    parameter bit [31:0] DM_HALT_ADDR      = 32'h1A11_0800,
+    parameter bit [31:0] DM_EXCEPTION_ADDR = 32'h00000000,
+    parameter bit        COREV_PULP        = 0,
+    parameter bit        COREV_CLUSTER     = 0,
+    parameter bit        FPU               = 1,
+    parameter int        FPU_ADDMUL_LAT    = 0,
+    parameter int        FPU_OTHERS_LAT    = 0,
+    parameter bit        ZFINX             = 0,
+    parameter int        NUM_MHPMCOUNTERS  = 29
+) (
+    input logic clk_i,
+    input logic rst_i
 );
 
-    logic        clk_i;
-    logic        rst_i;
-    logic        rst_ni;
-    logic        pulp_clock_en_i;
-    logic        scan_cg_en_i;
-    logic [31:0] boot_addr_i;
-    logic [31:0] mtvec_addr_i;
-    logic [31:0] dm_halt_addr_i;
-    logic [31:0] hart_id_i;
-    logic [31:0] dm_exception_addr_i;
-    logic        instr_req_o;
-    logic        instr_gnt_i;
-    logic        instr_rvalid_i;
-    logic [31:0] instr_addr_o;
-    logic [31:0] instr_rdata_i;
-    logic        data_req_o;
-    logic        data_gnt_i;
-    logic        data_rvalid_i;
-    logic        data_we_o;
-    logic [ 3:0] data_be_o;
-    logic [31:0] data_addr_o;
-    logic [31:0] data_wdata_o;
-    logic [31:0] data_rdata_i;
+    localparam int INITIATOR_ID_WIDTH = 1;
+    localparam int TARGET_ID_WIDTH = INITIATOR_ID_WIDTH + $clog2(obi_pkg::N_INITIATORS);
+
     logic [31:0] irq_i;
-    logic        irq_ack_o;
-    logic [ 4:0] irq_id_o;
-    logic        debug_req_i;
-    logic        debug_havereset_o;
-    logic        debug_running_o;
-    logic        debug_halted_o;
-    logic        fetch_enable_i;
-    logic        core_sleep_o;
-    logic        irq_mei;
-    logic        irq_msi;
-    logic        irq_mti;
-    logic        irq_mti_clear;
-    logic        irq_msi_clear;
-    logic        irq_mei_clear;
+    obi_if #(.ID_WIDTH(INITIATOR_ID_WIDTH)) initiators[obi_pkg::N_INITIATORS] ();
+    obi_if #(.ID_WIDTH(TARGET_ID_WIDTH)) targets[obi_pkg::N_TARGETS] ();
 
-    initial begin
-        pulp_clock_en_i     = 0;  // PULP clock enable (only used if COREV_CLUSTER = 1)
-        scan_cg_en_i        = 1;  // Enable all clock gates for testing
-        boot_addr_i         = 32'h8000_0000;
-        mtvec_addr_i        = 32'h8000_1000;
-        dm_halt_addr_i      = 32'h1A11_0800;
-        hart_id_i           = 0;
-        dm_exception_addr_i = 0;
-        irq_i               = 0;
-        debug_req_i         = 0;
-        fetch_enable_i      = 1;  // make the core start fetching instruction immediately
-    end
+    logic irq_mei;
+    logic irq_msi;
+    logic irq_mti;
+    assign irq_msi = irq_i[3];
+    assign irq_mti = irq_i[7];
+    assign irq_mei = irq_i[11];
 
-    assign clk_i         = i_clk;
-    assign rst_ni        = ~i_rst;
-    assign rst_i         = i_rst;
-    assign irq_i[2:0]    = 3'b0;
-    assign irq_i[3]      = irq_msi;
-    assign irq_i[6:4]    = 3'b0;
-    assign irq_i[7]      = irq_mti;
-    assign irq_i[10:8]   = 3'b0;
-    assign irq_i[11]     = irq_mei;
-    assign irq_i[15:12]  = 3'b0;
-
-    assign irq_mti_clear = irq_ack_o && irq_id_o == 3;
-    assign irq_msi_clear = irq_ack_o && irq_id_o == 7;
-    assign irq_mei_clear = irq_ack_o && irq_id_o == 11;
-
-    cv32e40p_top #(
-        .COREV_PULP      (0),  // PULP ISA Extension (incl. custom CSRs and hardware loop, excl. cv.elw)
-        .COREV_CLUSTER   (0),  // PULP Cluster interface (incl. cv.elw)
-        .FPU             (1),  // Floating Point Unit (interfaced via APU interface)
-        .FPU_ADDMUL_LAT  (3),  // Floating-Point ADDition/MULtiplication computing lane pipeline registers number
-        .FPU_OTHERS_LAT  (3),  // Floating-Point COMParison/CONVersion computing lanes pipeline registers number
-        .ZFINX           (0),  // Float-in-General Purpose registers
-        .NUM_MHPMCOUNTERS(32)
-    ) i_cv32e40p_top (
-        .clk_i              (clk_i),
-        .rst_ni             (rst_ni),
-        .pulp_clock_en_i    (pulp_clock_en_i),
-        .scan_cg_en_i       (scan_cg_en_i),
-        .boot_addr_i        (boot_addr_i),
-        .mtvec_addr_i       (mtvec_addr_i),
-        .dm_halt_addr_i     (dm_halt_addr_i),
-        .hart_id_i          (hart_id_i),
-        .dm_exception_addr_i(dm_exception_addr_i),
-        .instr_req_o        (instr_req_o),
-        .instr_gnt_i        (instr_gnt_i),
-        .instr_rvalid_i     (instr_rvalid_i),
-        .instr_addr_o       (instr_addr_o),
-        .instr_rdata_i      (instr_rdata_i),
-        .data_req_o         (data_req_o),
-        .data_gnt_i         (data_gnt_i),
-        .data_rvalid_i      (data_rvalid_i),
-        .data_we_o          (data_we_o),
-        .data_be_o          (data_be_o),
-        .data_addr_o        (data_addr_o),
-        .data_wdata_o       (data_wdata_o),
-        .data_rdata_i       (data_rdata_i),
-        .irq_i              (irq_i),
-        .irq_ack_o          (irq_ack_o),
-        .irq_id_o           (irq_id_o),
-        .debug_req_i        (debug_req_i),
-        .debug_havereset_o  (debug_havereset_o),
-        .debug_running_o    (debug_running_o),
-        .debug_halted_o     (debug_halted_o),
-        .fetch_enable_i     (fetch_enable_i),
-        .core_sleep_o       (core_sleep_o)
+    cv32e40p_wrapper #(
+        .BOOT_ADDRESS     (BOOT_ADDRESS),
+        .HART_ID          (HART_ID),
+        .MTVEC_ADDR       (MTVEC_ADDR),
+        .DM_HALT_ADDR     (DM_HALT_ADDR),
+        .DM_EXCEPTION_ADDR(DM_EXCEPTION_ADDR),
+        .COREV_PULP       (COREV_PULP),
+        .COREV_CLUSTER    (COREV_CLUSTER),
+        .FPU              (FPU),
+        .FPU_ADDMUL_LAT   (FPU_ADDMUL_LAT),
+        .FPU_OTHERS_LAT   (FPU_OTHERS_LAT),
+        .ZFINX            (ZFINX),
+        .NUM_MHPMCOUNTERS (NUM_MHPMCOUNTERS)
+    ) i_cv32e40p_wrapper (
+        .clk_i      (clk_i),
+        .rst_i      (rst_i),
+        .irq_i      (irq_i),
+        .instr_dport(initiators[0]),
+        .data_dport (initiators[1])
     );
 
+    // ------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
 
-
-
-    /*
-    Level sensistive active high interrupt inputs.
-    Not all interrupt inputs can be used on CV32E40P.
-    Specifically
-        irq_i[15:12]
-        irq_i[10:8]
-        irq_i[6:4]
-        irq_i[2:0]
-    shall be tied to 0 externally as they are reserved for future standard use
-    (or for cores which are not Machine mode only) in the RISC-V Privileged specification.
-
-    MEI: irq_i[11]
-    MTI: irq_i[7]
-    MSI: irq_i[3]
-    correspond to the Machine External Interrupt (MEI), Machine Timer Interrupt (MTI), and Machine Software Interrupt (MSI) respectively.
-
-    The irq_i[31:16] interrupts are a CV32E40P specific extension to the RISC-V Basic (a.k.a. CLINT) interrupt scheme.
-    */
-
-    // req         Master Slave    Address transfer request. req=1 signals the availability of valid address phase signals.
-    // gnt         Slave  Master   Grant. Ready to accept address transfer. Address transfer is accepted on rising clk with req=1 and gnt=1.
-    // addr[]      Master Slave    Address
-    // we          Master Slave    Write Enable, high for writes, low for reads.
-    // be[]        Master Slave    Byte Enable. Is set for the bytes to write/read.
-    // wdata[]     Master Slave    Write data. Only valid for write transactions. Undefined for read transactions
-
-    obi_if instr_dport ();
-    assign instr_gnt_i        = instr_dport.gnt;
-    assign instr_dport.req    = instr_req_o;
-    assign instr_dport.addr   = instr_addr_o;
-    assign instr_dport.we     = 0;
-    assign instr_dport.be     = 0;
-    assign instr_dport.wdata  = 0;
-    assign instr_dport.aid    = 0;
-    assign instr_dport.rready = 1;
-    assign instr_rvalid_i     = instr_dport.rvalid;
-    assign instr_rdata_i      = instr_dport.rdata;
-    dport_ram #(
-        .ADDR_WIDTH(17)
-    ) i_instr_ram (
-        .clk_i(i_clk),
-        .rst_i(i_rst),
-        .dport(instr_dport)
-    );
-
-    obi_if data_dport ();
-    assign data_gnt_i        = data_dport.gnt;
-    assign data_dport.req    = data_req_o;
-    assign data_dport.addr   = data_req_o ? data_addr_o : 0;
-    assign data_dport.we     = data_req_o ? data_we_o : 0;
-    assign data_dport.be     = data_req_o ? data_be_o : 0;
-    assign data_dport.wdata  = data_req_o ? data_wdata_o : 0;
-    assign data_dport.aid    = data_req_o ? 0 : 0;
-    assign data_dport.rready = 1;
-    assign data_rvalid_i     = data_dport.rvalid;
-    assign data_rdata_i      = data_dport.rvalid ? data_dport.rdata : 0;
-    //data_dport.err;
-    //data_dport.rid;
-
-    obi_if segments[dport_pkg::N_SEGMENTS] ();
-
-    dport_demux i_dport_demux (
-        .clk_i   (clk_i),
-        .rst_i   (rst_i),
-        .cpu     (data_dport),
-        .segments(segments)
+    obi_xbar #(
+        .N_INITIATORS(obi_pkg::N_INITIATORS),
+        .N_TARGETS   (obi_pkg::N_TARGETS)
+    ) i_obi_xbar (
+        .rst_i,
+        .clk_i,
+        .initiators(initiators),
+        .targets   (targets)
     );
 
     // ------------------------------------------------------------------------
@@ -188,9 +70,9 @@ module tb_cv32e40p (
     mtime32 i_mtime (
         .clk_i       (clk_i),
         .rst_i       (rst_i),
-        .dport       (segments[0]),
-        .intr_o      (irq_mti),
-        .clear_intr_i(irq_mti_clear)
+        .dport       (targets[0]),
+        .intr_o      (irq_i[7]),
+        .clear_intr_i(0)
     );
 
     // ------------------------------------------------------------------------
@@ -198,46 +80,58 @@ module tb_cv32e40p (
     sim_ctrl i_sim_ctrl (
         .clk_i(clk_i),
         .rst_i(rst_i),
-        .dport(segments[1])
+        .dport(targets[1])
+    );
+
+    // ------------------------------------------------------------------------
+
+    obi_ram #(
+        .ADDR_WIDTH(obi_pkg::ITCM_WIDTH)
+    ) i_instr_ram (
+        .clk_i(clk_i),
+        .rst_i(rst_i),
+        .dport(targets[2])
     );
 
     // ------------------------------------------------------------------------
 
     axi_if s_axi_dtcm ();
-    dport_dtcm #(
+    obi_dtcm #(
         .DATA_WIDTH       (s_axi_dtcm.DATA_WIDTH),
-        .ADDR_WIDTH       (dport_pkg::DTCM_WIDTH),
+        .ADDR_WIDTH       (obi_pkg::DTCM_WIDTH),
         .STRB_WIDTH       (s_axi_dtcm.STRB_WIDTH),
         .ID_WIDTH         (s_axi_dtcm.ID_WIDTH),
         .B_PIPELINE_OUTPUT(0),
         .B_INTERLEAVE     (0)
-    ) i_dport_dtcm (
+    ) i_obi_dtcm (
         .a_clk(clk_i),
         .a_rst(rst_i),
-        .dport(segments[2]),
+        .dport(targets[3]),
         .s_axi(s_axi_dtcm)
     );
 
     // ------------------------------------------------------------------------
 
+
+
     axi_if m_axi_cached ();
-    dport2axi i_dport2axi_cached (
+    obi2axi i_dport2axi_cached (
         .clk_i(clk_i),
         .rst_i(rst_i),
-        .dport(segments[3]),
+        .dport(targets[4]),
         .m_axi(m_axi_cached)
     );
 
     axi_ram #(
         .DATA_WIDTH(m_axi_cached.DATA_WIDTH),
-        .ADDR_WIDTH(dport_pkg::CACHED_WIDTH),
+        .ADDR_WIDTH(obi_pkg::CACHED_WIDTH),
         .STRB_WIDTH(m_axi_cached.STRB_WIDTH),
         .ID_WIDTH  (m_axi_cached.ID_WIDTH)
     ) i_axi_cached_ram (
         .clk          (clk_i),
         .rst          (rst_i),
         .s_axi_awid   (m_axi_cached.awid),
-        .s_axi_awaddr (m_axi_cached.awaddr[dport_pkg::CACHED_WIDTH-1:0]),
+        .s_axi_awaddr (m_axi_cached.awaddr[obi_pkg::CACHED_WIDTH-1:0]),
         .s_axi_awlen  (m_axi_cached.awlen),
         .s_axi_awsize (m_axi_cached.awsize),
         .s_axi_awburst(m_axi_cached.awburst),
@@ -256,7 +150,7 @@ module tb_cv32e40p (
         .s_axi_bvalid (m_axi_cached.bvalid),
         .s_axi_bready (m_axi_cached.bready),
         .s_axi_arid   (m_axi_cached.arid),
-        .s_axi_araddr (m_axi_cached.araddr[dport_pkg::CACHED_WIDTH-1:0]),
+        .s_axi_araddr (m_axi_cached.araddr[obi_pkg::CACHED_WIDTH-1:0]),
         .s_axi_arlen  (m_axi_cached.arlen),
         .s_axi_arsize (m_axi_cached.arsize),
         .s_axi_arburst(m_axi_cached.arburst),
@@ -276,23 +170,23 @@ module tb_cv32e40p (
     // ------------------------------------------------------------------------
 
     axi_if m_axi_uncached ();
-    dport2axi i_dport2axi_uncached (
+    obi2axi i_dport2axi_uncached (
         .clk_i(clk_i),
         .rst_i(rst_i),
-        .dport(segments[4]),
+        .dport(targets[5]),
         .m_axi(m_axi_uncached)
     );
 
     axi_ram #(
         .DATA_WIDTH(m_axi_uncached.DATA_WIDTH),
-        .ADDR_WIDTH(dport_pkg::UNCACHED_WIDTH),
+        .ADDR_WIDTH(obi_pkg::UNCACHED_WIDTH),
         .STRB_WIDTH(m_axi_uncached.STRB_WIDTH),
         .ID_WIDTH  (m_axi_uncached.ID_WIDTH)
     ) i_axi_uncached_ram (
         .clk          (clk_i),
         .rst          (rst_i),
         .s_axi_awid   (m_axi_uncached.awid),
-        .s_axi_awaddr (m_axi_uncached.awaddr[dport_pkg::UNCACHED_WIDTH-1:0]),
+        .s_axi_awaddr (m_axi_uncached.awaddr[obi_pkg::UNCACHED_WIDTH-1:0]),
         .s_axi_awlen  (m_axi_uncached.awlen),
         .s_axi_awsize (m_axi_uncached.awsize),
         .s_axi_awburst(m_axi_uncached.awburst),
@@ -311,7 +205,7 @@ module tb_cv32e40p (
         .s_axi_bvalid (m_axi_uncached.bvalid),
         .s_axi_bready (m_axi_uncached.bready),
         .s_axi_arid   (m_axi_uncached.arid),
-        .s_axi_araddr (m_axi_uncached.araddr[dport_pkg::UNCACHED_WIDTH-1:0]),
+        .s_axi_araddr (m_axi_uncached.araddr[obi_pkg::UNCACHED_WIDTH-1:0]),
         .s_axi_arlen  (m_axi_uncached.arlen),
         .s_axi_arsize (m_axi_uncached.arsize),
         .s_axi_arburst(m_axi_uncached.arburst),
@@ -331,22 +225,22 @@ module tb_cv32e40p (
     // ------------------------------------------------------------------------
 
     axil_if m_axil ();
-    dport2axil i_dport2axil (
+    obi2axil i_dport2axil (
         .clk_i (clk_i),
         .rst_i (rst_i),
-        .dport (segments[5]),
+        .dport (targets[6]),
         .m_axil(m_axil)
     );
 
     axil_ram #(
         .DATA_WIDTH     (m_axil.DATA_WIDTH),
-        .ADDR_WIDTH     (dport_pkg::AXIL_WIDTH),
+        .ADDR_WIDTH     (obi_pkg::AXIL_WIDTH),
         .STRB_WIDTH     (m_axil.STRB_WIDTH),
         .PIPELINE_OUTPUT(0)
     ) i_axil_ram (
         .clk           (clk_i),
         .rst           (rst_i),
-        .s_axil_awaddr (m_axil.awaddr[dport_pkg::AXIL_WIDTH-1:0]),
+        .s_axil_awaddr (m_axil.awaddr[obi_pkg::AXIL_WIDTH-1:0]),
         .s_axil_awprot (m_axil.awprot),
         .s_axil_awvalid(m_axil.awvalid),
         .s_axil_awready(m_axil.awready),
@@ -357,7 +251,7 @@ module tb_cv32e40p (
         .s_axil_bresp  (m_axil.bresp),
         .s_axil_bvalid (m_axil.bvalid),
         .s_axil_bready (m_axil.bready),
-        .s_axil_araddr (m_axil.araddr[dport_pkg::AXIL_WIDTH-1:0]),
+        .s_axil_araddr (m_axil.araddr[obi_pkg::AXIL_WIDTH-1:0]),
         .s_axil_arprot (m_axil.arprot),
         .s_axil_arvalid(m_axil.arvalid),
         .s_axil_arready(m_axil.arready),
@@ -370,63 +264,39 @@ module tb_cv32e40p (
 
 
 
+    // ------------------------------------------------------------------------
 
-
-    function write_itcm;  /*verilator public*/
+    function static void write_itcm;  /*verilator public*/
         input [31:0] addr;
         input [7:0] data;
         begin
-            //$display("ITCM: %08X: %08X", addr, data);
-            case (addr[1:0])
-                2'd0: i_instr_ram.mem[addr/4][7:0] = data;
-                2'd1: i_instr_ram.mem[addr/4][15:8] = data;
-                2'd2: i_instr_ram.mem[addr/4][23:16] = data;
-                2'd3: i_instr_ram.mem[addr/4][31:24] = data;
-            endcase
+            i_instr_ram.write(addr, data);
         end
     endfunction
-    function [7:0] read_itcm;  /*verilator public*/
+    function static bit [7:0] read_itcm;  /*verilator public*/
         input [31:0] addr;
         begin
-            case (addr[1:0])
-                2'd0: read_itcm = i_instr_ram.mem[addr/4][7:0];
-                2'd1: read_itcm = i_instr_ram.mem[addr/4][15:8];
-                2'd2: read_itcm = i_instr_ram.mem[addr/4][23:16];
-                2'd3: read_itcm = i_instr_ram.mem[addr/4][31:24];
-            endcase
+            read_itcm = i_instr_ram.read(addr);
         end
     endfunction
 
-    function write_dtcm;  /*verilator public*/
+    function static void write_dtcm;  /*verilator public*/
         input [31:0] addr;
         input [7:0] data;
         begin
-            //$display("DTCM: %08X: %08X", addr, data);
-            case (addr[1:0])
-                2'd0: i_dport_dtcm.mem[addr/4][7:0] = data;
-                2'd1: i_dport_dtcm.mem[addr/4][15:8] = data;
-                2'd2: i_dport_dtcm.mem[addr/4][23:16] = data;
-                2'd3: i_dport_dtcm.mem[addr/4][31:24] = data;
-            endcase
+            i_obi_dtcm.write(addr, data);
         end
     endfunction
-    function [7:0] read_dtcm;  /*verilator public*/
+    function static bit [7:0] read_dtcm;  /*verilator public*/
         input [31:0] addr;
         begin
-            case (addr[1:0])
-                2'd0: read_dtcm = i_dport_dtcm.mem[addr/4][7:0];
-                2'd1: read_dtcm = i_dport_dtcm.mem[addr/4][15:8];
-                2'd2: read_dtcm = i_dport_dtcm.mem[addr/4][23:16];
-                2'd3: read_dtcm = i_dport_dtcm.mem[addr/4][31:24];
-            endcase
+            read_dtcm = i_obi_dtcm.read(addr);
         end
     endfunction
-
 
     initial begin
         $dumpfile("dump.fst");
         $dumpvars(0);
         $dumpon;
     end
-
 endmodule : tb_cv32e40p

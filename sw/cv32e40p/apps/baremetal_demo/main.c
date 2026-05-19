@@ -159,9 +159,9 @@ void do_floats(void)
     float x = 3.14159;
     x*= (float)((uint32_t)mtime_get());
     x*= (float)((uint32_t)mtime_get());
-    nprintf("%s %.2f\n", "    pi is", 3.14159f);
-    nprintf("%s %.2f\n", "    e is", 2.718f);
-    nprintf("%s %.2f\n", "    e is", x);
+    nprintf("%s %.6f\n", "    pi is", 3.14159f);
+    nprintf("%s %.6f\n", "    e is", 2.718f);
+    nprintf("%s %.6f\n", "    random is", x);
 }
 
 void do_mtime(void)
