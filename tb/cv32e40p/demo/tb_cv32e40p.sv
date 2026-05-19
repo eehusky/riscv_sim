@@ -23,13 +23,6 @@ module tb_cv32e40p #(
     obi_if #(.ID_WIDTH(INITIATOR_ID_WIDTH)) initiators[obi_pkg::N_INITIATORS] ();
     obi_if #(.ID_WIDTH(TARGET_ID_WIDTH)) targets[obi_pkg::N_TARGETS] ();
 
-    logic irq_mei;
-    logic irq_msi;
-    logic irq_mti;
-    assign irq_msi = irq_i[3];
-    assign irq_mti = irq_i[7];
-    assign irq_mei = irq_i[11];
-
     cv32e40p_wrapper #(
         .BOOT_ADDRESS     (BOOT_ADDRESS),
         .HART_ID          (HART_ID),

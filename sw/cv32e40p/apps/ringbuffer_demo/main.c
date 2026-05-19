@@ -5,23 +5,26 @@
 #include <queue.h>
 #include <semphr.h>
 #include <task.h>
+#include "portmacro.h"
 
 #include "sim_extensions.h"
-
-#include "portmacro.h"
-#include "ringbuffer_addrmap.h"
-
-#include "mm2s_ringbuffer.h"
-#include "ringbuffer_explode.h"
 #include "riscv_csr.h"
 #include "riscv_io.h"
+
+#include "ringbuffer_addrmap.h"
+#include "ringbuffer_explode.h"
+#include "mm2s_ringbuffer.h"
 #include "s2mm_ringbuffer.h"
-#include "test_mm2s_ringbuffer.h"
 
 // #define DEBUG(s) sim_putstring((s))
+#ifndef DEBUG
 #define DEBUG(s)
+#endif
+
 #define ERROR(s) sim_putstring((s))
-// #define ERROR(s)
+#ifndef ERROR
+#define ERROR(s)
+#endif
 
 /*-----------------------------------------------------------*/
 /*-- FreeRTOS Hooks------------------------------------------*/
@@ -355,15 +358,24 @@ static void send_task(void *pvParameters)
 static void stats_task(void *pvParameters)
 {
     DEBUG("stats_task started\n");
-    struct mm2s_channel *channel0 = *(((struct mm2s_channel **)pvParameters) + 0);
-    struct mm2s_channel *channel1 = *(((struct mm2s_channel **)pvParameters) + 1);
-    struct s2mm_channel *channel2 = *(struct s2mm_channel **)(((struct mm2s_channel **)(pvParameters)) + 2);
-    struct s2mm_channel *channel3 = *(struct s2mm_channel **)(((struct mm2s_channel **)(pvParameters)) + 3);
+
+    void **args = (void **)pvParameters;
+    struct mm2s_channel *channel0 = (struct mm2s_channel *)args[0];
+    struct mm2s_channel *channel1 = (struct mm2s_channel *)args[1];
+    struct s2mm_channel *channel2 = (struct s2mm_channel *)args[2];
+    struct s2mm_channel *channel3 = (struct s2mm_channel *)args[3];
 
     while (1) {
         vTaskDelay(1);
         printf("mm2s_0_bytes=%d, mm2s_1_bytes=%d, s2mm_0_bytes=%d, s2mm_1_bytes=%d\n", channel0->n_bytes,
                channel1->n_bytes, channel2->n_bytes, channel3->n_bytes);
+        // printf(
+        //     "mm2s_0_level=%d, mm2s_1_level=%d, s2mm_0_level=%d, s2mm_1_level=%d\n",
+        //     mm2s_ringbuffer_level(channel0->dev),
+        //     mm2s_ringbuffer_level(channel1->dev),
+        //     s2mm_ringbuffer_level(channel2->dev),
+        //     s2mm_ringbuffer_level(channel3->dev)
+        //);
     }
 }
 
@@ -422,8 +434,7 @@ int main(void)
                 NULL);
     xTaskCreate(send_task, "mm2s_0", configMINIMAL_STACK_SIZE, &_mm2s_channels[0], tskIDLE_PRIORITY + 2, NULL);
     xTaskCreate(send_task, "mm2s_1", configMINIMAL_STACK_SIZE, &_mm2s_channels[1], tskIDLE_PRIORITY + 2, NULL);
-    // xTaskCreate(stats_task,           "stats",  configMINIMAL_STACK_SIZE, args,               tskIDLE_PRIORITY + 1,
-    // NULL);
+    xTaskCreate(stats_task, "stats", configMINIMAL_STACK_SIZE, args, tskIDLE_PRIORITY + 1, NULL);
     //  xTaskCreate(mm2s_ringbuffer_task, "mm2s", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, NULL);
 
     write32(RINGBUFFER_INT_ENABLE, RINGBUFFER__INTR_ENABLE__S2MM_0_bm | RINGBUFFER__INTR_ENABLE__S2MM_1_bm);
