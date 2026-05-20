@@ -68,9 +68,38 @@ Launch GDB or Connect to OpenOCD
 gdbgui -g /opt/riscv/bin/riscv64-unknown-elf-gdb sw/build/baremetal_debug.elf
 telnet 127.0.0.1 4444
 riscv64-unknown-elf-gdb --directory=sw sw/build/baremetal_debug.elf
+riscv64-unknown-elf-gdb -ex "target remote 127.0.0.1:3333" build/freertos_demo.elf
 ```
 
-With GDB connect with `target extended-remote 127.0.0.1:3333`
+GDB connect with `target extended-remote 127.0.0.1:3333`
+
+### Freertos
+
+Isnt working with freertos, I know its not a problem with GDB, just openocd.  I suspect this is something to do with the freertos version im using not being in sync with the riscv-collab version of openocd.  When i get a chance ill build the mainline version and see if it works.
+
+Im almost positive this has something to do with the way to stack is getting saved.  if gdb is hooked up `bt` give me flack about a frame missing the pc.
+
+allegedly this will start qemu with a bitbang jtag TAP
+
+```tcl
+adapter driver remote_bitbang
+remote_bitbang_host localhost
+remote_bitbang_port 9876
+set _CHIPNAME riscv
+jtag newtap $_CHIPNAME cpu -irlen 5
+set _TARGETNAME $_CHIPNAME.cpu
+target create $_TARGETNAME riscv -chain-position $_TARGETNAME
+```
+```bash
+qemu-system-riscv64 -machine virt \
+  -chardev socket,id=jtag,port=9876,host=localhost,server=on,wait=off \
+  -device remote-bitbang,chardev=jtag \
+  -kernel path/to/your/kernel-elf \
+  -nographic
+
+```
+
+so it should be possible to confirm this with qemu and bypass about a dozen possible sources of the problem
 
 ## FreeRTOS QEMU notes
 

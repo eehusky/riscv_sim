@@ -16,12 +16,17 @@ foreach t [jtag names] {
 
 set _TARGETNAME $_CHIPNAME.cpu
 
-target create $_TARGETNAME riscv -chain-position $_TARGETNAME -rtos none
+target create $_TARGETNAME riscv -chain-position $_TARGETNAME
+$_TARGETNAME configure -rtos FreeRTOS
+#$_TARGETNAME configure -work-area-phys 0x80030000
+#$_TARGETNAME configure -work-area-size 8096
 
 riscv set_command_timeout_sec 2000
 riscv virt2phys_mode off
 
 scan_chain
+
+#riscv_freertos_stacking metal
 
 #flash bank $_CHIPNAME.sysrom read_only 0x800000000 0x40000 0 0 $_TARGETNAME
 
@@ -43,7 +48,6 @@ riscv hide_csrs 0xc18,0xc19,0xc1a,0xc1b,0xc1c,0xc1d,0xc1e,0xc1f,0xc80,0xc81,0xc8
 riscv hide_csrs 0xc88,0xc89,0xc8a,0xc8b,0xc8c,0xc8d,0xc8e,0xc8f,0xc90,0xc91,0xc92,0xc93,0xc94,0xc95,0xc96,0xc97
 riscv hide_csrs 0xc98,0xc99,0xc9a,0xc9b,0xc9c,0xc9d,0xc9e,0xc9f,0xda0,0xe12
 riscv hide_csrs 0xc22,0xfb0
-
 
 init
 halt

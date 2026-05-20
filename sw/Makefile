@@ -93,6 +93,12 @@ ibex_debug:
 	cmake --build build/
 	../tb/ibex/debug/build/tb_ibex -f build/baremetal_debug.elf
 
+ibex_freertos:
+	mkdir -p build
+	cmake -S ibex/apps/freertos_demo -B build --fresh
+	cmake --build build/
+	../tb/ibex/debug/build/tb_ibex -f build/freertos_demo.elf
+
 
 clean:
 	rm -rf ./build/
