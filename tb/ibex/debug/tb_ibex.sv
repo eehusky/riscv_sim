@@ -1,10 +1,6 @@
 module tb_ibex #(
     parameter bit                 [31:0] BOOT_ADDRESS         = 32'h8000_0000,
     parameter int                        HART_ID              = 0,
-    //parameter bit                 [31:0] DM_BASE_ADDR         = 32'h0010_0000,
-    //parameter bit                 [31:0] DM_ADDR_MASK         = 32'h0000_0003,
-    //parameter bit                 [31:0] DM_HALT_ADDR         = 32'h0010_0000,
-    //parameter bit                 [31:0] DM_EXCEPTION_ADDR    = 32'h0010_0000,
     parameter bit                        SecureIbex           = 1'b0,
     parameter int unsigned               LockstepOffset       = 1,
     parameter bit                        ICacheScramble       = 1'b0,
@@ -29,11 +25,13 @@ module tb_ibex #(
     input logic clk_i,
     input logic rst_i
 );
+    localparam int NrHarts = 1;
     localparam int INITIATOR_ID_WIDTH = 1;
     localparam int TARGET_ID_WIDTH = INITIATOR_ID_WIDTH + $clog2(obi_pkg::N_INITIATORS);
 
-    logic                        ndmreset_n;
-    logic [31:0] irq_i;
+    logic               ndmreset_n;
+    logic [       31:0] irq_i;
+    logic [NrHarts-1:0] debug_req;
     obi_if #(.ID_WIDTH(INITIATOR_ID_WIDTH)) initiators[obi_pkg::N_INITIATORS] ();
     obi_if #(.ID_WIDTH(TARGET_ID_WIDTH)) targets[obi_pkg::N_TARGETS] ();
 
@@ -42,8 +40,8 @@ module tb_ibex #(
         .HART_ID             (HART_ID),
         .DM_BASE_ADDR        (obi_pkg::DEBUG_ADDR),
         //.DM_ADDR_MASK        (),
-        .DM_HALT_ADDR        (obi_pkg::DEBUG_ADDR+dm::HaltAddress),
-        .DM_EXCEPTION_ADDR   (obi_pkg::DEBUG_ADDR+dm::ExceptionAddress),
+        .DM_HALT_ADDR        (obi_pkg::DEBUG_ADDR + dm::HaltAddress),
+        .DM_EXCEPTION_ADDR   (obi_pkg::DEBUG_ADDR + dm::ExceptionAddress),
         .SecureIbex          (SecureIbex),
         .LockstepOffset      (LockstepOffset),
         .ICacheScramble      (ICacheScramble),
@@ -68,147 +66,12 @@ module tb_ibex #(
         .clk_i      (clk_i),
         .rst_i      (rst_i),
         .irq_i      (irq_i),
-        .debug_req_i      (debug_req),
+        .debug_req_i(debug_req),
         .instr_dport(initiators[0]),
         .data_dport (initiators[1])
     );
-    `ifdef edfqwef
-    // ------------------------------------------------------------------------
-    // ------------------------------------------------------------------------
-    // ------------------------------------------------------------------------
-    localparam int NrHarts = 1;
-    logic                        testmode;
-    logic                        ndmreset;  // non-debug module reset
-    logic                        dmactive;  // debug module is active
-    logic          [NrHarts-1:0] debug_req;  // async debug request
-    logic          [NrHarts-1:0] unavailable;
-    dm::hartinfo_t [NrHarts-1:0] hartinfo;
-
-    logic                        dmi_rst;
-    logic                        dmi_req_valid;
-    logic                        dmi_req_ready;
-    dm::dmi_req_t                dmi_req;
-    logic                        dmi_resp_valid;
-    logic                        dmi_resp_ready;
-    dm::dmi_resp_t               dmi_resp;
-
-    localparam dm::hartinfo_t HARTINFO = {8'h0, 4'h2, 3'b0, 1'b1, dm::DataCount, dm::DataAddr};
-    assign unavailable          = 0;
-    assign hartinfo             = HARTINFO;
-    assign initiators[2].rready = 1;
-
-    // reset handling with ndmreset
-    rstgen i_rstgen_main (
-        .clk_i      (clk_i),
-        .rst_ni     (~rst_i & (~ndmreset)),
-        .test_mode_i('0),
-        .rst_no     (ndmreset_n),
-        .init_no    ()
-    );
 
 
-    dm_obi_top #(
-        .MIdWidth       (INITIATOR_ID_WIDTH),
-        .SIdWidth       (TARGET_ID_WIDTH),
-        .NrHarts        (1),
-        .BusWidth       (32),
-        .DmBaseAddress  (obi_pkg::DEBUG_ADDR),
-        .SelectableHarts({NrHarts{1'b1}})
-    ) i_dm_obi_top (
-        .clk_i        (clk_i),
-        .rst_ni       (~rst_i),
-        .testmode_i   (testmode),
-        .ndmreset_o   (ndmreset),
-        .dmactive_o   (dmactive),
-        .debug_req_o  (debug_req),
-        .unavailable_i(unavailable),
-        .hartinfo_i   (hartinfo),
-
-        .slave_req_i   (targets[7].req),
-        .slave_gnt_o   (targets[7].gnt),
-        .slave_we_i    (targets[7].we),
-        .slave_addr_i  (targets[7].addr),
-        .slave_be_i    (targets[7].be),
-        .slave_wdata_i (targets[7].wdata),
-        .slave_aid_i   (targets[7].aid),
-        .slave_rvalid_o(targets[7].rvalid),
-        .slave_rdata_o (targets[7].rdata),
-        .slave_rid_o   (targets[7].rid),
-
-        .master_req_o      (initiators[2].req),
-        .master_addr_o     (initiators[2].addr),
-        .master_we_o       (initiators[2].we),
-        .master_wdata_o    (initiators[2].wdata),
-        .master_be_o       (initiators[2].be),
-        .master_gnt_i      (initiators[2].gnt),
-        .master_rvalid_i   (initiators[2].rvalid),
-        .master_err_i      (initiators[2].err),
-        .master_other_err_i(0),
-        .master_rdata_i    (initiators[2].rdata),
-
-        .dmi_rst_ni      (~rst_i),
-        .dmi_req_valid_i (dmi_req_valid),
-        .dmi_req_ready_o (dmi_req_ready),
-        .dmi_req_i       (dmi_req),
-        .dmi_resp_valid_o(dmi_resp_valid),
-        .dmi_resp_ready_i(dmi_resp_ready),
-        .dmi_resp_o      (dmi_resp)
-    );
-
-
-    logic jtag_tck;  // JTAG test clock pad
-    logic jtag_tms;  // JTAG test mode select pad
-    logic jtag_trst_n;  // JTAG test reset pad
-    logic jtag_srst_n;  // JTAG test reset pad
-    logic jtag_tdi;  // JTAG test data input pad
-    logic jtag_tdo;  // JTAG test data output pad
-    logic jtag_tdo_oe;  // Data out output enable
-
-    dmi_jtag #(
-        .IdcodeValue(32'h249511C3)
-    ) i_dmi_jtag (
-        .clk_i           (clk_i),           // DMI Clock
-        .rst_ni          (~rst_i),          // Asynchronous reset active low
-        .testmode_i      (testmode),
-        .dmi_rst_no      (dmi_rst),
-        .dmi_req_o       (dmi_req),
-        .dmi_req_valid_o (dmi_req_valid),
-        .dmi_req_ready_i (dmi_req_ready),
-        .dmi_resp_i      (dmi_resp),
-        .dmi_resp_ready_o(dmi_resp_ready),
-        .dmi_resp_valid_i(dmi_resp_valid),
-        .tck_i           (jtag_tck),        // JTAG test clock pad
-        .tms_i           (jtag_tms),        // JTAG test mode select pad
-        .trst_ni         (jtag_trst_n),     // JTAG test reset pad
-        .td_i            (jtag_tdi),        // JTAG test data input pad
-        .td_o            (jtag_tdo),        // JTAG test data output pad
-        .tdo_oe_o        (jtag_tdo_oe)      // Data out output enable
-    );
-
-    jtagdpi #(
-        .Name      ("jtag0"),
-        .ListenPort(44853)
-    ) i_jtagdpi (
-        .clk_i      (clk_i),
-        .rst_ni     (~rst_i),
-        .jtag_tck   (jtag_tck),
-        .jtag_tms   (jtag_tms),
-        .jtag_tdi   (jtag_tdi),
-        .jtag_tdo   (jtag_tdo),
-        .jtag_trst_n(jtag_trst_n),
-        .jtag_srst_n(jtag_srst_n)
-    );
-    `endif
-
-    logic          [0:0] debug_req;  // async debug request
-    ibex_debug i_ibex_debug (
-        .clk_i      (clk_i),
-        .rst_ni      (~rst_i),
-        .debug_req_o      (debug_req),
-        .ndmreset_no(ndmreset_n),
-        .target     (targets[7]),
-        .initiator  (initiators[2])
-    );
 
 
     // ------------------------------------------------------------------------
@@ -418,7 +281,16 @@ module tb_ibex #(
         .s_axil_rready (m_axil.rready)
     );
 
+    // ------------------------------------------------------------------------
 
+    ibex_debug i_ibex_debug (
+        .clk_i      (clk_i),
+        .rst_ni     (~rst_i),
+        .debug_req_o(debug_req),
+        .ndmreset_no(ndmreset_n),
+        .target     (targets[7]),
+        .initiator  (initiators[2])
+    );
 
     // ------------------------------------------------------------------------
 

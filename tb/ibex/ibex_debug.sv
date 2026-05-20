@@ -1,18 +1,19 @@
-module ibex_debug (
-    input  logic         clk_i,
-    input  logic         rst_ni,
-    output  logic  [0:0]   debug_req_o,
-    output logic         ndmreset_no,
-           obi_if.slave  target,
-           obi_if.master initiator
+module ibex_debug #(
+    parameter int NrHarts = 1
+) (
+    input  logic                       clk_i,
+    input  logic                       rst_ni,
+    output logic         [NrHarts-1:0] debug_req_o,
+    output logic                       ndmreset_no,
+           obi_if.slave                target,
+           obi_if.master               initiator
 );
     localparam dm::hartinfo_t HARTINFO = {8'h0, 4'h2, 3'b0, 1'b1, dm::DataCount, dm::DataAddr};
-    localparam int NrHarts = 1;
+
 
     logic                        testmode;
     logic                        ndmreset;  // non-debug module reset
     logic                        dmactive;  // debug module is active
-    logic          [NrHarts-1:0] debug_req;  // async debug request
     logic          [NrHarts-1:0] unavailable;
 
     logic                        dmi_rst;
@@ -38,7 +39,7 @@ module ibex_debug (
     dm_obi_top #(
         .MIdWidth       (initiator.ID_WIDTH),
         .SIdWidth       (target.ID_WIDTH),
-        .NrHarts        (1),
+        .NrHarts        (NrHarts),
         .BusWidth       (32),
         .DmBaseAddress  (obi_pkg::DEBUG_ADDR),
         .SelectableHarts({NrHarts{1'b1}})

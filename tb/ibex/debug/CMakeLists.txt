@@ -91,9 +91,9 @@ set(MY_VERILATOR_ARGS
 
 add_executable(tb_ibex
     ${REPO_DIR}/tb/common/elf_load.cpp
+    ${REPO_DIR}/tb/common/jtagdpi/jtagdpi.c
+    ${REPO_DIR}/tb/common/jtagdpi/tcp_server.c
     sim_main.cpp
-    jtagdpi/jtagdpi.c
-    tcp_server/tcp_server.c
 )
 
 verilate(tb_ibex
@@ -199,7 +199,7 @@ verilate(tb_ibex
         #
         ../ibex_wrapper.sv
         ../ibex_debug.sv
-        jtagdpi/jtagdpi.sv
+        ${REPO_DIR}/tb/common/jtagdpi/jtagdpi.sv
         tb_ibex.sv
         tb_ibex.vlt
         #
@@ -211,7 +211,6 @@ verilate(tb_ibex
 target_include_directories(tb_ibex
     PUBLIC
         ${.}
-        ./jtagdpi/
-        ./tcp_server/
+        ${REPO_DIR}/tb/common/jtagdpi/
         ${REPO_DIR}/tb/common/
 )
