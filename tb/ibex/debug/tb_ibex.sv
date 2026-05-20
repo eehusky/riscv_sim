@@ -11,7 +11,7 @@ module tb_ibex #(
     parameter bit                        PMPEnable            = 1'b0,
     parameter int unsigned               PMPGranularity       = 0,
     parameter int unsigned               PMPNumRegions        = 4,
-    parameter int unsigned               MHPMCounterNum       = 29,
+    parameter int unsigned               MHPMCounterNum       = 0,
     parameter int unsigned               MHPMCounterWidth     = 40,
     parameter bit                        RV32E                = 1'b0,
     parameter ibex_pkg::rv32m_e          RV32M                = ibex_pkg::RV32MSingleCycle,
@@ -68,9 +68,11 @@ module tb_ibex #(
         .clk_i      (clk_i),
         .rst_i      (rst_i),
         .irq_i      (irq_i),
+        .debug_req_i      (debug_req),
         .instr_dport(initiators[0]),
         .data_dport (initiators[1])
     );
+    `ifdef edfqwef
     // ------------------------------------------------------------------------
     // ------------------------------------------------------------------------
     // ------------------------------------------------------------------------
@@ -118,7 +120,7 @@ module tb_ibex #(
         .testmode_i   (testmode),
         .ndmreset_o   (ndmreset),
         .dmactive_o   (dmactive),
-        .debug_req_o  (i_ibex_wrapper.debug_req),
+        .debug_req_o  (debug_req),
         .unavailable_i(unavailable),
         .hartinfo_i   (hartinfo),
 
@@ -196,6 +198,18 @@ module tb_ibex #(
         .jtag_trst_n(jtag_trst_n),
         .jtag_srst_n(jtag_srst_n)
     );
+    `endif
+
+    logic          [0:0] debug_req;  // async debug request
+    ibex_debug i_ibex_debug (
+        .clk_i      (clk_i),
+        .rst_ni      (~rst_i),
+        .debug_req_o      (debug_req),
+        .ndmreset_no(ndmreset_n),
+        .target     (targets[7]),
+        .initiator  (initiators[2])
+    );
+
 
     // ------------------------------------------------------------------------
     // ------------------------------------------------------------------------

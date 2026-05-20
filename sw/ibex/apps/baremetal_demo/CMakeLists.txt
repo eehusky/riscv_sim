@@ -4,36 +4,36 @@ set(REPO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
 set(COREMARK ${REPO_DIR}/cores/coremark)
 set(RISCV ${REPO_DIR}/sw/riscv/)
 set(COMMON ${REPO_DIR}/sw/common/)
-set(CV32E40P ${REPO_DIR}/sw/cv32e40p/)
+set(IBEX ${REPO_DIR}/sw/ibex/)
 
 list(APPEND CMAKE_MODULE_PATH ${RISCV})
 include(riscv)
 
-project(cv32e40p_baremetal_demo)
+project(ibex_baremetal_demo)
 enable_language(ASM)
 set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 
 set(STACK_SIZE    0x1000 )
 set(TARGET        baremetal_demo )
-set(LINKER_SCRIPT ${CV32E40P}/baremetal/linker.ld)
+set(LINKER_SCRIPT ${IBEX}/baremetal/linker.ld)
 
 
 
 add_executable(${TARGET}.elf
     main.c
     ${COMMON}/prj_nanoprintf.c
-    ${CV32E40P}/baremetal/start.S
-    ${CV32E40P}/baremetal/entry.c
-    ${CV32E40P}/baremetal/vector_table.c
-    ${CV32E40P}/syscalls.c
+    ${IBEX}/baremetal/start.S
+    ${IBEX}/baremetal/entry.c
+    ${IBEX}/baremetal/vector_table.c
+    ${IBEX}/syscalls.c
 )
 target_include_directories(${TARGET}.elf
     PRIVATE
         ${RISCV}/
         ${COMMON}/
-        ${CV32E40P}/
-        ${CV32E40P}/baremetal
+        ${IBEX}/
+        ${IBEX}/baremetal
         ${REPO_DIR}/cores/nanoprintf/
 )
 target_link_libraries(${TARGET}.elf

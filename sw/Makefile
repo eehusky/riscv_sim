@@ -89,9 +89,9 @@ ibex_coremark:
 
 ibex_debug:
 	mkdir -p build
-	cmake -S ibex/apps/baremetal_demo -B build --fresh
+	cmake -S ibex/apps/debug_demo -B build --fresh
 	cmake --build build/
-	../tb/ibex/debug/build/tb_ibex -f build/baremetal_demo.elf
+	../tb/ibex/debug/build/tb_ibex -f build/baremetal_debug.elf
 
 
 clean:

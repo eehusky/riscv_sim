@@ -89,7 +89,10 @@ void riscv_mtvec_illegal_instruction(void)
 void riscv_mtvec_breakpoint(void)
 {
     sim_putstring("mtvec_breakpoint\n");
-    sim_exit(0x80000000);
+    asm volatile ("csrr    t0, mepc");
+    asm volatile ("addi    t0, t0, 4");
+    asm volatile ("csrw    mepc, t0");
+    //sim_exit(0x80000000);
 }
 void riscv_mtvec_load_address_misaligned(void)
 {

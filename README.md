@@ -45,6 +45,33 @@ Notes and observations made in the pursuit of finding the perfect RISCV core.  T
 
 
 
+## Running With GDB
+
+In three seperate terminals run the following
+
+Launch Executable
+
+```
+tb/ibex/debug/build/tb_ibex -f sw/build/baremetal_debug.elf
+```
+
+Launch OpenOCD
+
+```
+/opt/riscv-openocd/bin/openocd -f tb/ibex/debug/debug.tcl
+```
+
+Launch GDB or Connect to OpenOCD
+
+
+```
+gdbgui -g /opt/riscv/bin/riscv64-unknown-elf-gdb sw/build/baremetal_debug.elf
+telnet 127.0.0.1 4444
+riscv64-unknown-elf-gdb --directory=sw sw/build/baremetal_debug.elf
+```
+
+With GDB connect with `target extended-remote 127.0.0.1:3333`
+
 ## FreeRTOS QEMU notes
 
 
@@ -87,9 +114,6 @@ Memory: 0x80004150 - 0x8000a3e7 (Size=24KB) [.bss]
 488855: 0: Tx: Transfer1
 ```
 
-
-
-
 ## Opensource RISCV Cores/Odds And Ends
 
 ### Cores
@@ -108,6 +132,10 @@ Memory: 0x80004150 - 0x8000a3e7 (Size=24KB) [.bss]
 | AleksandarLilic |             |
 |-----------------|-------------|
 | [ama-riscv](https://github.com/AleksandarLilic/ama-riscv)   | RV32IM     |
+
+| YosysHQ         |             |
+|-----------------|-------------|
+| [picorv32](https://github.com/YosysHQ/picorv32)   | RV32IMC    |
 
 | rsd-devel     |             |
 |---------------|-------------|
@@ -148,5 +176,12 @@ Memory: 0x80004150 - 0x8000a3e7 (Size=24KB) [.bss]
 ### Software
 
 * Simulator: https://github.com/verilator/verilator
-* RISCV GCC Toolchain: https://github.com/riscv-collab/riscv-gnu-toolchain
 * FreeRTOS: https://github.com/FreeRTOS/FreeRTOS
+
+
+### RISCV Tooling
+
+* OpenOCD: https://github.com/riscv-collab/riscv-openocd
+* Debug Module Tests: https://github.com/riscv-software-src/riscv-tests/tree/master/debug
+* ISA Simulator (SPIKE): https://github.com/riscv-software-src/riscv-isa-sim
+* RISCV GCC Toolchain: https://github.com/riscv-collab/riscv-gnu-toolchain

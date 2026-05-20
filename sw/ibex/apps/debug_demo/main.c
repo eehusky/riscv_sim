@@ -211,21 +211,28 @@ void do_addr(void)
         write32(AXIL_ADDR+(i*4),blah+1);
         blah = read32(AXIL_ADDR+(i*4));
     }
-
 }
 
 int main(void)
 {
+    sim_putstring("----------------------------------------------------------\n");
+    sim_putstring("----------------------------------------------------------\n");
     sim_putstring("cv32e40p main demo\n");
+    sim_putstring("cv32e40p main demo\n");
+    sim_putstring("----------------------------------------------------------\n");
+    sim_putstring("----------------------------------------------------------\n");
 
     enable_counters();
 
+    while(true){
+
     //do_floats();
-    do_mtime();
+    //do_mtime();
     do_addr();
 
     sim_putstring("  cv32e40p counter demo\n");
     dump_counters();
+    }
     return 0;
 }
 

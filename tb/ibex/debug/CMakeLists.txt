@@ -75,7 +75,7 @@ set(MY_VERILATOR_ARGS
     --report-unoptflat
     #--expand-limit 100000
     #--unroll-count 512
-    --trace-fst
+    #--trace-fst
     --trace-structs
     --no-trace-params
     -CFLAGS "${CMAKE_CXX_FLAGS}"
@@ -198,6 +198,7 @@ verilate(tb_ibex
         #${CV32E40P}/rtl/vendor/pulp_platform_common_cells/src/fifo_v3.sv
         #
         ../ibex_wrapper.sv
+        ../ibex_debug.sv
         jtagdpi/jtagdpi.sv
         tb_ibex.sv
         tb_ibex.vlt
