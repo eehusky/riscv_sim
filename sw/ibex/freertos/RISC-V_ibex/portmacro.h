@@ -174,7 +174,7 @@ extern size_t xCriticalNesting;
 
 #define portMEMORY_BARRIER()    __asm volatile ( "" ::: "memory" )
 /*-----------------------------------------------------------*/
-
+#define portDONT_DISCARD __attribute__((used))
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

@@ -7,7 +7,7 @@ module tb_ibex #(
     parameter bit                        PMPEnable            = 1'b0,
     parameter int unsigned               PMPGranularity       = 0,
     parameter int unsigned               PMPNumRegions        = 4,
-    parameter int unsigned               MHPMCounterNum       = 0,
+    parameter int unsigned               MHPMCounterNum       = 29,
     parameter int unsigned               MHPMCounterWidth     = 40,
     parameter bit                        RV32E                = 1'b0,
     parameter ibex_pkg::rv32m_e          RV32M                = ibex_pkg::RV32MSingleCycle,

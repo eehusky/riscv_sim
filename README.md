@@ -214,3 +214,4 @@ Memory: 0x80004150 - 0x8000a3e7 (Size=24KB) [.bss]
 * Debug Module Tests: https://github.com/riscv-software-src/riscv-tests/tree/master/debug
 * ISA Simulator (SPIKE): https://github.com/riscv-software-src/riscv-isa-sim
 * RISCV GCC Toolchain: https://github.com/riscv-collab/riscv-gnu-toolchain
+* ISA Data: https://github.com/five-embeddev/riscv-isa-data
