@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 project(tb_top_benchmark)
+find_package(verilator NO_DEFAULT_PATH PATHS $ENV{VERILATOR_ROOT})
 
 set(REPO_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
 set(CV32E40P     ${REPO_DIR}/cores/cv32e40p)
@@ -7,18 +8,6 @@ set(BIRISCV      ${REPO_DIR}/cores/biriscv)
 set(VERILOG_AXI  ${REPO_DIR}/cores/verilog-axi/)
 set(VERILOG_UART ${REPO_DIR}/cores/verilog-uart/)
 set(WB2AXIP      ${REPO_DIR}/cores/wb2axip/)
-
-find_package(verilator
-    NO_DEFAULT_PATH
-    PATHS
-        $ENV{VERILATOR_ROOT}
-)
-
-find_package(SystemCLanguage
-    NO_DEFAULT_PATH
-    PATHS
-        $ENV{SYSTEMC}
-)
 
 set(PGO_FLAGS "")
 if ("$ENV{PGO}" STREQUAL "GEN")
@@ -32,8 +21,8 @@ endif()
 
 
 
-set(CMAKE_CXX_STANDARD              ${SystemC_CXX_STANDARD})
-set(CMAKE_CXX_STANDARD_REQUIRED     ${SystemC_CXX_STANDARD_REQUIRED})
+set(CMAKE_CXX_STANDARD              "23")
+set(CMAKE_CXX_STANDARD_REQUIRED     "23")
 set(CMAKE_EXPORT_COMPILE_COMMANDS   "ON")
 set(CXX_WARNING                     "-Wall -Wno-unused-but-set-variable -Wno-sign-compare -Wno-unused-variable -Wno-bool-operation -Wno-uninitialized")
 set(CMAKE_CXX_FLAGS                 "${PGO_FLAGS} -O3 -flto -fstrict-aliasing -march=native ${CXX_WARNING}")
