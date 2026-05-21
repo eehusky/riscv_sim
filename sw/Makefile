@@ -1,8 +1,7 @@
-
 all:
 runall: runcoremark runfreertos rundemo runringbuffer
-rundemo: cv32e40p_demo
-runfreertos: biriscv_freertos cv32e40p_freertos
+rundemo: cv32e40p_demo ibex_demo
+runfreertos: biriscv_freertos cv32e40p_freertos ibex_freertos
 runcoremark: biriscv_coremark cv32e40p_coremark ibex_coremark picorv32_coremark
 runringbuffer: cv32e40p_ringbuffer
 rundebug: ibex_debug
@@ -13,6 +12,8 @@ ifeq ($(FRESH), 1)
 else
     FRESH =
 endif
+
+##
 
 biriscv_demo:
 	mkdir -p build
@@ -38,6 +39,7 @@ biriscv_coremark:
 	cmake --build build/
 	../tb/biriscv/benchmark/build/tb_biriscv -f build/coremark.elf
 
+
 ##
 
 
@@ -46,6 +48,7 @@ rsd_demo:
 	cmake -S rsd/apps/baremetal_demo -B build $(FRESH)
 	cmake --build build/
 	../tb/rsd/rsd_top/build/tb_rsd_top -f build/apprsd.elf -c 23500
+
 
 ##
 
@@ -74,6 +77,7 @@ cv32e40p_coremark:
 	cmake --build build/
 	../tb/cv32e40p/benchmark/build/tb_cv32e40p -f build/coremark.elf
 
+
 ##
 
 
@@ -87,7 +91,7 @@ ibex_freertos:
 	mkdir -p build
 	cmake -S ibex/apps/freertos_demo -B build --fresh
 	cmake --build build/
-	../tb/ibex/debug/build/tb_ibex -f build/freertos_demo.elf
+	../tb/ibex/benchmark/build/tb_ibex -f build/freertos_demo.elf
 
 ibex_coremark:
 	mkdir -p build
@@ -113,6 +117,7 @@ picorv32_coremark:
 
 
 ##
+
 
 clean:
 	rm -rf ./build/

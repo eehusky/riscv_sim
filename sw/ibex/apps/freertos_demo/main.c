@@ -185,10 +185,10 @@ static void prvQueueReceiveTask(void *pvParameters)
             printf("%d: %s\n", mtime_get(), pcFailMessage);
         }
 
-        //if(count == 10){
-        //    printf("%d: Exiting after %d loops\n", mtime_get(), count);
-        //    sim_exit(0);
-        //}
+        if(count == 10){
+            printf("%d: Exiting after %d loops\n", mtime_get(), count);
+            sim_exit(0);
+        }
     }
 }
 

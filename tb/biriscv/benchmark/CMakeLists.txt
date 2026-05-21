@@ -7,6 +7,7 @@ set(VERILOG_AXI  ${REPO_DIR}/cores/verilog-axi/)
 set(VERILOG_UART ${REPO_DIR}/cores/verilog-uart/)
 set(WB2AXIP      ${REPO_DIR}/cores/wb2axip/)
 
+
 find_package(verilator
     NO_DEFAULT_PATH
     PATHS
@@ -18,8 +19,6 @@ find_package(SystemCLanguage
     PATHS
         $ENV{SYSTEMC}
 )
-
-
 
 set(PGO_FLAGS "")
 if ("$ENV{PGO}" STREQUAL "GEN")
@@ -37,9 +36,9 @@ set(CMAKE_CXX_STANDARD              ${SystemC_CXX_STANDARD})
 set(CMAKE_CXX_STANDARD_REQUIRED     ${SystemC_CXX_STANDARD_REQUIRED})
 set(CMAKE_EXPORT_COMPILE_COMMANDS   "ON")
 set(CXX_WARNING                     "-Wall -Wno-sign-compare -Wno-unused-variable -Wno-bool-operation -Wno-uninitialized")
-set(CMAKE_CXX_FLAGS                 "${PGO_FLAGS} -O3 -fstrict-aliasing -march=native ${CXX_WARNING}")
-set(CMAKE_C_FLAGS                   "${PGO_FLAGS} -O3 -fstrict-aliasing -march=native ${CXX_WARNING}")
-set(LD_FLAGS                        "${PGO_FLAGS} -fwhole-program")
+set(CMAKE_CXX_FLAGS                 "${PGO_FLAGS} -O3 -flto -fstrict-aliasing -march=native ${CXX_WARNING}")
+set(CMAKE_C_FLAGS                   "${PGO_FLAGS} -O3 -flto -fstrict-aliasing -march=native ${CXX_WARNING}")
+set(LD_FLAGS                        "${PGO_FLAGS} -flto=auto -fwhole-program")
 
 string(STRIP ${CMAKE_CXX_FLAGS} CMAKE_CXX_FLAGS)
 string(STRIP ${CMAKE_C_FLAGS}   CMAKE_C_FLAGS)
