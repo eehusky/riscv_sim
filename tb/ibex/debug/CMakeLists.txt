@@ -200,8 +200,8 @@ verilate(tb_top
         ../ibex_wrapper.sv
         ../ibex_debug.sv
         ${REPO_DIR}/tb/common/jtagdpi/jtagdpi.sv
-        tb_ibex.sv
-        tb_ibex.vlt
+        tb_top.sv
+        tb_top.vlt
         #
     VERILATOR_ARGS
         ${MY_VERILATOR_ARGS}

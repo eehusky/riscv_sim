@@ -139,7 +139,7 @@ verilate(tb_top
 
         ##
         ../biriscv_wrapper.sv
-        tb_biriscv.sv
+        tb_top.sv
         #
     VERILATOR_ARGS
         ${MY_VERILATOR_ARGS}

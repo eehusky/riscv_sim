@@ -198,8 +198,8 @@ verilate(tb_top
         ${REPO_DIR}/rtl/dport/sim_ctrl.sv
         #
         ../cv32e40p_wrapper.sv
-        tb_cv32e40p.sv
-        tb_cv32e40p.vlt
+        tb_top.sv
+        tb_top.vlt
         #
     VERILATOR_ARGS
         ${MY_VERILATOR_ARGS}

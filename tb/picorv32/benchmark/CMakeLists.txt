@@ -131,8 +131,8 @@ verilate(tb_top
         #${VERILOG_AXI}/rtl/axi_ram.v
         #
         ../picorv32_wrapper.sv
-        tb_picorv32.sv
-        tb_picorv32.vlt
+        tb_top.sv
+        tb_top.vlt
         #
     VERILATOR_ARGS
         ${MY_VERILATOR_ARGS}

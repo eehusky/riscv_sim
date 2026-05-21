@@ -165,8 +165,8 @@ verilate(tb_top
         #${VERILOG_AXI}/rtl/axi_ram.v
         #
         ../ibex_wrapper.sv
-        tb_ibex.sv
-        tb_ibex.vlt
+        tb_top.sv
+        tb_top.vlt
         #
     VERILATOR_ARGS
         ${MY_VERILATOR_ARGS}

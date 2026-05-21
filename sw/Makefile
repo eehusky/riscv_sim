@@ -47,7 +47,7 @@ rsd_demo:
 	mkdir -p build
 	cmake -S rsd/apps/baremetal_demo -B build $(FRESH)
 	cmake --build build/
-	../tb/rsd/rsd_top/build/tb_rsd_top -f build/apprsd.elf -c 23500
+	../tb/rsd/rsd_top/build/tb_top -f build/apprsd.elf -c 23500
 
 
 ##
@@ -57,25 +57,25 @@ cv32e40p_demo:
 	mkdir -p build
 	cmake -S cv32e40p/apps/baremetal_demo -B build $(FRESH)
 	cmake --build build/
-	../tb/cv32e40p/demo/build/tb_cv32e40p -f build/baremetal_demo.elf
+	../tb/cv32e40p/demo/build/tb_top -f build/baremetal_demo.elf
 
 cv32e40p_freertos:
 	mkdir -p build
 	cmake -S cv32e40p/apps/freertos_demo -B build $(FRESH)
 	cmake --build build/
-	../tb/cv32e40p/benchmark/build/tb_cv32e40p -f build/freertos_demo.elf
+	../tb/cv32e40p/benchmark/build/tb_top -f build/freertos_demo.elf
 
 cv32e40p_ringbuffer:
 	mkdir -p build
 	cmake -S cv32e40p/apps/ringbuffer_demo -B build $(FRESH)
 	cmake --build build/
-	../tb/cv32e40p/ringbuffer/build/tb_cv32e40p -f build/ringbuffer_demo.elf
+	../tb/cv32e40p/ringbuffer/build/tb_top -f build/ringbuffer_demo.elf
 
 cv32e40p_coremark:
 	mkdir -p build
 	cmake -S cv32e40p/apps/coremark_demo -B build $(FRESH)
 	cmake --build build/
-	../tb/cv32e40p/benchmark/build/tb_cv32e40p -f build/coremark.elf
+	../tb/cv32e40p/benchmark/build/tb_top -f build/coremark.elf
 
 
 ##
@@ -85,25 +85,25 @@ ibex_demo:
 	mkdir -p build
 	cmake -S ibex/apps/baremetal_demo -B build --fresh
 	cmake --build build/
-	../tb/ibex/demo/build/tb_ibex -f build/baremetal_demo.elf
+	../tb/ibex/demo/build/tb_top -f build/baremetal_demo.elf
 
 ibex_freertos:
 	mkdir -p build
 	cmake -S ibex/apps/freertos_demo -B build --fresh
 	cmake --build build/
-	../tb/ibex/benchmark/build/tb_ibex -f build/freertos_demo.elf
+	../tb/ibex/benchmark/build/tb_top -f build/freertos_demo.elf
 
 ibex_coremark:
 	mkdir -p build
 	cmake -S ibex/apps/coremark_demo -B build --fresh
 	cmake --build build/
-	../tb/ibex/benchmark/build/tb_ibex -f build/coremark.elf
+	../tb/ibex/benchmark/build/tb_top -f build/coremark.elf
 
 ibex_debug:
 	mkdir -p build
 	cmake -S ibex/apps/debug_demo -B build --fresh
 	cmake --build build/
-	../tb/ibex/debug/build/tb_ibex -f build/baremetal_debug.elf
+	../tb/ibex/debug/build/tb_top -f build/baremetal_debug.elf
 
 
 ##
@@ -113,7 +113,7 @@ picorv32_coremark:
 	mkdir -p build
 	cmake -S picorv32/apps/coremark_demo -B build --fresh
 	cmake --build build/
-	../tb/picorv32/benchmark/build/tb_picorv32 -f build/coremark.elf
+	../tb/picorv32/benchmark/build/tb_top -f build/coremark.elf
 
 
 ##
