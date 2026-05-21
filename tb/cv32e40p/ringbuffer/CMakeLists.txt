@@ -248,8 +248,8 @@ verilate(tb_top
         ${BIRISCV}/src/core/biriscv_trace_sim.v
         #
         ../cv32e40p_wrapper.sv
-        tb_cv32e40p.sv
-        tb_cv32e40p.vlt
+        tb_top.sv
+        tb_top.vlt
         #
     VERILATOR_ARGS
         ${MY_VERILATOR_ARGS}
