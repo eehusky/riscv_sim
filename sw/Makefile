@@ -1,6 +1,6 @@
 all:
 runall: runcoremark runfreertos rundemo runringbuffer
-rundemo: cv32e40p_demo ibex_demo
+rundemo: cv32e40p_demo
 runfreertos: biriscv_freertos cv32e40p_freertos ibex_freertos
 runcoremark: biriscv_coremark cv32e40p_coremark ibex_coremark picorv32_coremark
 runringbuffer: cv32e40p_ringbuffer
