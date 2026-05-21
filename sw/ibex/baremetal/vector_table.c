@@ -21,7 +21,7 @@ void riscv_mtvec_ssi(void) __attribute__((interrupt("supervisor"), used, weak, a
 void riscv_mtvec_sti(void) __attribute__((interrupt("supervisor"), used, weak, alias("riscv_nop_machine")));
 void riscv_mtvec_sei(void) __attribute__((interrupt("supervisor"), used, weak, alias("riscv_nop_machine")));
 
-void riscv_stvec_exception(void) __attribute__((interrupt("supervisor"), weak, alias("riscv_nop_supervisor")));
+void riscv_stvec_exception(void) __attribute__((interrupt("supervisor"), used, weak, alias("riscv_nop_supervisor")));
 void riscv_stvec_ssi(void) __attribute__((interrupt("supervisor"), used, weak, alias("riscv_nop_supervisor")));
 void riscv_stvec_sti(void) __attribute__((interrupt("supervisor"), used, weak, alias("riscv_nop_supervisor")));
 void riscv_stvec_sei(void) __attribute__((interrupt("supervisor"), used, weak, alias("riscv_nop_supervisor")));

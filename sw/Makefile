@@ -39,6 +39,11 @@ biriscv_coremark:
 	cmake --build build/
 	../tb/biriscv/benchmark/build/tb_top -f build/coremark.elf
 
+biriscv_dhrystone:
+	mkdir -p build
+	cmake -S biriscv/apps/dhrystone -B build --fresh
+	cmake --build build/
+	../tb/biriscv/benchmark/build/tb_top -f build/dhrystone.elf
 
 ##
 
@@ -77,7 +82,11 @@ cv32e40p_coremark:
 	cmake --build build/
 	../tb/cv32e40p/benchmark/build/tb_top -f build/coremark.elf
 
-
+cv32e40p_dhrystone:
+	mkdir -p build
+	cmake -S cv32e40p/apps/dhrystone -B build --fresh
+	cmake --build build/
+	../tb/cv32e40p/benchmark/build/tb_top -f build/dhrystone.elf
 ##
 
 
@@ -105,6 +114,11 @@ ibex_debug:
 	cmake --build build/
 	../tb/ibex/debug/build/tb_top -f build/baremetal_debug.elf
 
+ibex_dhrystone:
+	mkdir -p build
+	cmake -S ibex/apps/dhrystone -B build --fresh
+	cmake --build build/
+	../tb/ibex/benchmark/build/tb_top -f build/dhrystone.elf
 
 ##
 
@@ -115,6 +129,11 @@ picorv32_coremark:
 	cmake --build build/
 	../tb/picorv32/benchmark/build/tb_top -f build/coremark.elf
 
+picorv32_dhrystone:
+	mkdir -p build
+	cmake -S picorv32/apps/dhrystone -B build --fresh
+	cmake --build build/
+	../tb/picorv32/benchmark/build/tb_top -f build/dhrystone.elf
 
 ##
 
