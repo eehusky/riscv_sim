@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(tb_picorv32_benchmark)
+project(tb_top_benchmark)
 
 set(REPO_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
 set(PICORV32         ${REPO_DIR}/cores/picorv32)
@@ -39,10 +39,6 @@ set(CXX_WARNING                     "-Wall -Wno-unused-but-set-variable -Wno-sig
 set(CMAKE_CXX_FLAGS                 "${PGO_FLAGS} -O3 -flto -fstrict-aliasing -march=native ${CXX_WARNING}")
 set(CMAKE_C_FLAGS                   "${PGO_FLAGS} -O3 -flto -fstrict-aliasing -march=native ${CXX_WARNING}")
 set(LD_FLAGS                        "${PGO_FLAGS} -flto=auto -fwhole-program")
-
-#set(CMAKE_CXX_FLAGS                 "${PGO_FLAGS} -Og -fstrict-aliasing -march=native ${CXX_WARNING}")
-#set(CMAKE_C_FLAGS                   "${PGO_FLAGS} -Og -fstrict-aliasing -march=native ${CXX_WARNING}")
-#set(LD_FLAGS                        "${PGO_FLAGS}")
 
 string(STRIP ${CMAKE_CXX_FLAGS} CMAKE_CXX_FLAGS)
 string(STRIP ${CMAKE_C_FLAGS}   CMAKE_C_FLAGS)
@@ -86,16 +82,16 @@ set(MY_VERILATOR_ARGS
 )
 
 
-add_executable(tb_picorv32
+add_executable(tb_top
     ${REPO_DIR}/tb/common/elf_load.cpp
     sim_main.cpp
 )
 
-verilate(tb_picorv32
+verilate(tb_top
     PREFIX
-        Vtb_picorv32
+        Vtb_top
     TOP_MODULE
-        tb_picorv32
+        tb_top
     OPT_GLOBAL
         ${CMAKE_CXX_FLAGS}
     OPT_SLOW
@@ -143,7 +139,7 @@ verilate(tb_picorv32
 )
 
 
-target_include_directories(tb_picorv32
+target_include_directories(tb_top
     PUBLIC
         ${.}
         ${REPO_DIR}/tb/common/

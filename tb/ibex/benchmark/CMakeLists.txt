@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(tb_ibex_benchmark)
+project(tb_top_benchmark)
 
 set(REPO_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
 set(IBEX         ${REPO_DIR}/cores/ibex)
@@ -82,16 +82,16 @@ set(MY_VERILATOR_ARGS
 )
 
 
-add_executable(tb_ibex
+add_executable(tb_top
     ${REPO_DIR}/tb/common/elf_load.cpp
     sim_main.cpp
 )
 
-verilate(tb_ibex
+verilate(tb_top
     PREFIX
-        Vtb_ibex
+        Vtb_top
     TOP_MODULE
-        tb_ibex
+        tb_top
     OPT_GLOBAL
         ${CMAKE_CXX_FLAGS}
     OPT_SLOW
@@ -173,7 +173,7 @@ verilate(tb_ibex
 )
 
 
-target_include_directories(tb_ibex
+target_include_directories(tb_top
     PUBLIC
         ${.}
         ${REPO_DIR}/tb/common/

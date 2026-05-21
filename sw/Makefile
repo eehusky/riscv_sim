@@ -19,25 +19,25 @@ biriscv_demo:
 	mkdir -p build
 	cmake -S biriscv/apps/baremetal_demo -B build $(FRESH)
 	cmake --build build/
-	../tb/biriscv/demo/build/tb_biriscv -f build/baremetal_demo.elf
+	../tb/biriscv/demo/build/tb_top -f build/baremetal_demo.elf
 
 biriscv_freertos:
 	mkdir -p build
 	cmake -S biriscv/apps/freertos_demo -B build $(FRESH)
 	cmake --build build/
-	../tb/biriscv/benchmark/build/tb_biriscv -f build/freertos_demo.elf
+	../tb/biriscv/benchmark/build/tb_top -f build/freertos_demo.elf
 
 biriscv_ringbuffer:
 	mkdir -p build
 	cmake -S biriscv/apps/ringbuffer_demo -B build $(FRESH)
 	cmake --build build/
-	../tb/biriscv/ringbuffer/build/tb_biriscv -f build/ringbuffer_demo.elf
+	../tb/biriscv/ringbuffer/build/tb_top -f build/ringbuffer_demo.elf
 
 biriscv_coremark:
 	mkdir -p build
 	cmake -S biriscv/apps/coremark_demo -B build $(FRESH)
 	cmake --build build/
-	../tb/biriscv/benchmark/build/tb_biriscv -f build/coremark.elf
+	../tb/biriscv/benchmark/build/tb_top -f build/coremark.elf
 
 
 ##

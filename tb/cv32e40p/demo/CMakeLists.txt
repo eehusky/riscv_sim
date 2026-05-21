@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(tb_cv32e40p_demo)
+project(tb_top_demo)
 
 set(REPO_DIR    ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
 set(CV32E40P    ${REPO_DIR}/cores/cv32e40p)
@@ -75,14 +75,14 @@ set(MY_VERILATOR_ARGS
 
 #file(GLOB SOURCE_FILES ${CV32E40P}/rtl/*.sv)
 
-add_executable(tb_cv32e40p
+add_executable(tb_top
     ${REPO_DIR}/tb/common/elf_load.cpp
     sim_main.cpp
 )
 
-verilate(tb_cv32e40p
+verilate(tb_top
     PREFIX
-        Vtb_cv32e40p
+        Vtb_top
     OPT_GLOBAL
         ${CMAKE_CXX_FLAGS}
     OPT_SLOW
@@ -98,7 +98,7 @@ verilate(tb_cv32e40p
         #${CV32E40P}/rtl/vendor/pulp_platform_common_cells/src/
         ${CV32E40P}/rtl/vendor/pulp_platform_common_cells/include/ # Needed for FPU
     TOP_MODULE
-        tb_cv32e40p
+        tb_top
     SOURCES
         ${CV32E40P}/rtl/include/cv32e40p_pkg.sv
         ${CV32E40P}/rtl/include/cv32e40p_fpu_pkg.sv
@@ -217,7 +217,7 @@ verilate(tb_cv32e40p
 )
 
 
-target_include_directories(tb_cv32e40p
+target_include_directories(tb_top
     PUBLIC
         ${.}
         ${REPO_DIR}/tb/common/

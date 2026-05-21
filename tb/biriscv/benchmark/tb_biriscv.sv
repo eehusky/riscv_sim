@@ -1,4 +1,4 @@
-module tb_biriscv #(
+module tb_top #(
     parameter bit [31:0] BOOT_ADDRESS              = 32'h80000000,
     parameter int        HART_ID                   = 0,
     parameter bit        SUPPORT_BRANCH_PREDICTION = 1,
@@ -158,6 +158,6 @@ module tb_biriscv #(
         $dumpvars(0);
         $dumpon;
     end
-endmodule : tb_biriscv
+endmodule : tb_top
 
 

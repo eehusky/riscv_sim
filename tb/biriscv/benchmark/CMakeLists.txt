@@ -69,14 +69,14 @@ set(MY_VERILATOR_ARGS
 )
 
 
-add_executable(tb_biriscv
+add_executable(tb_top
     ../../common/elf_load.cpp
     sim_main.cpp
 )
 
-verilate(tb_biriscv
+verilate(tb_top
     PREFIX
-        Vtb_biriscv
+        Vtb_top
     OPT_GLOBAL
         ${CMAKE_CXX_FLAGS}
     OPT_SLOW
@@ -86,7 +86,7 @@ verilate(tb_biriscv
     INCLUDE_DIRS
         ${BIRISCV}/src/core/
     TOP_MODULE
-        tb_biriscv
+        tb_top
     SOURCES
         ##
         ${BIRISCV}/src/core/biriscv_alu.v
@@ -109,27 +109,6 @@ verilate(tb_biriscv
         ${BIRISCV}/src/core/biriscv_trace_sim.v
         ${BIRISCV}/src/core/biriscv_xilinx_2r1w.v
         ${BIRISCV}/src/core/riscv_core.v
-        ##
-        #${BIRISCV}/src/dcache/dcache_axi_axi.v
-        #${BIRISCV}/src/dcache/dcache_axi.v
-        #${BIRISCV}/src/dcache/dcache_core_data_ram.v
-        #${BIRISCV}/src/dcache/dcache_core_tag_ram.v
-        #${BIRISCV}/src/dcache/dcache_core.v
-        #${BIRISCV}/src/dcache/dcache_if_pmem.v
-        #${BIRISCV}/src/dcache/dcache_mux.v
-        #${BIRISCV}/src/dcache/dcache_pmem_mux.v
-        #${BIRISCV}/src/dcache/dcache.v
-        ##
-        #${BIRISCV}/src/icache/icache_data_ram.v
-        #${BIRISCV}/src/icache/icache_tag_ram.v
-        #${BIRISCV}/src/icache/icache.v
-        ##
-        #${BIRISCV}/src/tcm/dport_axi.v
-        #${BIRISCV}/src/tcm/dport_mux.v
-        #${BIRISCV}/src/tcm/tcm_mem_pmem.v
-        #${BIRISCV}/src/tcm/tcm_mem_ram.v
-        #${BIRISCV}/src/tcm/tcm_mem.v
-        ##
 
         ## DPORT
         ${WB2AXIP}/rtl/sfifo.v
@@ -167,7 +146,7 @@ verilate(tb_biriscv
 )
 
 
-target_include_directories(tb_biriscv
+target_include_directories(tb_top
     PUBLIC
         SystemC::systemc
         ${.}

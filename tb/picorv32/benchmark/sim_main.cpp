@@ -7,11 +7,8 @@
 #include "elf_load.h"
 #include "mem_api.h"
 
-#include "Vtb_picorv32.h"
-#include "Vtb_picorv32__Syms.h"
-
-#define TB_PREFIX Vtb_picorv32
-#define TB_OBJ m_dut->tb_picorv32->vlSymsp->TOP__tb_picorv32
+#include "Vtb_top.h"
+#include "Vtb_top__Syms.h"
 
 #define CLK_PERIOD 10
 #define MEM_BASE (0x80000000)
@@ -42,11 +39,11 @@ static void sigint_handler(int s) { sigint_recevied = true; }
 
 class bootstrap : public mem_api {
   public:
-    TB_PREFIX *m_dut;
+    Vtb_top *m_dut;
     uint32_t lo_addr;
     uint32_t hi_addr;
 
-    bootstrap(TB_PREFIX *dut)
+    bootstrap(Vtb_top *dut)
     {
         m_dut = dut;
         lo_addr = 0xFFFFFFFF;
@@ -66,22 +63,22 @@ class bootstrap : public mem_api {
         addr = addr - ITCM_BASE;
         lo_addr = addr < lo_addr ? addr : lo_addr;
         hi_addr = addr > hi_addr ? addr : hi_addr;
-        TB_OBJ.write_itcm(addr, data);
+        m_dut->tb_top->vlSymsp->TOP__tb_top.write_itcm(addr, data);
     }
     uint8_t read_itcm(uint32_t addr)
     {
         addr = addr - ITCM_BASE;
-        return TB_OBJ.read_itcm(addr);
+        return m_dut->tb_top->vlSymsp->TOP__tb_top.read_itcm(addr);
     }
     void write_dtcm(uint32_t addr, uint8_t data)
     {
         addr = addr - DTCM_BASE;
-        TB_OBJ.write_dtcm(addr, data);
+        m_dut->tb_top->vlSymsp->TOP__tb_top.write_dtcm(addr, data);
     }
     uint8_t read_dtcm(uint32_t addr)
     {
         addr = addr - DTCM_BASE;
-        return TB_OBJ.read_dtcm(addr);
+        return m_dut->tb_top->vlSymsp->TOP__tb_top.read_dtcm(addr);
     }
     void write(uint32_t addr, uint8_t data)
     {
@@ -143,7 +140,7 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    const std::unique_ptr<TB_PREFIX> top{new TB_PREFIX{contextp.get(), "TOP"}};
+    const std::unique_ptr<Vtb_top> top{new Vtb_top{contextp.get(), "TOP"}};
     bootstrap *boot = new bootstrap(top.get());
 
     top->clk_i = 0;

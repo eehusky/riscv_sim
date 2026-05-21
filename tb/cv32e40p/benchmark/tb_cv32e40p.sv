@@ -1,4 +1,4 @@
-module tb_cv32e40p #(
+module tb_top #(
     parameter bit [31:0] BOOT_ADDRESS      = 32'h8000_0000,
     parameter int        HART_ID           = 0,
     parameter bit [31:0] MTVEC_ADDR        = 32'h8000_1000,
@@ -138,4 +138,4 @@ module tb_cv32e40p #(
         $dumpvars(0);
         $dumpon;
     end
-endmodule : tb_cv32e40p
+endmodule : tb_top

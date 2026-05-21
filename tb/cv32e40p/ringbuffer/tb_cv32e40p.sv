@@ -1,4 +1,4 @@
-module tb_cv32e40p #(
+module tb_top #(
     parameter bit [31:0] BOOT_ADDRESS      = 32'h8000_0000,
     parameter int        HART_ID           = 0,
     parameter bit [31:0] MTVEC_ADDR        = 32'h8000_1000,
@@ -390,4 +390,4 @@ module tb_cv32e40p #(
         .opcode_i(i_cv32e40p_wrapper.i_cv32e40p_top.core_i.instr_rdata_id)
     );
 
-endmodule : tb_cv32e40p
+endmodule : tb_top

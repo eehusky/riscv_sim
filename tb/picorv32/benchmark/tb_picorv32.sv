@@ -1,4 +1,4 @@
-module tb_picorv32 #(
+module tb_top #(
     parameter bit [31:0] BOOT_ADDRESS         = 32'h8000_0000,
     parameter bit [31:0] IRQ_ADDRESS          = 32'h1000_0000,
     //
@@ -168,4 +168,4 @@ module tb_picorv32 #(
         $dumpvars(0);
         $dumpon;
     end
-endmodule : tb_picorv32
+endmodule : tb_top

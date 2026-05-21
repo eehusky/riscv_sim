@@ -1,4 +1,4 @@
-module tb_ibex #(
+module tb_top #(
     parameter bit                 [31:0] BOOT_ADDRESS         = 32'h8000_0000,
     parameter int                        HART_ID              = 0,
     parameter bit                 [31:0] DM_BASE_ADDR         = 32'h0010_0000,
@@ -166,4 +166,4 @@ module tb_ibex #(
         $dumpvars(0);
         $dumpon;
     end
-endmodule : tb_ibex
+endmodule : tb_top
