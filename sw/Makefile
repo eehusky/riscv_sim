@@ -19,7 +19,6 @@ biriscv_demo:
 	cmake --build build/
 	../tb/biriscv/demo/build/tb_biriscv -f build/baremetal_demo.elf
 
-
 biriscv_freertos:
 	mkdir -p build
 	cmake -S biriscv/apps/freertos_demo -B build $(FRESH)
@@ -49,6 +48,7 @@ rsd_demo:
 
 ##
 
+
 cv32e40p_demo:
 	mkdir -p build
 	cmake -S cv32e40p/apps/baremetal_demo -B build $(FRESH)
@@ -74,12 +74,19 @@ cv32e40p_coremark:
 	../tb/cv32e40p/benchmark/build/tb_cv32e40p -f build/coremark.elf
 
 ##
+
+
 ibex_demo:
 	mkdir -p build
 	cmake -S ibex/apps/baremetal_demo -B build --fresh
 	cmake --build build/
 	../tb/ibex/demo/build/tb_ibex -f build/baremetal_demo.elf
 
+ibex_freertos:
+	mkdir -p build
+	cmake -S ibex/apps/freertos_demo -B build --fresh
+	cmake --build build/
+	../tb/ibex/debug/build/tb_ibex -f build/freertos_demo.elf
 
 ibex_coremark:
 	mkdir -p build
@@ -93,12 +100,18 @@ ibex_debug:
 	cmake --build build/
 	../tb/ibex/debug/build/tb_ibex -f build/baremetal_debug.elf
 
-ibex_freertos:
-	mkdir -p build
-	cmake -S ibex/apps/freertos_demo -B build --fresh
-	cmake --build build/
-	../tb/ibex/debug/build/tb_ibex -f build/freertos_demo.elf
 
+##
+
+
+picorv32_coremark:
+	mkdir -p build
+	cmake -S picorv32/apps/coremark_demo -B build --fresh
+	cmake --build build/
+	../tb/picorv32/benchmark/build/tb_picorv32 -f build/coremark.elf
+
+
+##
 
 clean:
 	rm -rf ./build/
@@ -106,8 +119,9 @@ clean:
 
 
 .PHONY: clean
-.PHONY: cv32e40p_demo cv32e40p_freertos cv32e40p_ringbuffer cv32e40p_coremark
-.PHONY: ibex_demo     ibex_freertos     ibex_ringbuffer     ibex_coremark ibex_debug
-.PHONY: biriscv_demo  biriscv_freertos  biriscv_ringbuffer  biriscv_coremark
-.PHONY: rsd_demo      rsd_freertos      rsd_ringbuffer      rsd_coremark
+.PHONY: cv32e40p_demo cv32e40p_freertos cv32e40p_ringbuffer cv32e40p_coremark cv32e40p_debug
+.PHONY: ibex_demo     ibex_freertos     ibex_ringbuffer     ibex_coremark     ibex_debug
+.PHONY: biriscv_demo  biriscv_freertos  biriscv_ringbuffer  biriscv_coremark  biriscv_debug
+.PHONY: rsd_demo      rsd_freertos      rsd_ringbuffer      rsd_coremark      rsd_debug
+.PHONY: picorv32_demo picorv32_freertos picorv32_ringbuffer picorv32_coremark picorv32_debug
 FORCE:

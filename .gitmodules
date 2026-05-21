@@ -37,3 +37,6 @@
 [submodule "cores/common_cells"]
 	path = cores/common_cells
 	url = https://github.com/pulp-platform/common_cells.git
+[submodule "cores/picorv32"]
+	path = cores/picorv32
+	url = git@github.com:YosysHQ/picorv32.git
