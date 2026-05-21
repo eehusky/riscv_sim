@@ -10,6 +10,7 @@
 #include "Vtb_picorv32.h"
 #include "Vtb_picorv32__Syms.h"
 
+#define TB_PREFIX Vtb_picorv32
 #define TB_OBJ m_dut->tb_picorv32->vlSymsp->TOP__tb_picorv32
 
 #define CLK_PERIOD 10
@@ -41,11 +42,11 @@ static void sigint_handler(int s) { sigint_recevied = true; }
 
 class bootstrap : public mem_api {
   public:
-    Vtb_picorv32 *m_dut;
+    TB_PREFIX *m_dut;
     uint32_t lo_addr;
     uint32_t hi_addr;
 
-    bootstrap(Vtb_picorv32 *dut)
+    bootstrap(TB_PREFIX *dut)
     {
         m_dut = dut;
         lo_addr = 0xFFFFFFFF;
@@ -142,7 +143,7 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    const std::unique_ptr<Vtb_picorv32> top{new Vtb_picorv32{contextp.get(), "TOP"}};
+    const std::unique_ptr<TB_PREFIX> top{new TB_PREFIX{contextp.get(), "TOP"}};
     bootstrap *boot = new bootstrap(top.get());
 
     top->clk_i = 0;

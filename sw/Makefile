@@ -1,10 +1,11 @@
 
 all:
-runall: biriscv_coremark biriscv_freertos cv32e40p_demo cv32e40p_freertos cv32e40p_ringbuffer cv32e40p_coremark ibex_coremark
+runall: runcoremark runfreertos rundemo runringbuffer
 rundemo: cv32e40p_demo
 runfreertos: biriscv_freertos cv32e40p_freertos
-runcoremark: biriscv_coremarkcv32e40p_coremark ibex_coremark
+runcoremark: biriscv_coremark cv32e40p_coremark ibex_coremark picorv32_coremark
 runringbuffer: cv32e40p_ringbuffer
+rundebug: ibex_debug
 
 FRESH ?= 1
 ifeq ($(FRESH), 1)

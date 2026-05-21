@@ -67,6 +67,7 @@ module tb_ibex #(
         .clk_i      (clk_i),
         .rst_i      (rst_i),
         .irq_i      (irq_i),
+        .debug_req_i(0),
         .instr_dport(initiators[0]),
         .data_dport (initiators[1])
     );
