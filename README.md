@@ -173,6 +173,7 @@ Memory: 0x80004150 - 0x8000a3e7 (Size=24KB) [.bss]
 | lowRISC       |             |
 |---------------|-------------|
 | [ibex](https://github.com/lowRISC/ibex)               | RV32IMCB    |
+| [Muntjac](https://github.com/lowRISC/muntjac)         | RV64IM?    |
 
 | openhwgroup   |             |
 |---------------|-------------|
