@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
+project(dhrystone)
+enable_language(ASM)
+set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 set(REPO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
 set(RISCV    ${CMAKE_CURRENT_SOURCE_DIR}/../../../riscv/)
@@ -8,15 +11,10 @@ set(IBEX     ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 list(APPEND CMAKE_MODULE_PATH ${RISCV})
 include(riscv)
 
-project(dhrystone)
-enable_language(ASM)
-set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
-
-
 set(STACK_SIZE    0x1000 )
 set(TARGET        dhrystone )
 set(LINKER_SCRIPT ${IBEX}/baremetal/linker.ld)
-
+cmake_path(ABSOLUTE_PATH LINKER_SCRIPT OUTPUT_VARIABLE LINKER_SCRIPT NORMALIZE)
 
 
 add_executable(${TARGET}.elf
@@ -39,37 +37,29 @@ target_include_directories(${TARGET}.elf
         ${IBEX}/baremetal
         #${REPO_DIR}/cores/nanoprintf/
 )
-target_link_libraries(${TARGET}.elf
-    PRIVATE
-        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libc_nano.a
-        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libm_nano.a
-        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libg_nano.a
-        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libgloss_nano.a
-)
 
 set(PROJECT_C_FLAGS
     -O3
+    -flto
     -nostartfiles
     -fno-exceptions
     -ffunction-sections
     -fdata-sections
     -falign-functions=4
-    -Wall
     #-march=rv32imb_zicsr_zifencei_zicntr_zcmp_zcb
-    -march=rv32im_zicsr_zifencei_zicntr
+    -march=rv32imb_zicsr_zifencei_zicntr
+    #-march=rv32im_zicsr_zifencei_zicntr
     -mabi=ilp32
-    -MD
     -mcmodel=medany
     -mstrict-align
 
+    -MD
+    -Wall
     -Wno-old-style-definition
     -Wno-return-type
     -Wno-implicit
 
-    -DDHRY_ITERS=1000
-    #-DREG=register
-
-    -flto
+    -DDHRY_ITERS=10000
 )
 set(PROJECT_LINKER_FLAGS
     --entry _start
@@ -81,9 +71,18 @@ set(PROJECT_LINKER_FLAGS
     -Wl,-Arv32im
     -Wl,-belf32-littleriscv
     #-flto=auto
-    #-fwhole-program
+    -fwhole-program
 )
+list(APPEND PROJECT_C_FLAGS -DCOMPILER_FLAGS='\"${PROJECT_C_FLAGS}\"')
+list(APPEND PROJECT_C_FLAGS -DLINKER_FLAGS='\"${PROJECT_LINKER_FLAGS}\"')
 
+target_link_libraries(${TARGET}.elf
+    PRIVATE
+        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libc_nano.a
+        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libm_nano.a
+        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libg_nano.a
+        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libgloss_nano.a
+)
 
 ## ----------------------------------------------------------------------------
 ## ----------------------------------------------------------------------------

@@ -69,8 +69,8 @@ Enumeration     Func_1 (char, char);
 long            Begin_Time,
                 End_Time,
                 User_Time;
-float           Microseconds,
-                Dhrystones_Per_Second;
+//float           Microseconds,
+//                Dhrystones_Per_Second;
 
 /* end of variables for time measurement */
 
@@ -146,7 +146,7 @@ main ()
 //  Begin_Time = (long) time_info.tms_utime;
 //#endif
 //#ifdef TIME
-  Begin_Time = End_Time = mtime_get();;
+  Begin_Time = mtime_get();;
 //#endif
 //#ifdef MSC_CLOCK
 //  Begin_Time = clock();
@@ -208,6 +208,7 @@ main ()
 //#endif
 //#ifdef TIME
   End_Time = mtime_get();
+  User_Time = End_Time - Begin_Time;
 //#endif
 //#ifdef MSC_CLOCK
 //  End_Time = clock();
@@ -266,7 +267,7 @@ main ()
   printf ("        should be:   DHRYSTONE PROGRAM, 2'ND STRING\n");
   printf ("\n");
 
-  User_Time = End_Time - Begin_Time;
+
 
   //if (User_Time < Too_Small_Time)
   //{
@@ -285,8 +286,12 @@ main ()
 //    Dhrystones_Per_Second = ((float) HZ * (float) Number_Of_Runs)
 //                        / (float) User_Time;
 //#endif
-    printf("User_Time:   %ld\n", User_Time);
-    printf("Number_Of_Runs: %d\n", Number_Of_Runs);
+    printf(">> User_Time:          %ld\n", User_Time);
+    printf(">> Number_Of_Runs:     %d\n", Number_Of_Runs);
+    printf(">> CyclesPerDhrystone: %ld\n", User_Time/Number_Of_Runs);
+    printf(">> COMPILER_FLAGS:    \"%s\"\n", COMPILER_FLAGS);
+    printf(">> LINKER_FLAGS:      \"%s\"\n", LINKER_FLAGS);
+
     //printf ("Microseconds for one run through Dhrystone: ");
     ////printf ("%6.1f \n", Microseconds);
     //printf ("%d \n", (int)Microseconds);
