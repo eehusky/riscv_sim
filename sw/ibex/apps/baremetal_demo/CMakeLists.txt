@@ -22,6 +22,7 @@ set(LINKER_SCRIPT ${IBEX}/baremetal/linker.ld)
 add_executable(${TARGET}.elf
     main.c
     ${COMMON}/prj_nanoprintf.c
+    ${COMMON}/strlen.c
     ${IBEX}/baremetal/start.S
     ${IBEX}/baremetal/entry.c
     ${IBEX}/baremetal/vector_table.c
@@ -41,10 +42,10 @@ target_link_libraries(${TARGET}.elf
         #/opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libm_nano.a
         #/opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libg_nano.a
         #/opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libgloss_nano.a
-        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libc_nano.a
-        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libm_nano.a
-        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libg_nano.a
-        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libgloss_nano.a
+        #/opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libc_nano.a
+        #/opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libm_nano.a
+        #/opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libg_nano.a
+        #/opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libgloss_nano.a
 )
 
 set(PROJECT_C_FLAGS
