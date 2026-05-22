@@ -46,14 +46,10 @@ target_include_directories(${TARGET}.elf
 
 target_link_libraries(${TARGET}.elf
     PRIVATE
-        # /opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libc_nano.a
-        # /opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libm_nano.a
-        # /opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libg_nano.a
-        # /opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libgloss_nano.a
-        # /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libc_nano.a
-        # /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libm_nano.a
-        # /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libg_nano.a
-        # /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libgloss_nano.a
+        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libc_nano.a
+        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libm_nano.a
+        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libg_nano.a
+        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libgloss_nano.a
 )
 
 set(PROJECT_C_FLAGS
