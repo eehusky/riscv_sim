@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(RISCV   ${CMAKE_CURRENT_SOURCE_DIR}/../riscv/)
-set(RSD     ${CMAKE_CURRENT_SOURCE_DIR}/../rsd/)
+set(REPO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
+set(COMMON ${REPO_DIR}/sw/common/)
+set(RSD ${REPO_DIR}/sw/rsd/)
 
-list(APPEND CMAKE_MODULE_PATH ${RISCV})
+list(APPEND CMAKE_MODULE_PATH ${COMMON}/riscv/)
 include(riscv)
 
 project(apprsd)
@@ -12,23 +13,25 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 
 set(STACK_SIZE    0xf00 )
-set(TARGET        apprsd )
-set(LINKER_SCRIPT ${RSD}/linker.ld)
+set(TARGET        baremetal_demo )
+set(LINKER_SCRIPT ${RSD}/baremetal/linker.ld)
 
 
 
 add_executable(${TARGET}.elf
     main.c
-    ${RSD}/crt0.S
-    ${RSD}/load.c
+    ${RSD}/baremetal/crt0.S
+    ${RSD}/baremetal/load.c
     #${RSD}/syscalls.c
-    ${RISCV}/mtvec.c
+    #${RISCV}/mtvec.c
 )
 target_include_directories(${TARGET}.elf
     PRIVATE
-        #${CMAKE_CURRENT_SOURCE_DIR}/../ringbuffer
-        ${RISCV}/
-        ${RSD}/
+        ${COMMON}/riscv/
+        ${COMMON}/
+        ${CV32E40P}/
+        ${CV32E40P}/baremetal
+        ${REPO_DIR}/cores/nanoprintf/
 )
 target_link_libraries(${TARGET}.elf
     PRIVATE
@@ -42,7 +45,7 @@ set(PROJECT_C_FLAGS
     -fno-exceptions
     -ffunction-sections
     -fdata-sections
-    -march=rv32imf_zicsr_zifencei
+    -march=rv32im_zicsr_zifencei
     -mabi=ilp32
     -MD
     -mcmodel=medany

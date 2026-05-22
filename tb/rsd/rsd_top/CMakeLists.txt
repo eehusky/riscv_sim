@@ -3,7 +3,9 @@ project(tb_rsd_top)
 
 set(REPO_DIR    ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
 set(RSD         $ENV{HOME}/github/rsd-devel/rsd/)
-set(VERILOG_AXI $ENV{HOME}/github/alexforencich/verilog-axi/)
+set(VERILOG_AXI  ${REPO_DIR}/cores/verilog-axi/)
+set(VERILOG_UART ${REPO_DIR}/cores/verilog-uart/)
+set(WB2AXIP      ${REPO_DIR}/cores/wb2axip/)
 
 find_package(verilator
     NO_DEFAULT_PATH
@@ -33,7 +35,7 @@ set(RSD_SRC_CFG                 +define+RSD_MARCH_INT_ISSUE_WIDTH=2 +define+RSD_
 set(RSD_VERILATOR_DEFINITION    +define+RSD_FUNCTIONAL_SIMULATION +define+RSD_FUNCTIONAL_SIMULATION_VERILATOR)
 
 set(MY_VERILATOR_ARGS
-    -O1
+    -O3
     --timescale-override 1ns/1ns
     #--x-assign fast
     #--x-initial fast
@@ -42,9 +44,9 @@ set(MY_VERILATOR_ARGS
     -Wno-context
     #--Wall
     --report-unoptflat
-    #--expand-limit 100000
     --trace-fst
-    #--unroll-count 512
+    --trace-structs
+    --no-trace-params
     +incdir+.
     -CFLAGS "${CMAKE_CXX_FLAGS}"
     -LDFLAGS "-lelf -lbfd"
@@ -57,6 +59,7 @@ set(MY_VERILATOR_ARGS
     -Wno-WIDTH
     -Wno-INITIALDLY
     -Wno-UNOPTFLAT
+    -Wno-CASEINCOMPLETE
     -output-split 15000
     #${RSD_SRC_CFG}
     #${RSD_VERILATOR_DEFINITION}
@@ -69,15 +72,15 @@ set(MY_VERILATOR_ARGS
 )
 
 
-add_executable(tb_rsd_top
-    ${REPO_DIR}/tb/biriscv/common/elf_load.cpp
+add_executable(tb_top
+    ${REPO_DIR}/tb/common/elf_load.cpp
     sim_main.cpp
 )
 
 set(RSD_SRC         $ENV{HOME}/github/rsd-devel/rsd/Processor/Src/)
-verilate(tb_rsd_top
+verilate(tb_top
     PREFIX
-        Vtb_rsd_top
+        Vtb_top
     OPT_GLOBAL
         ${CMAKE_CXX_FLAGS}
     OPT_SLOW
@@ -87,7 +90,7 @@ verilate(tb_rsd_top
     INCLUDE_DIRS
         ${RSD}/Processor/Src/
     TOP_MODULE
-        tb_rsd_top
+        tb_top
     SOURCES
         ${RSD_SRC}/MicroArchConf.sv
         ${RSD_SRC}/BasicTypes.sv
@@ -252,34 +255,43 @@ verilate(tb_rsd_top
         ${RSD_SRC}/Debug/PerformanceCounterIF.sv
         ${RSD_SRC}/SysDeps/Verilator/VerilatorHelper.sv
         ##
+        ${VERILOG_AXI}/rtl/axi_dp_ram.v
+        ${VERILOG_AXI}/rtl/axi_ram_wr_rd_if.v
+        ${VERILOG_AXI}/rtl/axi_ram_wr_if.v
+        ${VERILOG_AXI}/rtl/axi_ram_rd_if.v
+        ${VERILOG_AXI}/rtl/axil_ram.v
         ${VERILOG_AXI}/rtl/axi_ram.v
-        ${VERILOG_AXI}/rtl/axi_crossbar.v
-        ${VERILOG_AXI}/rtl/axi_crossbar_wr.v
-        ${VERILOG_AXI}/rtl/axi_crossbar_rd.v
-        ${VERILOG_AXI}/rtl/axi_crossbar_addr.v
-        ${VERILOG_AXI}/rtl/axi_register_rd.v
-        ${VERILOG_AXI}/rtl/axi_register_wr.v
-        ${VERILOG_AXI}/rtl/axi_axil_adapter.v
-        ${VERILOG_AXI}/rtl/axi_axil_adapter_wr.v
-        ${VERILOG_AXI}/rtl/axi_axil_adapter_rd.v
-        ${VERILOG_AXI}/rtl/arbiter.v
-        ${VERILOG_AXI}/rtl/priority_encoder.v
         ##
-        ${REPO_DIR}/rtl/soc_mem.vlt
-        ${REPO_DIR}/rtl/rsd_soc_mem.sv
-        ${REPO_DIR}/rtl/axi_crossbar_wrap_2x2.v
+        ${WB2AXIP}/rtl/sfifo.v
+        ${REPO_DIR}/rtl/dport/obi_pkg.sv
+        ${REPO_DIR}/rtl/dport/obi2iob.sv
+        ${REPO_DIR}/rtl/dport/obi2axi.sv
+        ${REPO_DIR}/rtl/dport/obi2axil.sv
+        ${REPO_DIR}/rtl/dport/obi_addrdecode.sv
+        ${REPO_DIR}/rtl/dport/obi_mux.sv
+        ${REPO_DIR}/rtl/dport/obi_demux.sv
+        ${REPO_DIR}/rtl/dport/obi_ram.sv
+        ${REPO_DIR}/rtl/dport/obi_xbar.sv
+        ${REPO_DIR}/rtl/dport/obi_dummy.sv
+        ${REPO_DIR}/rtl/dport/obi_if.sv
+        ${REPO_DIR}/rtl/dport/axi_if.sv
+        ${REPO_DIR}/rtl/dport/axil_if.sv
+        ${REPO_DIR}/rtl/dport/obi_rsp_queue.sv
+        ${REPO_DIR}/rtl/dport/obi_dtcm.sv
+        #
+        ${REPO_DIR}/rtl/dport/mtime32.sv
+        ${REPO_DIR}/rtl/dport/sim_ctrl.sv
         ##
-        ${REPO_DIR}/rtl/rsd_wrapper.sv
-        tb_rsd_top.sv
+        ../rsd_wrapper.sv
+        tb_top.sv
         #
     VERILATOR_ARGS
         ${MY_VERILATOR_ARGS}
 )
 
 
-target_include_directories(tb_rsd_top
+target_include_directories(tb_top
     PUBLIC
-        SystemC::systemc
         ${.}
-        ../../biriscv/common/
+        ${REPO_DIR}/tb/common/
 )

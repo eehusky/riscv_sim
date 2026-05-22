@@ -1,30 +1,30 @@
-_stack_size = 4K;
-
 MEMORY
 {
-    SRAM (rwx) : ORIGIN = 0x80001000, LENGTH = 32K
+    ITCM (rwx) : ORIGIN = 0x00000000, LENGTH = 128K
+    DTCM (rw)  : ORIGIN = 0x00020000, LENGTH = 128K
 }
 
 SECTIONS
 {
-    _ram_start = .;
     .text :
     {
+        . = 0x00001000;
         _text = .;
         KEEP(*(.text.start))
         *(.text.start)
         *(.text*)
-        *(.rodata*)
         _etext = .;
-    } > SRAM
+    } > ITCM
 
     .data : AT(ADDR(.text) + SIZEOF(.text))
     {
         _data = .;
         *(.data*)
         *(.sdata*)
+        *(.rodata*)
+        *(.srodata*)
         _edata = .;
-    } > SRAM
+    } > DTCM
 
     .bss : AT(ADDR(.data) + SIZEOF(.data))
     {
@@ -32,16 +32,20 @@ SECTIONS
         *(.bss*)
         *(COMMON)
         _ebss = .;
+    } > DTCM
+
+    .sbss : AT(ADDR(.bss) + SIZEOF(.bss))
+    {
         _sbss = .;
         *(.sbss*)
         _esbss = .;
-    } > SRAM
+    } > DTCM
 
     _heap_bottom = .;
-    _heap_top = ORIGIN(SRAM) + LENGTH(SRAM) - _stack_size;
+    _heap_top = ORIGIN(DTCM) + LENGTH(DTCM) - __stack_size;
 
     _stack_bottom = _heap_top;
-    _stack_top = ORIGIN(SRAM) + LENGTH(SRAM);
+    _stack_top = ORIGIN(DTCM) + LENGTH(DTCM);
 }
 
 

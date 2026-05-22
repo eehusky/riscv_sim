@@ -1,6 +1,6 @@
 
 
-#include "risvc_io.h"
+#include "riscv_io.h"
 
 
 static inline void rsd_sim_exit(int exitcode)
