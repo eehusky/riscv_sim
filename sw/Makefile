@@ -35,7 +35,7 @@ biriscv_ringbuffer:
 
 biriscv_coremark:
 	mkdir -p build
-	cmake -S biriscv/apps/coremark_demo -B build $(FRESH)
+	cmake -S biriscv/apps/coremark -B build $(FRESH)
 	cmake --build build/
 	../tb/biriscv/benchmark/build/tb_top -f build/coremark.elf
 
@@ -78,7 +78,7 @@ cv32e40p_ringbuffer:
 
 cv32e40p_coremark:
 	mkdir -p build
-	cmake -S cv32e40p/apps/coremark_demo -B build $(FRESH)
+	cmake -S cv32e40p/apps/coremark -B build $(FRESH)
 	cmake --build build/
 	../tb/cv32e40p/benchmark/build/tb_top -f build/coremark.elf
 
@@ -104,7 +104,7 @@ ibex_freertos:
 
 ibex_coremark:
 	mkdir -p build
-	cmake -S ibex/apps/coremark_demo -B build --fresh
+	cmake -S ibex/apps/coremark -B build --fresh
 	cmake --build build/
 	../tb/ibex/benchmark/build/tb_top -f build/coremark.elf
 
@@ -125,7 +125,7 @@ ibex_dhrystone:
 
 picorv32_coremark:
 	mkdir -p build
-	cmake -S picorv32/apps/coremark_demo -B build --fresh
+	cmake -S picorv32/apps/coremark -B build --fresh
 	cmake --build build/
 	../tb/picorv32/benchmark/build/tb_top -f build/coremark.elf
 
