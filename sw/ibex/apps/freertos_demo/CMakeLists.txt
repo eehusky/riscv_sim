@@ -2,14 +2,13 @@ cmake_minimum_required(VERSION 3.10)
 
 set(REPO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
 set(COREMARK ${REPO_DIR}/cores/coremark)
-set(RISCV ${REPO_DIR}/sw/riscv/)
 set(COMMON ${REPO_DIR}/sw/common/)
 set(IBEX ${REPO_DIR}/sw/ibex/)
 set(FREERTOS        $ENV{HOME}/github/FreeRTOS/FreeRTOS/)
 set(RTOS_SOURCE_DIR ${FREERTOS}/FreeRTOS/Source)
 
 
-list(APPEND CMAKE_MODULE_PATH ${RISCV})
+list(APPEND CMAKE_MODULE_PATH ${COMMON}/riscv/)
 include(riscv)
 
 project(freertos-ibex)
@@ -46,7 +45,7 @@ add_executable(${TARGET}.elf
 target_include_directories(${TARGET}.elf
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${RISCV}/
+        ${COMMON}/riscv/
         ${IBEX}/
         ${REPO_DIR}/cores/nanoprintf/
         ${IBEX}/freertos

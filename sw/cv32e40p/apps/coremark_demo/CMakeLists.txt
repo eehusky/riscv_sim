@@ -2,11 +2,10 @@ cmake_minimum_required(VERSION 3.10)
 
 set(REPO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
 set(COREMARK ${CMAKE_CURRENT_SOURCE_DIR}/../../../../cores/coremark)
-set(RISCV    ${CMAKE_CURRENT_SOURCE_DIR}/../../../riscv/)
 set(COMMON   ${CMAKE_CURRENT_SOURCE_DIR}/../../../common/)
 set(CV32E40P ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 
-list(APPEND CMAKE_MODULE_PATH ${RISCV})
+list(APPEND CMAKE_MODULE_PATH ${COMMON}/riscv/)
 include(riscv)
 
 project(coremark_demo)
@@ -42,7 +41,7 @@ target_include_directories(${TARGET}.elf
     PRIVATE
         ${COREMARK}/
         ${COMMON}/coremark/barebones
-        ${RISCV}/
+        ${COMMON}/riscv/
         ${CV32E40P}/
         ${CV32E40P}/baremetal
         ${REPO_DIR}/cores/nanoprintf/

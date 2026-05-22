@@ -2,11 +2,10 @@ cmake_minimum_required(VERSION 3.10)
 
 set(REPO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
 set(COREMARK ${REPO_DIR}/cores/coremark)
-set(RISCV ${REPO_DIR}/sw/riscv/)
 set(COMMON ${REPO_DIR}/sw/common/)
 set(IBEX ${REPO_DIR}/sw/ibex/)
 
-list(APPEND CMAKE_MODULE_PATH ${RISCV})
+list(APPEND CMAKE_MODULE_PATH ${COMMON}/riscv/)
 include(riscv)
 
 project(ibex_baremetal_demo)
@@ -30,7 +29,7 @@ add_executable(${TARGET}.elf
 )
 target_include_directories(${TARGET}.elf
     PRIVATE
-        ${RISCV}/
+        ${COMMON}/riscv/
         ${COMMON}/
         ${IBEX}/
         ${IBEX}/baremetal

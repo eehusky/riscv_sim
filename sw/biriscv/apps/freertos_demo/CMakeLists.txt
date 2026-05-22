@@ -1,13 +1,12 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(RISCV           ${CMAKE_CURRENT_SOURCE_DIR}/../../../riscv/)
-set(BIRISCV         ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 set(REPO_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
+set(BIRISCV         ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 set(FREERTOS        $ENV{HOME}/github/FreeRTOS/FreeRTOS/)
 set(RTOS_SOURCE_DIR ${FREERTOS}/FreeRTOS/Source)
-set(COMMON   ${CMAKE_CURRENT_SOURCE_DIR}/../../../common/)
+set(COMMON          ${CMAKE_CURRENT_SOURCE_DIR}/../../../common/)
 
-list(APPEND CMAKE_MODULE_PATH ${RISCV})
+list(APPEND CMAKE_MODULE_PATH ${COMMON}/riscv/)
 include(riscv)
 
 project(freertos-biriscv)
@@ -44,7 +43,7 @@ add_executable(${TARGET}.elf
 target_include_directories(${TARGET}.elf
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${RISCV}/
+        ${COMMON}/riscv/
         ${BIRISCV}/
         #${BIRISCV}/baremetal
         ${REPO_DIR}/cores/nanoprintf/

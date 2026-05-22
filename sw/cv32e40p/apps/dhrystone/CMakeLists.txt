@@ -1,11 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 
 set(REPO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
-set(RISCV    ${CMAKE_CURRENT_SOURCE_DIR}/../../../riscv/)
 set(COMMON   ${CMAKE_CURRENT_SOURCE_DIR}/../../../common/)
 set(IBEX     ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 
-list(APPEND CMAKE_MODULE_PATH ${RISCV})
+list(APPEND CMAKE_MODULE_PATH ${COMMON}/riscv/)
 include(riscv)
 
 project(dhrystone)
@@ -33,7 +32,7 @@ add_executable(${TARGET}.elf
 )
 target_include_directories(${TARGET}.elf
     PRIVATE
-        ${RISCV}/
+        ${COMMON}/riscv/
         ${IBEX}/
         ${COMMON}/dhrystone/
         ${IBEX}/baremetal

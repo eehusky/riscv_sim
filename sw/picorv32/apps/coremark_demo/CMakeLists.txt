@@ -2,11 +2,10 @@ cmake_minimum_required(VERSION 3.10)
 
 set(REPO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
 set(COREMARK ${REPO_DIR}/cores/coremark)
-set(RISCV    ${REPO_DIR}/sw/riscv/)
 set(COMMON   ${REPO_DIR}/sw/common/)
 set(PICORV32     ${REPO_DIR}/sw/picorv32/)
 
-list(APPEND CMAKE_MODULE_PATH ${RISCV})
+list(APPEND CMAKE_MODULE_PATH ${COMMON}/riscv/)
 include(riscv)
 
 project(coremark_demo)
@@ -42,7 +41,7 @@ target_include_directories(${TARGET}.elf
     PRIVATE
         ${COREMARK}/
         ${COMMON}/coremark/barebones/
-        ${RISCV}/
+        ${COMMON}/riscv/
         ${PICORV32}/
         ${PICORV32}/baremetal
         ${REPO_DIR}/cores/nanoprintf/
