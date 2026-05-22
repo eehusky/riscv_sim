@@ -26,9 +26,9 @@ add_executable(${TARGET}.elf
     ${COREMARK}/core_matrix.c
     ${COREMARK}/core_state.c
     ${COREMARK}/core_util.c
-    barebones/core_portme.c
-    barebones/ee_printf.c
-    barebones/cvt.c
+    ${COMMON}/coremark/barebones/core_portme.c
+    ${COMMON}/coremark/barebones/ee_printf.c
+    ${COMMON}/coremark/barebones/cvt.c
 
 
     ${IBEX}/baremetal/start.S
@@ -41,7 +41,7 @@ add_executable(${TARGET}.elf
 target_include_directories(${TARGET}.elf
     PRIVATE
         ${COREMARK}/
-        ${CMAKE_CURRENT_SOURCE_DIR}/barebones
+        ${COMMON}/coremark/barebones
         ${RISCV}/
         ${IBEX}/
         ${IBEX}/baremetal
