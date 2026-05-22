@@ -31,6 +31,19 @@
 #define AXIL_SIZE     0x00020000
 
 
+// mcycle(h)        0xB00 (0xB80) 0 NumCycles
+// minstret(h)      0xB02 (0xB82) 2 NumInstrRet
+// mhpmcounter3(h)  0xB03 (0xB83) 3 NumCyclesLSU
+// mhpmcounter4(h)  0xB04 (0xB84) 4 NumCyclesIF
+// mhpmcounter5(h)  0xB05 (0xB85) 5 NumLoads
+// mhpmcounter6(h)  0xB06 (0xB86) 6 NumStores
+// mhpmcounter7(h)  0xB07 (0xB87) 7 NumJumps
+// mhpmcounter8(h)  0xB08 (0xB88) 8 NumBranches
+// mhpmcounter9(h)  0xB09 (0xB89) 9 NumBranchesTaken
+// mhpmcounter10(h) 0xB0A (0xB8A) 10 NumInstrRetC
+// mhpmcounter11(h) 0xB0B (0xB8B) 11 NumCyclesMulWait
+// mhpmcounter12(h) 0xB0C (0xB8C) 12 NumCyclesDivWait
+
 char *counter_names[16]={
     [0]  ="CYCLES"      ,
     [1]  ="INSTR"       ,

@@ -98,10 +98,12 @@ verilate(tb_top
         ${IBEX}/vendor/lowrisc_ip/ip/prim/rtl/prim_secded_pkg.sv
         ${IBEX}/vendor/lowrisc_ip/ip/prim/rtl/prim_cipher_pkg.sv
         ${IBEX}/vendor/lowrisc_ip/ip/prim_generic/rtl/prim_ram_1p_pkg.sv
+        ${IBEX}/vendor/lowrisc_ip/ip/prim_generic/rtl/prim_ram_1p.sv
         ${IBEX}/vendor/lowrisc_ip/ip/prim_generic/rtl/prim_clock_gating.sv
         ${IBEX}/vendor/lowrisc_ip/ip/prim_generic/rtl/prim_buf.sv
 
         ${IBEX}/rtl/ibex_pkg.sv
+        ${IBEX}/rtl/ibex_icache.sv
         ${IBEX}/rtl/ibex_alu.sv
         ${IBEX}/rtl/ibex_compressed_decoder.sv
         ${IBEX}/rtl/ibex_controller.sv
