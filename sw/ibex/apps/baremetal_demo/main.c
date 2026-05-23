@@ -6,7 +6,7 @@
 #include "riscv_hpm.h"
 #include "riscv_info.h"
 
-#include "prj_nanoprintf.h"
+#include "nstdio.h"
 #include "riscv_io.h"
 #include "sim_extensions.h"
 #include "vector_table.h"

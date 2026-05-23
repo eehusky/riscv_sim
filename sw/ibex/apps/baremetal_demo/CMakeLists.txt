@@ -23,7 +23,7 @@ add_executable(${TARGET}.elf
     main.c
     ${COMMON}/riscv/riscv_hpm.c
     ${COMMON}/riscv/riscv_info.c
-    ${COMMON}/prj_nanoprintf.c
+    ${COMMON}/nstdio.c
     ${COMMON}/strlen.c
     ${IBEX}/baremetal/start.S
     ${IBEX}/baremetal/entry.c
