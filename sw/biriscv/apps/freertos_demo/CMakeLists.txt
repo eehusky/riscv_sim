@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(REPO_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
+set(REPO_DIR    ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
 set(CPU         ${CMAKE_CURRENT_SOURCE_DIR}/../../)
+set(COMMON      ${REPO_DIR}/sw/common/)
 set(FREERTOS        $ENV{HOME}/github/FreeRTOS/FreeRTOS/)
 set(RTOS_SOURCE_DIR ${FREERTOS}/FreeRTOS/Source)
-set(COMMON          ${CMAKE_CURRENT_SOURCE_DIR}/../../../common/)
 
 list(APPEND CMAKE_MODULE_PATH ${COMMON}/riscv/)
 include(riscv)

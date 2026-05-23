@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(REPO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
-set(COMMON   ${CMAKE_CURRENT_SOURCE_DIR}/../../../common/)
-set(CPU     ${CMAKE_CURRENT_SOURCE_DIR}/../../)
+set(REPO_DIR    ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
+set(CPU         ${CMAKE_CURRENT_SOURCE_DIR}/../../)
+set(COMMON      ${REPO_DIR}/sw/common/)
 
 list(APPEND CMAKE_MODULE_PATH ${COMMON}/riscv/)
 include(riscv)

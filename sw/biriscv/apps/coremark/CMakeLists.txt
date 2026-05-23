@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(REPO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
-set(COREMARK ${REPO_DIR}/cores/coremark)
-set(COMMON   ${REPO_DIR}/sw/common/)
-set(CPU  ${REPO_DIR}/sw/biriscv/)
+set(REPO_DIR    ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
+set(CPU         ${CMAKE_CURRENT_SOURCE_DIR}/../../)
+set(COMMON      ${REPO_DIR}/sw/common/)
+set(COREMARK    ${REPO_DIR}/cores/coremark)
 
 list(APPEND CMAKE_MODULE_PATH ${COMMON}/riscv/)
 include(riscv)

@@ -3,9 +3,9 @@ project(dhrystone)
 enable_language(ASM)
 set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
-set(REPO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
-set(COMMON   ${CMAKE_CURRENT_SOURCE_DIR}/../../../common/)
-set(CPU     ${CMAKE_CURRENT_SOURCE_DIR}/../../)
+set(REPO_DIR    ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
+set(CPU         ${CMAKE_CURRENT_SOURCE_DIR}/../../)
+set(COMMON      ${REPO_DIR}/sw/common/)
 
 list(APPEND CMAKE_MODULE_PATH ${COMMON}/riscv/)
 include(riscv)
