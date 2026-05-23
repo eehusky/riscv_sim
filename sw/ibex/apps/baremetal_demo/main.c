@@ -5,9 +5,9 @@
 #include "riscv_csr.h"
 #include "riscv_hpm.h"
 #include "riscv_info.h"
+#include "riscv_io.h"
 
 #include "nstdio.h"
-#include "riscv_io.h"
 #include "sim_extensions.h"
 #include "vector_table.h"
 
