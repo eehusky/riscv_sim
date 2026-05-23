@@ -6,7 +6,7 @@
 
 #include "sim_extensions.h"
 
-int your_project_snprintf_(char *buffer, size_t bufsz, char const *fmt, ...) {
+int nsnprintf_(char *buffer, size_t bufsz, char const *fmt, ...) {
     va_list val;
     va_start(val, fmt);
     // npf_vsnprintf works here because float args in the va_list are already
@@ -16,7 +16,7 @@ int your_project_snprintf_(char *buffer, size_t bufsz, char const *fmt, ...) {
     return rv;
 }
 
-int prjprintf_(char const *fmt, ...) {
+int nprintf_(char const *fmt, ...) {
     char buffer[64];
     va_list val;
     va_start(val, fmt);

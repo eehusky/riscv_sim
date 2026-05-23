@@ -28,14 +28,14 @@
 
 /* The macro wraps float/double args before they cross the variadic boundary.
    fmt is captured inside __VA_ARGS__ so no ##__VA_ARGS__ GNU extension is needed. */
-#define your_project_snprintf(buf, sz, ...) \
-  your_project_snprintf_((buf), (sz), NPF_MAP_ARGS(__VA_ARGS__))
+#define nsnprintf(buf, sz, ...) \
+  nsnprintf_((buf), (sz), NPF_MAP_ARGS(__VA_ARGS__))
 
 /* The real function receives already-wrapped args and forwards via va_list. */
-int your_project_snprintf_(char *buffer, size_t bufsz, const char *fmt, ...);
+int nsnprintf_(char *buffer, size_t bufsz, const char *fmt, ...);
 
 
 #define nprintf(...) \
-  prjprintf_(NPF_MAP_ARGS(__VA_ARGS__))
+  nprintf_(NPF_MAP_ARGS(__VA_ARGS__))
 
-int prjprintf_(char const *fmt, ...);
+int nprintf_(char const *fmt, ...);

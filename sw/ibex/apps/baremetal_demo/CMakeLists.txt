@@ -21,12 +21,15 @@ set(LINKER_SCRIPT ${IBEX}/baremetal/linker.ld)
 
 add_executable(${TARGET}.elf
     main.c
+    ${COMMON}/riscv/riscv_hpm.c
+    ${COMMON}/riscv/riscv_info.c
     ${COMMON}/prj_nanoprintf.c
     ${COMMON}/strlen.c
     ${IBEX}/baremetal/start.S
     ${IBEX}/baremetal/entry.c
     ${IBEX}/baremetal/vector_table.c
     ${IBEX}/syscalls.c
+    ${IBEX}/ibex_hpm.c
 )
 target_include_directories(${TARGET}.elf
     PRIVATE
