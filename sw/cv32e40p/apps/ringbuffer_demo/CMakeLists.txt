@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 set(REPO_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
 set(COREMARK        ${REPO_DIR}/cores/coremark)
 set(COMMON          ${REPO_DIR}/sw/common/)
-set(CV32E40P        ${REPO_DIR}/sw/cv32e40p/)
+set(CPU        ${REPO_DIR}/sw/cv32e40p/)
 set(FREERTOS        $ENV{HOME}/github/FreeRTOS/FreeRTOS/)
 set(RTOS_SOURCE_DIR ${FREERTOS}/FreeRTOS/Source)
 
@@ -18,7 +18,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 set(STACK_SIZE    0x1000 )
 set(TARGET        ringbuffer_demo )
-set(LINKER_SCRIPT ${CV32E40P}/freertos/linker.ld)
+set(LINKER_SCRIPT ${CPU}/freertos/linker.ld)
 
 
 add_executable(${TARGET}.elf
@@ -35,12 +35,12 @@ add_executable(${TARGET}.elf
     ${RTOS_SOURCE_DIR}/timers.c
     ${RTOS_SOURCE_DIR}/portable/MemMang/heap_4.c
     #
-    ${CV32E40P}/freertos/RISC-V_cv32e40p/port.c
-    ${CV32E40P}/freertos/RISC-V_cv32e40p/portASM.S
-    ${CV32E40P}/freertos/crt0.S
-    ${CV32E40P}/freertos/vector.S
+    ${CPU}/freertos/RISC-V_cv32e40p/port.c
+    ${CPU}/freertos/RISC-V_cv32e40p/portASM.S
+    ${CPU}/freertos/crt0.S
+    ${CPU}/freertos/vector.S
 
-    ${CV32E40P}/syscalls.c
+    ${CPU}/syscalls.c
     ${COMMON}/memcpy.c
     ${COMMON}/memset.c
 )
@@ -49,9 +49,9 @@ target_include_directories(${TARGET}.elf
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${COMMON}/ringbuffer/
         ${COMMON}/riscv/
-        ${CV32E40P}/
-        ${CV32E40P}/freertos
-        ${CV32E40P}/freertos/RISC-V_cv32e40p
+        ${CPU}/
+        ${CPU}/freertos
+        ${CPU}/freertos/RISC-V_cv32e40p
         ${RTOS_SOURCE_DIR}/include
         ${REPO_DIR}/cores/nanoprintf/
 )

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 set(REPO_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
-set(BIRISCV         ${CMAKE_CURRENT_SOURCE_DIR}/../../)
+set(CPU         ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 set(FREERTOS        $ENV{HOME}/github/FreeRTOS/FreeRTOS/)
 set(RTOS_SOURCE_DIR ${FREERTOS}/FreeRTOS/Source)
 set(COMMON          ${CMAKE_CURRENT_SOURCE_DIR}/../../../common/)
@@ -16,7 +16,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 set(STACK_SIZE    0x1000 )
 set(TARGET        freertos_demo )
-set(LINKER_SCRIPT ${BIRISCV}/freertos/linker.ld)
+set(LINKER_SCRIPT ${CPU}/freertos/linker.ld)
 
 
 add_executable(${TARGET}.elf
@@ -31,12 +31,12 @@ add_executable(${TARGET}.elf
     ${RTOS_SOURCE_DIR}/timers.c
     ${RTOS_SOURCE_DIR}/portable/MemMang/heap_4.c
     #
-    ${BIRISCV}/freertos/RISC-V_biriscv/port.c
-    ${BIRISCV}/freertos/RISC-V_biriscv/portASM.S
-    ${BIRISCV}/freertos/crt0.S
-    #${BIRISCV}/freertos/vector.S
+    ${CPU}/freertos/RISC-V_biriscv/port.c
+    ${CPU}/freertos/RISC-V_biriscv/portASM.S
+    ${CPU}/freertos/crt0.S
+    #${CPU}/freertos/vector.S
 
-    ${BIRISCV}/syscalls.c
+    ${CPU}/syscalls.c
     ${COMMON}/memcpy.c
     ${COMMON}/memset.c
 )
@@ -44,11 +44,11 @@ target_include_directories(${TARGET}.elf
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${COMMON}/riscv/
-        ${BIRISCV}/
-        #${BIRISCV}/baremetal
+        ${CPU}/
+        #${CPU}/baremetal
         ${REPO_DIR}/cores/nanoprintf/
-        ${BIRISCV}/freertos
-        ${BIRISCV}/freertos/RISC-V_biriscv
+        ${CPU}/freertos
+        ${CPU}/freertos/RISC-V_biriscv
         ${RTOS_SOURCE_DIR}/include
 )
 target_link_libraries(${TARGET}.elf

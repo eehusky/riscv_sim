@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 set(REPO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
 set(COREMARK ${REPO_DIR}/cores/coremark)
 set(COMMON ${REPO_DIR}/sw/common/)
-set(IBEX ${REPO_DIR}/sw/ibex/)
+set(CPU ${REPO_DIR}/sw/ibex/)
 
 list(APPEND CMAKE_MODULE_PATH ${COMMON}/riscv/)
 include(riscv)
@@ -15,7 +15,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 set(STACK_SIZE    0x1000 )
 set(TARGET        baremetal_demo )
-set(LINKER_SCRIPT ${IBEX}/baremetal/linker.ld)
+set(LINKER_SCRIPT ${CPU}/baremetal/linker.ld)
 
 
 
@@ -25,18 +25,18 @@ add_executable(${TARGET}.elf
     ${COMMON}/riscv/riscv_info.c
     ${COMMON}/nstdio.c
     ${COMMON}/strlen.c
-    ${IBEX}/baremetal/start.S
-    ${IBEX}/baremetal/entry.c
-    ${IBEX}/baremetal/vector_table.c
-    ${IBEX}/syscalls.c
-    ${IBEX}/ibex_hpm.c
+    ${CPU}/baremetal/start.S
+    ${CPU}/baremetal/entry.c
+    ${CPU}/baremetal/vector_table.c
+    ${CPU}/syscalls.c
+    ${CPU}/ibex_hpm.c
 )
 target_include_directories(${TARGET}.elf
     PRIVATE
         ${COMMON}/riscv/
         ${COMMON}/
-        ${IBEX}/
-        ${IBEX}/baremetal
+        ${CPU}/
+        ${CPU}/baremetal
         ${REPO_DIR}/cores/nanoprintf/
 )
 target_link_libraries(${TARGET}.elf

@@ -5,22 +5,22 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 set(REPO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
 set(COMMON   ${CMAKE_CURRENT_SOURCE_DIR}/../../../common/)
-set(IBEX     ${CMAKE_CURRENT_SOURCE_DIR}/../../)
+set(CPU     ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 
 list(APPEND CMAKE_MODULE_PATH ${COMMON}/riscv/)
 include(riscv)
 
 set(STACK_SIZE    0x1000 )
 set(TARGET        dhrystone )
-set(LINKER_SCRIPT ${IBEX}/baremetal/linker.ld)
+set(LINKER_SCRIPT ${CPU}/baremetal/linker.ld)
 cmake_path(ABSOLUTE_PATH LINKER_SCRIPT OUTPUT_VARIABLE LINKER_SCRIPT NORMALIZE)
 
 
 add_executable(${TARGET}.elf
-    ${IBEX}/baremetal/start.S
-    ${IBEX}/baremetal/entry.c
-    ${IBEX}/baremetal/vector_table.c
-    ${IBEX}/syscalls.c
+    ${CPU}/baremetal/start.S
+    ${CPU}/baremetal/entry.c
+    ${CPU}/baremetal/vector_table.c
+    ${CPU}/syscalls.c
     ${COMMON}/memset.c
     ${COMMON}/memcpy.c
 
@@ -31,9 +31,9 @@ add_executable(${TARGET}.elf
 target_include_directories(${TARGET}.elf
     PRIVATE
         ${COMMON}/riscv/
-        ${IBEX}/
+        ${CPU}/
         ${COMMON}/dhrystone/
-        ${IBEX}/baremetal
+        ${CPU}/baremetal
         #${REPO_DIR}/cores/nanoprintf/
 )
 

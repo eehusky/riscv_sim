@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 set(REPO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
 set(COREMARK ${REPO_DIR}/cores/coremark)
 set(COMMON   ${REPO_DIR}/sw/common/)
-set(BIRISCV  ${REPO_DIR}/sw/biriscv/)
+set(CPU  ${REPO_DIR}/sw/biriscv/)
 
 list(APPEND CMAKE_MODULE_PATH ${COMMON}/riscv/)
 include(riscv)
@@ -14,7 +14,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 set(STACK_SIZE 0x1000)
 set(TARGET coremark)
-set(LINKER_SCRIPT ${BIRISCV}/baremetal/linker.ld)
+set(LINKER_SCRIPT ${CPU}/baremetal/linker.ld)
 
 add_executable(${TARGET}.elf
     ${COREMARK}/core_main.c
@@ -25,10 +25,10 @@ add_executable(${TARGET}.elf
     ${COMMON}/coremark/barebones/core_portme.c
     ${COMMON}/coremark/barebones/ee_printf.c
     ${COMMON}/coremark/barebones/cvt.c
-    ${BIRISCV}/baremetal/start.S
-    ${BIRISCV}/baremetal/entry.c
-    ${BIRISCV}/baremetal/vector_table.c
-    # ${BIRISCV}/syscalls.c
+    ${CPU}/baremetal/start.S
+    ${CPU}/baremetal/entry.c
+    ${CPU}/baremetal/vector_table.c
+    # ${CPU}/syscalls.c
     ${COMMON}/memset.c
     ${COMMON}/memcpy.c
 )
@@ -38,8 +38,8 @@ target_include_directories(${TARGET}.elf
         ${COREMARK}/
         ${COMMON}/coremark/barebones
         ${COMMON}/riscv/
-        ${BIRISCV}/
-        ${BIRISCV}/baremetal
+        ${CPU}/
+        ${CPU}/baremetal
         ${REPO_DIR}/cores/nanoprintf/
 )
 
