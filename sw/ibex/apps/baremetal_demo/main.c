@@ -79,14 +79,10 @@ void do_addr(void)
 int main(void)
 {
     sim_putstring("ibex main demo\n");
-
     riscv_dump_info();
-
+    riscv_hpm_init_counters();
     do_mtime();
     do_addr();
-
-
-
     riscv_hpm_counters_dump();
     sim_putstring("  ibex counter demo\n");
     return 0;

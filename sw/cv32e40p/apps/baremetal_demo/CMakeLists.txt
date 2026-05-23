@@ -20,11 +20,14 @@ set(LINKER_SCRIPT ${CPU}/baremetal/linker.ld)
 
 add_executable(${TARGET}.elf
     main.c
-    ${COMMON}/prj_nanoprintf.c
+    ${COMMON}/nstdio.c
     ${CPU}/baremetal/start.S
     ${CPU}/baremetal/entry.c
     ${CPU}/baremetal/vector_table.c
     ${CPU}/syscalls.c
+    ${COMMON}/riscv/riscv_hpm.c
+    ${COMMON}/riscv/riscv_info.c
+    ${CPU}/cv32e40p_hpm.c
 )
 target_include_directories(${TARGET}.elf
     PRIVATE

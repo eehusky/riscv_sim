@@ -10,7 +10,7 @@ module tb_top #(
     parameter int        FPU_ADDMUL_LAT    = 0,
     parameter int        FPU_OTHERS_LAT    = 0,
     parameter bit        ZFINX             = 0,
-    parameter int        NUM_MHPMCOUNTERS  = 29
+    parameter int        NUM_MHPMCOUNTERS  = 16
 ) (
     input logic clk_i,
     input logic rst_i

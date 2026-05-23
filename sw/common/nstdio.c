@@ -17,7 +17,7 @@ int nsnprintf_(char *buffer, size_t bufsz, char const *fmt, ...) {
 }
 
 int nprintf_(char const *fmt, ...) {
-    char buffer[64];
+    char buffer[128];
     va_list val;
     va_start(val, fmt);
     // npf_vsnprintf works here because float args in the va_list are already

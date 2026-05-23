@@ -1,176 +1,97 @@
 #include <assert.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <strings.h>
 
 #include "riscv_csr.h"
-#include "riscv_interrupts.h"
+#include "riscv_hpm.h"
+#include "riscv_info.h"
 
-#include "prj_nanoprintf.h"
+#include "nstdio.h"
 #include "riscv_io.h"
 #include "sim_extensions.h"
 #include "vector_table.h"
 
-#define ITCM_ADDR     0x80000000
-#define ITCM_SIZE     0x00020000
-#define MTIME_ADDR    0x00002000
-#define MTIME_SIZE    0x00001000
-#define SIMCTRL_ADDR  0x00003000
-#define SIMCTRL_SIZE  0x00001000
-#define DTCM_ADDR     0x80020000
-#define DTCM_SIZE     0x00020000
-#define CACHED_ADDR   0x90000000
-#define CACHED_SIZE   0x00020000
+#define ITCM_ADDR 0x80000000
+#define ITCM_SIZE 0x00020000
+#define MTIME_ADDR 0x00002000
+#define MTIME_SIZE 0x00001000
+#define SIMCTRL_ADDR 0x00003000
+#define SIMCTRL_SIZE 0x00001000
+#define DTCM_ADDR 0x80020000
+#define DTCM_SIZE 0x00020000
+#define CACHED_ADDR 0x90000000
+#define CACHED_SIZE 0x00020000
 #define UNCACHED_ADDR 0xA0000000
 #define UNCACHED_SIZE 0x00020000
-#define AXIL_ADDR     0xB0000000
-#define AXIL_SIZE     0x00020000
+#define AXIL_ADDR 0xB0000000
+#define AXIL_SIZE 0x00020000
 
-
-char *counter_names[16]={
-    [0]  ="CYCLES"      ,
-    [1]  ="INSTR"       ,
-    [2]  ="LD_STALL"    ,
-    [3]  ="JMP_STALL"   ,
-    [4]  ="IMISS"       ,
-    [5]  ="LD"          ,
-    [6]  ="ST"          ,
-    [7]  ="JUMP"        ,
-    [8]  ="BRANCH"      ,
-    [9]  ="BRANCH_TAKEN",
-    [10] ="COMP_INSTR"  ,
-    [11] ="PIPE_STALL"  ,
-    [12] ="APU_TYPE"    ,
-    [13] ="APU_CONT"    ,
-    [14] ="APU_DEP"     ,
-    [15] ="APU_WB"      ,
-    //[16] ="RESERVED"    ,
-    //[17] ="RESERVED"    ,
-    //[18] ="RESERVED"    ,
-    //[19] ="RESERVED"    ,
-    //[20] ="RESERVED"    ,
-    //[21] ="RESERVED"    ,
-    //[22] ="RESERVED"    ,
-    //[23] ="RESERVED"    ,
-    //[24] ="RESERVED"    ,
-    //[25] ="RESERVED"    ,
-    //[26] ="RESERVED"    ,
-    //[27] ="RESERVED"    ,
-    //[28] ="RESERVED"    ,
-    //[29] ="RESERVED"    ,
-    //[30] ="RESERVED"    ,
-    //[31] ="RESERVED"    ,
-};
-
-void dump_counters(void)
+float e(int interations)
 {
-    csr_write_mcountinhibit(0xFFFFFFFF);
-    uint32_t data[16];
+    // https://stackoverflow.com/a/37715090
+    float number = interations;
+    float factorial = 1;
+    float constant = 0;
+    float counter = interations;
+    float variable = 0;
+    float euler = 0;
 
-    //asm volatile("csrr %0, mhpmcounter1" : "=r"(data[1]));
-    //asm volatile("csrr %0, mhpmcounter2" : "=r"(data[2]));
-    data[0] = csr_read_mcycle();
-    data[1] = csr_read_minstret();
-    asm volatile("csrr %0, mhpmcounter3" : "=r"(data[2]));
-    asm volatile("csrr %0, mhpmcounter4" : "=r"(data[3]));
-    asm volatile("csrr %0, mhpmcounter5" : "=r"(data[4]));
-    asm volatile("csrr %0, mhpmcounter6" : "=r"(data[5]));
-    asm volatile("csrr %0, mhpmcounter7" : "=r"(data[6]));
-    asm volatile("csrr %0, mhpmcounter8" : "=r"(data[7]));
-    asm volatile("csrr %0, mhpmcounter9" : "=r"(data[8]));
-    asm volatile("csrr %0, mhpmcounter10" : "=r"(data[9]));
-    asm volatile("csrr %0, mhpmcounter11" : "=r"(data[10]));
-    asm volatile("csrr %0, mhpmcounter12" : "=r"(data[11]));
-    asm volatile("csrr %0, mhpmcounter13" : "=r"(data[12]));
-    asm volatile("csrr %0, mhpmcounter14" : "=r"(data[13]));
-    asm volatile("csrr %0, mhpmcounter15" : "=r"(data[14]));
-    asm volatile("csrr %0, mhpmcounter16" : "=r"(data[15]));
-    //asm volatile("csrr %0, mhpmcounter17" : "=r"(data[16]));
-    //asm volatile("csrr %0, mhpmcounter18" : "=r"(data[17]));
-    //asm volatile("csrr %0, mhpmcounter19" : "=r"(data[18]));
-    //asm volatile("csrr %0, mhpmcounter20" : "=r"(data[19]));
-    //asm volatile("csrr %0, mhpmcounter21" : "=r"(data[20]));
-    //asm volatile("csrr %0, mhpmcounter22" : "=r"(data[21]));
-    //asm volatile("csrr %0, mhpmcounter23" : "=r"(data[22]));
-    //asm volatile("csrr %0, mhpmcounter24" : "=r"(data[23]));
-    //asm volatile("csrr %0, mhpmcounter25" : "=r"(data[24]));
-    //asm volatile("csrr %0, mhpmcounter26" : "=r"(data[25]));
-    //asm volatile("csrr %0, mhpmcounter27" : "=r"(data[26]));
-    //asm volatile("csrr %0, mhpmcounter28" : "=r"(data[27]));
-    //asm volatile("csrr %0, mhpmcounter29" : "=r"(data[28]));
-    //asm volatile("csrr %0, mhpmcounter30" : "=r"(data[29]));
-    //asm volatile("csrr %0, mhpmcounter31" : "=r"(data[30]));
+    while (counter > 1) {
+        variable = number;
 
-    for (int i = 0; i < 16; ++i)
-    {
-        nprintf("%13s:  %u\n", counter_names[i], (uint32_t)data[i]);
+        factorial = 1;
+        while (number > 1) {
+            factorial = factorial * number;
+            number--;
+        } // number is now 1
+
+        constant = (1 / factorial) + constant;
+        counter--;
+        variable = variable - 1;
+        number = variable;
     }
 
-    csr_write_mcountinhibit(0);
+    euler = constant + 1 + (1 / 1.f); // the 1 and 1/1! in the original formula...
+    // nprintf("e = : %f\n", euler);
+    return euler;
 }
 
-void enable_counters(void)
+float pi(int iterations)
 {
-    csr_write_mcountinhibit(0xFFFFFFFF);
+    float pi = 0.0;
+    int sign = 1;
 
-    //asm volatile ("csrw    mhpmevent1,  %0" : : "r" (1<<1) : );
-    //asm volatile ("csrw    mhpmevent2,  %0" : : "r" (1<<2) : );
-    asm volatile ("csrw    mhpmevent3,  %0" : : "r" (1<<3) : );
-    asm volatile ("csrw    mhpmevent4,  %0" : : "r" (1<<4) : );
-    asm volatile ("csrw    mhpmevent5,  %0" : : "r" (1<<5) : );
-    asm volatile ("csrw    mhpmevent6,  %0" : : "r" (1<<6) : );
-    asm volatile ("csrw    mhpmevent7,  %0" : : "r" (1<<7) : );
-    asm volatile ("csrw    mhpmevent8,  %0" : : "r" (1<<8) : );
-    asm volatile ("csrw    mhpmevent9,  %0" : : "r" (1<<9) : );
-    asm volatile ("csrw    mhpmevent10, %0" : : "r" (1<<10) : );
-    asm volatile ("csrw    mhpmevent11, %0" : : "r" (1<<11) : );
-    asm volatile ("csrw    mhpmevent12, %0" : : "r" (1<<12) : );
-    asm volatile ("csrw    mhpmevent13, %0" : : "r" (1<<13) : );
-    asm volatile ("csrw    mhpmevent14, %0" : : "r" (1<<14) : );
-    asm volatile ("csrw    mhpmevent15, %0" : : "r" (1<<15) : );
-    asm volatile ("csrw    mhpmevent16, %0" : : "r" (1<<16) : );
-    //asm volatile ("csrw    mhpmevent17, %0" : : "r" (1<<17) : );
-    //asm volatile ("csrw    mhpmevent18, %0" : : "r" (1<<18) : );
-    //asm volatile ("csrw    mhpmevent19, %0" : : "r" (1<<19) : );
-    //asm volatile ("csrw    mhpmevent20, %0" : : "r" (1<<20) : );
-    //asm volatile ("csrw    mhpmevent21, %0" : : "r" (1<<21) : );
-    //asm volatile ("csrw    mhpmevent22, %0" : : "r" (1<<22) : );
-    //asm volatile ("csrw    mhpmevent23, %0" : : "r" (1<<23) : );
-    //asm volatile ("csrw    mhpmevent24, %0" : : "r" (1<<24) : );
-    //asm volatile ("csrw    mhpmevent25, %0" : : "r" (1<<25) : );
-    //asm volatile ("csrw    mhpmevent26, %0" : : "r" (1<<26) : );
-    //asm volatile ("csrw    mhpmevent27, %0" : : "r" (1<<27) : );
-    //asm volatile ("csrw    mhpmevent28, %0" : : "r" (1<<28) : );
-    //asm volatile ("csrw    mhpmevent29, %0" : : "r" (1<<29) : );
-    //asm volatile ("csrw    mhpmevent30, %0" : : "r" (1<<30) : );
-    //asm volatile ("csrw    mhpmevent31, %0" : : "r" (1<<31) : );
+    for (int i = 1; i <= iterations * 2; i += 2) {
+        pi += sign * (4.0f / i);
+        sign = -sign;
+    }
 
-    csr_write_mcountinhibit(0);
+    return pi;
 }
-
 
 void do_floats(void)
 {
     sim_putstring("  cv32e40p floats demo\n");
-    float x = 3.14159;
-    x*= (float)((uint32_t)mtime_get());
-    x*= (float)((uint32_t)mtime_get());
-    nprintf("%s %.6f\n", "    pi is", 3.14159f);
-    nprintf("%s %.6f\n", "    e is", 2.718f);
-    nprintf("%s %.6f\n", "    random is", x);
+
+    nprintf("    computing pi with 5000 iterations\n");
+    float computed_pi = pi(5000);
+    nprintf("      pi is:   %.12f (%.12f) error=%.12f\n", computed_pi, M_PI, ((float)M_PI) - computed_pi);
+
+    nprintf("    computing e with 8 iterations\n");
+    float computed_e = e(8);
+    nprintf("      e is:    %.12f (%.12f) error=%.12f\n", computed_e, M_E, ((float)M_E) - computed_e);
 }
 
 void do_mtime(void)
 {
-    sim_putstring("  cv32e40p mtime demo\n");
+    sim_putstring("  ibex mtime demo\n");
     uint64_t mtime = mtime_get();
     mtimecmp_set(mtime + 2048);
-    asm volatile("wfi");
-    asm volatile("wfi");
+    for (int i = 0; i < 10; ++i) {
+        asm volatile("wfi");
+    }
     csr_clr_bits_mie(MIE_MTI_BIT_MASK);
 }
 
@@ -180,52 +101,52 @@ void do_addr(void)
     uint32_t blah = 0;
 
     sim_putstring("    cv32e40p cached demo\n");
-    write32(CACHED_ADDR,0xDEADBEEF);
+    write32(CACHED_ADDR, 0xDEADBEEF);
     read32(CACHED_ADDR);
-    write32(CACHED_ADDR+CACHED_SIZE-4,0xDEADBEEF);
-    read32(CACHED_ADDR+CACHED_SIZE-4);
-    for (int i = 0; i < 512; ++i)
-    {
-        write32(CACHED_ADDR+(i*4),blah+1);
-        blah = read32(CACHED_ADDR+(i*4));
+    write32(CACHED_ADDR + CACHED_SIZE - 4, 0xDEADBEEF);
+    read32(CACHED_ADDR + CACHED_SIZE - 4);
+    for (int i = 0; i < 512; ++i) {
+        write32(CACHED_ADDR + (i * 4), blah + 1);
+        blah = read32(CACHED_ADDR + (i * 4));
     }
 
     sim_putstring("    cv32e40p uncached demo\n");
-    write32(UNCACHED_ADDR,0xDEADBEEF);
+    write32(UNCACHED_ADDR, 0xDEADBEEF);
     read32(UNCACHED_ADDR);
-    write32(UNCACHED_ADDR+UNCACHED_SIZE-4,0xDEADBEEF);
-    read32(UNCACHED_ADDR+UNCACHED_SIZE-4);
-    for (int i = 0; i < 512; ++i)
-    {
-        write32(UNCACHED_ADDR+(i*4),blah+1);
-        blah = read32(UNCACHED_ADDR+(i*4));
+    write32(UNCACHED_ADDR + UNCACHED_SIZE - 4, 0xDEADBEEF);
+    read32(UNCACHED_ADDR + UNCACHED_SIZE - 4);
+    for (int i = 0; i < 512; ++i) {
+        write32(UNCACHED_ADDR + (i * 4), blah + 1);
+        blah = read32(UNCACHED_ADDR + (i * 4));
     }
 
     sim_putstring("    cv32e40p axil demo\n");
-    write32(AXIL_ADDR,0xDEADBEEF);
+    write32(AXIL_ADDR, 0xDEADBEEF);
     read32(AXIL_ADDR);
-    write32(AXIL_ADDR+AXIL_SIZE-4,0xDEADBEEF);
-    read32(AXIL_ADDR+AXIL_SIZE-4);
-    for (int i = 0; i < 512; ++i)
-    {
-        write32(AXIL_ADDR+(i*4),blah+1);
-        blah = read32(AXIL_ADDR+(i*4));
+    write32(AXIL_ADDR + AXIL_SIZE - 4, 0xDEADBEEF);
+    read32(AXIL_ADDR + AXIL_SIZE - 4);
+    for (int i = 0; i < 512; ++i) {
+        write32(AXIL_ADDR + (i * 4), blah + 1);
+        blah = read32(AXIL_ADDR + (i * 4));
     }
-
 }
 
 int main(void)
 {
     sim_putstring("cv32e40p main demo\n");
+    riscv_dump_info();
 
-    enable_counters();
+    riscv_hpm_init_counters();
+
 
     do_floats();
     do_mtime();
     do_addr();
 
     sim_putstring("  cv32e40p counter demo\n");
-    dump_counters();
+
+    riscv_hpm_counters_dump();
+
     return 0;
 }
 

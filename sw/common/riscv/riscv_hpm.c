@@ -1,11 +1,27 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "riscv_hpm.h"
 #include "riscv_csr.h"
+#include "riscv_hpm.h"
 
 #include "nstdio.h"
 
+
+/**
+ * While its nice to dream about setting something up to autoconfigure the
+ * available counters and automagically select the events and what not...
+ * most cores have very inconsistent implementations which make doing this
+ * almost impossible...so instead, each core gets its own set of functions
+ * to initially configure the event selections (if supported) and return
+ * an array of counter values that will match the array of strings naming
+ * each value.  best i could come up wtih.
+ *
+ * All the disabled stuff at the bottom is my hopes, dreams and slow
+ * realization that it aint going to happen.  If i could find a core that
+ * actually implements this "correctly" or at least consistently...i might
+ * try again but i can only take so much disappointment.
+ *
+ */
 
 char *__attribute__((weak)) riscv_hpm_counter_names[32] = {
     [0] = "mcycle",         [1] = "time",           [2] = "minstret",       [3] = "mhpmcounter3",
@@ -18,8 +34,8 @@ char *__attribute__((weak)) riscv_hpm_counter_names[32] = {
     [28] = "mhpmcounter28", [29] = "mhpmcounter29", [30] = "mhpmcounter30", [31] = "mhpmcounter31",
 };
 
-uint32_t  __attribute__((weak)) riscv_hpm_get_n_counters(void) { return 32; }
-char * __attribute__((weak)) riscv_hpm_get_counter_name(uint32_t index)
+uint32_t __attribute__((weak)) riscv_hpm_get_n_counters(void) { return 32; }
+char *__attribute__((weak)) riscv_hpm_get_counter_name(uint32_t index)
 {
     if (index < 32) {
         return riscv_hpm_counter_names[index];
@@ -28,11 +44,10 @@ char * __attribute__((weak)) riscv_hpm_get_counter_name(uint32_t index)
     return NULL;
 }
 
-void riscv_hpm_init_counters(void)
+void __attribute__((weak)) riscv_hpm_init_counters(void)
 {
     riscv_hpm_pause();
     riscv_hpm_clear_counters();
-    riscv_hpm_select_counters();
     riscv_hpm_resume();
 }
 
@@ -40,10 +55,10 @@ void riscv_hpm_pause(void) { csr_write_mcountinhibit(0xFFFFFFFF); }
 
 void riscv_hpm_resume(void) { csr_write_mcountinhibit(0); }
 
+
 void riscv_hpm_clear_counters(void)
 {
     asm volatile("csrw mcycle,        zero");
-    // asm volatile("csrw time,          zero");
     asm volatile("csrw minstret,      zero");
     asm volatile("csrw mhpmcounter3,  zero");
     asm volatile("csrw mhpmcounter4,  zero");
@@ -74,6 +89,111 @@ void riscv_hpm_clear_counters(void)
     asm volatile("csrw mhpmcounter29, zero");
     asm volatile("csrw mhpmcounter30, zero");
     asm volatile("csrw mhpmcounter31, zero");
+}
+
+void riscv_hpm_clear_events(void)
+{
+    asm volatile("csrw    mhpmevent3,  %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent4,  %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent5,  %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent6,  %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent7,  %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent8,  %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent9,  %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent10, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent11, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent12, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent13, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent14, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent15, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent16, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent17, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent18, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent19, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent20, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent21, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent22, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent23, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent24, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent25, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent26, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent27, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent28, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent29, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent30, %0" : : "r"(0) :);
+    asm volatile("csrw    mhpmevent31, %0" : : "r"(0) :);
+}
+
+void __attribute__((weak)) riscv_hpm_fetch_counters(uint32_t data[32])
+{
+    asm volatile("csrr %0, mcycle" : "=r"(data[0]));
+    data[1] = 0;
+    asm volatile("csrr %0, minstret" : "=r"(data[2]));
+    asm volatile("csrr %0, mhpmcounter3" : "=r"(data[3]));
+    asm volatile("csrr %0, mhpmcounter4" : "=r"(data[4]));
+    asm volatile("csrr %0, mhpmcounter5" : "=r"(data[5]));
+    asm volatile("csrr %0, mhpmcounter6" : "=r"(data[6]));
+    asm volatile("csrr %0, mhpmcounter7" : "=r"(data[7]));
+    asm volatile("csrr %0, mhpmcounter8" : "=r"(data[8]));
+    asm volatile("csrr %0, mhpmcounter9" : "=r"(data[9]));
+    asm volatile("csrr %0, mhpmcounter10" : "=r"(data[10]));
+    asm volatile("csrr %0, mhpmcounter11" : "=r"(data[11]));
+    asm volatile("csrr %0, mhpmcounter12" : "=r"(data[12]));
+    asm volatile("csrr %0, mhpmcounter13" : "=r"(data[13]));
+    asm volatile("csrr %0, mhpmcounter14" : "=r"(data[14]));
+    asm volatile("csrr %0, mhpmcounter15" : "=r"(data[15]));
+    asm volatile("csrr %0, mhpmcounter16" : "=r"(data[16]));
+    asm volatile("csrr %0, mhpmcounter17" : "=r"(data[17]));
+    asm volatile("csrr %0, mhpmcounter18" : "=r"(data[18]));
+    asm volatile("csrr %0, mhpmcounter19" : "=r"(data[19]));
+    asm volatile("csrr %0, mhpmcounter20" : "=r"(data[20]));
+    asm volatile("csrr %0, mhpmcounter21" : "=r"(data[21]));
+    asm volatile("csrr %0, mhpmcounter22" : "=r"(data[22]));
+    asm volatile("csrr %0, mhpmcounter23" : "=r"(data[23]));
+    asm volatile("csrr %0, mhpmcounter24" : "=r"(data[24]));
+    asm volatile("csrr %0, mhpmcounter25" : "=r"(data[25]));
+    asm volatile("csrr %0, mhpmcounter26" : "=r"(data[26]));
+    asm volatile("csrr %0, mhpmcounter27" : "=r"(data[27]));
+    asm volatile("csrr %0, mhpmcounter28" : "=r"(data[28]));
+    asm volatile("csrr %0, mhpmcounter29" : "=r"(data[29]));
+    asm volatile("csrr %0, mhpmcounter30" : "=r"(data[30]));
+    asm volatile("csrr %0, mhpmcounter31" : "=r"(data[31]));
+}
+
+void riscv_hpm_counters_dump(void)
+{
+    uint32_t data[32];
+
+    riscv_hpm_pause();
+
+    riscv_hpm_fetch_counters(data);
+
+    for (int i = 0; i < riscv_hpm_get_n_counters(); ++i) {
+        nprintf("%16s:  %u\n", riscv_hpm_get_counter_name(i), (uint32_t)data[i]);
+    }
+
+    riscv_hpm_resume();
+}
+
+
+
+#if 0
+
+void riscv_hpm_events_dump(void)
+{
+    uint32_t data[32];
+    int32_t ids[32];
+
+    riscv_hpm_pause();
+
+    riscv_hpm_fetch_events(data);
+    riscv_get_event_ids(ids);
+
+    for (int i = 0; i < 32; ++i) {
+        nprintf("mhpmevent%d:  %08X %d\n", i, data[i], ids[i]);
+    }
+
+    riscv_hpm_resume();
 }
 
 void riscv_hpm_select_counters(void)
@@ -114,9 +234,9 @@ void riscv_hpm_select_counters(void)
 
 void riscv_hpm_fetch_events(uint32_t data[32])
 {
-    // asm volatile("csrr %0, mhpmevent0" : "=r"(data[0]));
-    // asm volatile("csrr %0, mhpmevent1" : "=r"(data[1]));
-    // asm volatile("csrr %0, mhpmevent2" : "=r"(data[2]));
+    data[0] = 0;
+    data[1] = 0;
+    data[2] = 0;
     asm volatile("csrr %0, mhpmevent3" : "=r"(data[3]));
     asm volatile("csrr %0, mhpmevent4" : "=r"(data[4]));
     asm volatile("csrr %0, mhpmevent5" : "=r"(data[5]));
@@ -148,55 +268,124 @@ void riscv_hpm_fetch_events(uint32_t data[32])
     asm volatile("csrr %0, mhpmevent31" : "=r"(data[31]));
 }
 
-void riscv_hpm_fetch_counters(uint32_t data[32])
+void riscv_hpm_check_implemented(void)
 {
-    asm volatile("csrr %0, mcycle" : "=r"(data[0]));
-    // asm volatile("csrr %0, "         : "=r"(data[1]));
-    asm volatile("csrr %0, minstret" : "=r"(data[2]));
-    asm volatile("csrr %0, mhpmcounter3" : "=r"(data[3]));
-    asm volatile("csrr %0, mhpmcounter4" : "=r"(data[4]));
-    asm volatile("csrr %0, mhpmcounter5" : "=r"(data[5]));
-    asm volatile("csrr %0, mhpmcounter6" : "=r"(data[6]));
-    asm volatile("csrr %0, mhpmcounter7" : "=r"(data[7]));
-    asm volatile("csrr %0, mhpmcounter8" : "=r"(data[8]));
-    asm volatile("csrr %0, mhpmcounter9" : "=r"(data[9]));
-    asm volatile("csrr %0, mhpmcounter10" : "=r"(data[10]));
-    asm volatile("csrr %0, mhpmcounter11" : "=r"(data[11]));
-    asm volatile("csrr %0, mhpmcounter12" : "=r"(data[12]));
-    asm volatile("csrr %0, mhpmcounter13" : "=r"(data[13]));
-    asm volatile("csrr %0, mhpmcounter14" : "=r"(data[14]));
-    asm volatile("csrr %0, mhpmcounter15" : "=r"(data[15]));
-    asm volatile("csrr %0, mhpmcounter16" : "=r"(data[16]));
-    asm volatile("csrr %0, mhpmcounter17" : "=r"(data[17]));
-    asm volatile("csrr %0, mhpmcounter18" : "=r"(data[18]));
-    asm volatile("csrr %0, mhpmcounter19" : "=r"(data[19]));
-    asm volatile("csrr %0, mhpmcounter20" : "=r"(data[20]));
-    asm volatile("csrr %0, mhpmcounter21" : "=r"(data[21]));
-    asm volatile("csrr %0, mhpmcounter22" : "=r"(data[22]));
-    asm volatile("csrr %0, mhpmcounter23" : "=r"(data[23]));
-    asm volatile("csrr %0, mhpmcounter24" : "=r"(data[24]));
-    asm volatile("csrr %0, mhpmcounter25" : "=r"(data[25]));
-    asm volatile("csrr %0, mhpmcounter26" : "=r"(data[26]));
-    asm volatile("csrr %0, mhpmcounter27" : "=r"(data[27]));
-    asm volatile("csrr %0, mhpmcounter28" : "=r"(data[28]));
-    asm volatile("csrr %0, mhpmcounter29" : "=r"(data[29]));
-    asm volatile("csrr %0, mhpmcounter30" : "=r"(data[30]));
-    asm volatile("csrr %0, mhpmcounter31" : "=r"(data[31]));
-}
-
-
-
-void riscv_hpm_counters_dump(void)
-{
-    uint32_t data[32];
-
     riscv_hpm_pause();
 
-    riscv_hpm_fetch_counters(data);
+    asm volatile("csrw    mhpmcounter3,  %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter4,  %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter5,  %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter6,  %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter7,  %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter8,  %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter9,  %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter10, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter11, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter12, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter13, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter14, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter15, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter16, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter17, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter18, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter19, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter20, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter21, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter22, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter23, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter24, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter25, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter26, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter27, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter28, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter29, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter30, %0" : : "r"(0xDEADBEEF) :);
+    asm volatile("csrw    mhpmcounter31, %0" : : "r"(0xDEADBEEF) :);
 
-    for (int i = 0; i < riscv_hpm_get_n_counters(); ++i) {
-        nprintf("%16s:  %u\n", riscv_hpm_get_counter_name(i), (uint32_t)data[i]);
+    uint32_t data[32];
+    uint32_t counter_mask = 0;
+    riscv_hpm_fetch_counters(data);
+    for (int i = 0; i < 32; ++i) {
+        if (data[i] == 0xDEADBEEF) {
+            counter_mask |= 1 << i;
+        }
     }
+
+    nprintf("hpm_counter_mask: %08X\n", counter_mask);
+    riscv_hpm_clear_counters();
+
+    riscv_hpm_clear_events();
+    asm volatile("csrw    mhpmevent3,  %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent4,  %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent5,  %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent6,  %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent7,  %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent8,  %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent9,  %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent10, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent11, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent12, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent13, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent14, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent15, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent16, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent17, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent18, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent19, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent20, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent21, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent22, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent23, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent24, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent25, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent26, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent27, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent28, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent29, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent30, %0" : : "r"(0xFFFFFFFF) :);
+    asm volatile("csrw    mhpmevent31, %0" : : "r"(0xFFFFFFFF) :);
+    riscv_hpm_fetch_events(data);
+
+    uint32_t event_mask = 0;
+    for (int i = 0; i < 32; ++i) {
+        nprintf("mhpmevent%d %08X\n", i, data[i]);
+        if (data[i] != 0) {
+            event_mask |= 1 << i;
+        }
+    }
+    riscv_hpm_clear_events();
+
+    nprintf("hpm_event_mask: %08X\n", event_mask);
+
+    uint32_t inhibit_mask = 0;
+    csr_write_mcountinhibit(0xFFFFFFFF);
+    inhibit_mask = csr_read_mcountinhibit();
+    nprintf("hpm_inhibit_mask: %08X\n", inhibit_mask);
+
+    uint32_t enable_mask = 0;
+    csr_write_mcounteren(0xFFFFFFFF);
+    enable_mask = csr_read_mcounteren();
+    nprintf("hpm_enable_mask: %08X\n", enable_mask);
 
     riscv_hpm_resume();
 }
+
+int ctz(int n)
+{
+    int count = 0;
+    while (!(n & 1)) {
+        n >>= 1;
+        count++;
+    }
+    return count;
+}
+
+void riscv_get_event_ids(int32_t data[32])
+{
+    uint32_t events[32];
+    riscv_hpm_fetch_events(events);
+    for (int i = 0; i < 32; ++i) {
+        data[i] = events[i] ? ctz(events[i]) : -1;
+    }
+}
+#endif
