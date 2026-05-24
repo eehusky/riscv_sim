@@ -1,7 +1,4 @@
 cmake_minimum_required(VERSION 3.10)
-project(dhrystone)
-enable_language(ASM)
-set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 set(REPO_DIR    ${CMAKE_CURRENT_SOURCE_DIR}/../../../../)
 set(CPU         ${CMAKE_CURRENT_SOURCE_DIR}/../../)
@@ -10,10 +7,15 @@ set(COMMON      ${REPO_DIR}/sw/common/)
 list(APPEND CMAKE_MODULE_PATH ${COMMON}/riscv/)
 include(riscv)
 
+project(dhrystone)
+enable_language(ASM)
+set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
+
+
 set(STACK_SIZE    0x1000 )
 set(TARGET        dhrystone )
 set(LINKER_SCRIPT ${CPU}/baremetal/linker.ld)
-cmake_path(ABSOLUTE_PATH LINKER_SCRIPT OUTPUT_VARIABLE LINKER_SCRIPT NORMALIZE)
+
 
 
 add_executable(${TARGET}.elf
@@ -36,10 +38,17 @@ target_include_directories(${TARGET}.elf
         ${CPU}/baremetal
         #${REPO_DIR}/cores/nanoprintf/
 )
+target_link_libraries(${TARGET}.elf
+    PRIVATE
+        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libc_nano.a
+        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libm_nano.a
+        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libg_nano.a
+        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libgloss_nano.a
+)
 
 set(PROJECT_C_FLAGS
     -O3
-    -flto
+    #-flto
     -nostartfiles
     -fno-exceptions
     -ffunction-sections
@@ -70,18 +79,11 @@ set(PROJECT_LINKER_FLAGS
     -Wl,-Arv32im
     -Wl,-belf32-littleriscv
     #-flto=auto
-    -fwhole-program
+    #-fwhole-program
 )
 list(APPEND PROJECT_C_FLAGS -DCOMPILER_FLAGS='\"${PROJECT_C_FLAGS}\"')
 list(APPEND PROJECT_C_FLAGS -DLINKER_FLAGS='\"${PROJECT_LINKER_FLAGS}\"')
 
-target_link_libraries(${TARGET}.elf
-    PRIVATE
-        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libc_nano.a
-        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libm_nano.a
-        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libg_nano.a
-        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libgloss_nano.a
-)
 
 ## ----------------------------------------------------------------------------
 ## ----------------------------------------------------------------------------

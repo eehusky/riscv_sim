@@ -56,6 +56,7 @@ target_link_libraries(${TARGET}.elf
 
 set(PROJECT_C_FLAGS
     -O3
+    -flto
     -nostartfiles
     -fno-exceptions
     -ffunction-sections
@@ -75,7 +76,6 @@ set(PROJECT_C_FLAGS
     -DMAIN_HAS_NOARGC=1
     -DVALIDATION_RUN=0
     -DPERFORMANCE_RUN=1
-    -flto
 )
 set(PROJECT_LINKER_FLAGS
     --entry _start
@@ -86,10 +86,11 @@ set(PROJECT_LINKER_FLAGS
     -Wl,--defsym=__stack_size=${STACK_SIZE}
     -Wl,-Arv32im
     -Wl,-belf32-littleriscv
-    -flto=auto
-    -fwhole-program
+    #-flto=auto
+    #-fwhole-program
 )
-
+list(APPEND PROJECT_C_FLAGS -DCOMPILER_FLAGS='\"${PROJECT_C_FLAGS}\"')
+list(APPEND PROJECT_C_FLAGS -DLINKER_FLAGS='\"${PROJECT_LINKER_FLAGS}\"')
 
 ## ----------------------------------------------------------------------------
 ## ----------------------------------------------------------------------------

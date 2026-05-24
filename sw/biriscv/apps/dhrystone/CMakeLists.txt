@@ -48,6 +48,7 @@ target_link_libraries(${TARGET}.elf
 
 set(PROJECT_C_FLAGS
     -O3
+    #-flto
     -nostartfiles
     -fno-exceptions
     -ffunction-sections
@@ -66,9 +67,6 @@ set(PROJECT_C_FLAGS
     -Wno-implicit
 
     -DDHRY_ITERS=1000
-    #-DREG=register
-
-    #-flto
 )
 set(PROJECT_LINKER_FLAGS
     --entry _start
