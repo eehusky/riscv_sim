@@ -3,6 +3,7 @@ runall: runcoremark runfreertos rundemo runringbuffer
 rundemo: cv32e40p_demo
 runfreertos: biriscv_freertos cv32e40p_freertos ibex_freertos
 runcoremark: biriscv_coremark cv32e40p_coremark ibex_coremark picorv32_coremark
+rundhrystone: biriscv_dhrystone cv32e40p_dhrystone ibex_dhrystone picorv32_dhrystone
 runringbuffer: cv32e40p_ringbuffer
 rundebug: ibex_debug
 

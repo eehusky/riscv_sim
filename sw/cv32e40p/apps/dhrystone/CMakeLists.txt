@@ -82,7 +82,8 @@ set(PROJECT_LINKER_FLAGS
     #-flto=auto
     #-fwhole-program
 )
-
+list(APPEND PROJECT_C_FLAGS -DCOMPILER_FLAGS='\"${PROJECT_C_FLAGS}\"')
+list(APPEND PROJECT_C_FLAGS -DLINKER_FLAGS='\"${PROJECT_LINKER_FLAGS}\"')
 
 ## ----------------------------------------------------------------------------
 ## ----------------------------------------------------------------------------
