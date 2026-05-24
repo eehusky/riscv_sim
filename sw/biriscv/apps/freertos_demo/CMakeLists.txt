@@ -6,6 +6,7 @@ set(COMMON      ${REPO_DIR}/sw/common/)
 set(FREERTOS        $ENV{HOME}/github/FreeRTOS/FreeRTOS/)
 set(RTOS_SOURCE_DIR ${FREERTOS}/FreeRTOS/Source)
 
+
 list(APPEND CMAKE_MODULE_PATH ${COMMON}/riscv/)
 include(riscv)
 
@@ -45,7 +46,6 @@ target_include_directories(${TARGET}.elf
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${COMMON}/riscv/
         ${CPU}/
-        #${CPU}/baremetal
         ${REPO_DIR}/cores/nanoprintf/
         ${CPU}/freertos
         ${CPU}/freertos/RISC-V_biriscv

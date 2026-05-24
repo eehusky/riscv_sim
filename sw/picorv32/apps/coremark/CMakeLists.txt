@@ -54,20 +54,17 @@ target_link_libraries(${TARGET}.elf
         /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libgloss_nano.a
 )
 
-set(PROJECT_C_FLAGS
+set(PROJECT_OPT_FLAGS
     -O3
     -flto
-    -nostartfiles
-    -fno-exceptions
-    -ffunction-sections
-    -fdata-sections
-    -falign-functions=4
-    -Wall
+)
+set(PROJECT_M_FLAGS
     -march=rv32im
     -mabi=ilp32
-    -MD
     -mcmodel=medlow
     -mstrict-align
+)
+set(PROJECT_DEFINES
     -DITERATIONS=10
     -DCLOCKS_PER_SEC=100000000
     -DHAS_FLOAT=0
@@ -76,9 +73,22 @@ set(PROJECT_C_FLAGS
     -DMAIN_HAS_NOARGC=1
     -DVALIDATION_RUN=0
     -DPERFORMANCE_RUN=1
+    -DHAS_TIME_H=0
+    -DUSE_CLOCK=0
 )
+set(PROJECT_HOUSEKEEPING_FLAGS
+    -nostartfiles
+    -fno-exceptions
+    -ffunction-sections
+    -fdata-sections
+    -falign-functions=4
+    -Wall
+    -MD
+)
+
+set(PROJECT_C_FLAGS ${PROJECT_OPT_FLAGS} ${PROJECT_M_FLAGS} ${PROJECT_DEFINES} ${PROJECT_HOUSEKEEPING_FLAGS})
+
 set(PROJECT_LINKER_FLAGS
-    --entry _start
     -nostdlib
     -T${LINKER_SCRIPT}
     -Wl,-Map=${TARGET}.map

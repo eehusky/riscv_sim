@@ -172,19 +172,29 @@ int main(int argc, char **argv)
         cycles += 1;
     }
 
+    #define ERR_OKAY 0
+    #define ERR_SIG  1
+    #define ERR_CYC  2
+    #define ERR_ABT  -1
+    int rc = ERR_OKAY;
+
     if (sigint_recevied) {
         printf("\033[33m SIGINT Received, Exiting \033[0m \n");
+        rc = ERR_SIG;
     } else if (contextp->gotError()) {
         printf("\033[31m Simulation Error, Exiting \033[0m \n");
+        rc = ERR_ABT;
     } else if (!contextp->gotFinish()) {
         printf("\033[33m Reached Cycle Count Limit, Exiting \033[0m \n");
+        rc = ERR_CYC;
     } else {
         printf("\033[32m Simulation Finished, Exiting \033[0m \n");
+        rc = ERR_OKAY;
     }
 
     top->final();
 
     contextp->statsPrintSummary();
 
-    return 0;
+    return rc;
 }

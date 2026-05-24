@@ -68,9 +68,9 @@ set(PROJECT_C_FLAGS
     -Wno-implicit
 
     -DDHRY_ITERS=10000
+     CACHE STRING "PROJECT_C_FLAGS"
 )
 set(PROJECT_LINKER_FLAGS
-    --entry _start
     -nostdlib
     -T${LINKER_SCRIPT}
     -Wl,-Map=${TARGET}.map
@@ -80,6 +80,7 @@ set(PROJECT_LINKER_FLAGS
     -Wl,-belf32-littleriscv
     #-flto=auto
     #-fwhole-program
+    CACHE STRING "PROJECT_LINKER_FLAGS"
 )
 list(APPEND PROJECT_C_FLAGS -DCOMPILER_FLAGS='\"${PROJECT_C_FLAGS}\"')
 list(APPEND PROJECT_C_FLAGS -DLINKER_FLAGS='\"${PROJECT_LINKER_FLAGS}\"')

@@ -432,3 +432,9 @@ typedef struct record
       } Rec_Type, *Rec_Pointer;
 
 
+#ifndef COMPILER_FLAGS
+#define COMPILER_FLAGS "UNKNOWN" /* "Please put compiler flags here (e.g. -o3)" */
+#endif
+#ifndef LINKER_FLAGS
+#define LINKER_FLAGS "UNKNOWN" /* "Please put compiler flags here (e.g. -o3)" */
+#endif

@@ -69,7 +69,6 @@ set(PROJECT_C_FLAGS
     -DDHRY_ITERS=1000
 )
 set(PROJECT_LINKER_FLAGS
-    --entry _start
     -nostdlib
     -T${LINKER_SCRIPT}
     -Wl,-Map=${TARGET}.map

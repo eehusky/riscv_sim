@@ -66,7 +66,6 @@ set(PROJECT_C_FLAGS
     -mstrict-align
 )
 set(PROJECT_LINKER_FLAGS
-    --entry _start
     -nostdlib
     -T${LINKER_SCRIPT}
     -Wl,-Map=${TARGET}.map

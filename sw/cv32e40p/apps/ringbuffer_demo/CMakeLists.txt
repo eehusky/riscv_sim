@@ -75,7 +75,6 @@ set(PROJECT_C_FLAGS
     -MD
     -mcmodel=medlow
     -mstrict-align
-    #-D__riscv_float_abi_soft
 )
 set(PROJECT_LINKER_FLAGS
     -nostdlib

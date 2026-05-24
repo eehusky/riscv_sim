@@ -48,30 +48,23 @@ target_include_directories(${TARGET}.elf
 )
 target_link_libraries(${TARGET}.elf
     PRIVATE
-        #/opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libc_nano.a
-        #/opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libm_nano.a
-        #/opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libg_nano.a
-        #/opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libgloss_nano.a
         #/opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libc_nano.a
         #/opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libm_nano.a
         #/opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libg_nano.a
         #/opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libgloss_nano.a
 )
 
-set(PROJECT_C_FLAGS
+set(PROJECT_OPT_FLAGS
     -O3
     -flto
-    -nostartfiles
-    -fno-exceptions
-    -ffunction-sections
-    -fdata-sections
-    -falign-functions=4
-    -Wall
+)
+set(PROJECT_M_FLAGS
     -march=rv32imb_zicsr_zifencei_zicntr_zcmp_zcb
     -mabi=ilp32
-    -MD
     -mcmodel=medlow
     -mstrict-align
+)
+set(PROJECT_DEFINES
     -DITERATIONS=10
     -DCLOCKS_PER_SEC=100000000
     -DHAS_FLOAT=0
@@ -81,14 +74,25 @@ set(PROJECT_C_FLAGS
     -DVALIDATION_RUN=0
     -DPERFORMANCE_RUN=1
 )
+set(PROJECT_HOUSEKEEPING_FLAGS
+    -nostartfiles
+    -fno-exceptions
+    -ffunction-sections
+    -fdata-sections
+    -falign-functions=4
+    -Wall
+    -MD
+)
+
+set(PROJECT_C_FLAGS ${PROJECT_OPT_FLAGS} ${PROJECT_M_FLAGS} ${PROJECT_DEFINES} ${PROJECT_HOUSEKEEPING_FLAGS})
+
 set(PROJECT_LINKER_FLAGS
-    --entry _start
     -nostdlib
     -T${LINKER_SCRIPT}
     -Wl,-Map=${TARGET}.map
     -Wl,--gc-sections
     -Wl,--defsym=__stack_size=${STACK_SIZE}
-    -Wl,-Arv32im
+    -Wl,-Arv32imb_zicsr_zifencei_zicntr_zcmp_zcb
     -Wl,-belf32-littleriscv
     #-flto=auto
     #-fwhole-program

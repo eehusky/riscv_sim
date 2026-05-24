@@ -55,15 +55,13 @@ target_link_libraries(${TARGET}.elf
     PRIVATE
         /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libc_nano.a
         /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libm_nano.a
-        #/opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libc_nano.a
-        #/opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libm_nano.a
-        #/opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libg_nano.a
-        #/opt/riscv/riscv64-unknown-elf/lib/rv32imafc/ilp32f/libgloss_nano.a
+        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libg_nano.a
+        /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libgloss_nano.a
 )
 
 set(PROJECT_C_FLAGS
-    -Og
-    -g
+    -O3
+    -flto
     -nostartfiles
     -fno-exceptions
     -ffunction-sections
@@ -73,13 +71,12 @@ set(PROJECT_C_FLAGS
     -MD
     -mcmodel=medlow
     -mstrict-align
-    #-D__riscv_float_abi_soft
 )
 set(PROJECT_LINKER_FLAGS
     -nostdlib
     -T${LINKER_SCRIPT}
     -Wl,-Map=${TARGET}.map
-    #-Wl,--gc-sections
+    -Wl,--gc-sections
     -Wl,--defsym=__stack_size=${STACK_SIZE}
     -Wl,-Arv32im
     -Wl,-belf32-littleriscv
