@@ -60,10 +60,10 @@ set(PROJECT_C_FLAGS
     -fdata-sections
     -falign-functions=4
     -Wall
+    -MD
     -march=rv32im_zicsr_zifencei
     -mabi=ilp32
-    -MD
-    -mcmodel=medany
+    -mcmodel=medlow
     -mstrict-align
     -DITERATIONS=10
     -DCLOCKS_PER_SEC=100000000
@@ -77,8 +77,7 @@ set(PROJECT_C_FLAGS
     -DUSE_CLOCK=0
 )
 set(PROJECT_LINKER_FLAGS
-    --entry
-    _start
+    --entry=_start
     -nostdlib
     -T${LINKER_SCRIPT}
     -Wl,-Map=${TARGET}.map
@@ -98,7 +97,8 @@ list(APPEND PROJECT_C_FLAGS -DLINKER_FLAGS='\"${PROJECT_LINKER_FLAGS}\"')
 
 set_target_properties(${TARGET}.elf
     PROPERTIES
-        LINK_DEPENDS "${LINKER_SCRIPT}")
+        LINK_DEPENDS "${LINKER_SCRIPT}"
+)
 list(JOIN PROJECT_C_FLAGS " " _PROJECT_C_FLAGS)
 list(JOIN PROJECT_LINKER_FLAGS " " _PROJECT_LINKER_FLAGS)
 set(CMAKE_EXE_LINKER_FLAGS ${_PROJECT_LINKER_FLAGS})

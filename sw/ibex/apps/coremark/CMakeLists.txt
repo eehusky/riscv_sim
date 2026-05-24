@@ -70,7 +70,7 @@ set(PROJECT_C_FLAGS
     -march=rv32imb_zicsr_zifencei_zicntr_zcmp_zcb
     -mabi=ilp32
     -MD
-    -mcmodel=medany
+    -mcmodel=medlow
     -mstrict-align
     -DITERATIONS=10
     -DCLOCKS_PER_SEC=100000000

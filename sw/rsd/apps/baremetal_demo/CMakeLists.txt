@@ -48,7 +48,7 @@ set(PROJECT_C_FLAGS
     -march=rv32im_zicsr_zifencei
     -mabi=ilp32
     -MD
-    -mcmodel=medany
+    -mcmodel=medlow
     -mstrict-align
 )
 set(PROJECT_LINKER_FLAGS

@@ -59,7 +59,7 @@ set(PROJECT_C_FLAGS
     -march=rv32im
     -mabi=ilp32
     -MD
-    -mcmodel=medany
+    -mcmodel=medlow
     -mstrict-align
 
     -Wno-old-style-definition

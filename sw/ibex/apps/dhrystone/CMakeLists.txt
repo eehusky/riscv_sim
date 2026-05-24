@@ -58,7 +58,7 @@ set(PROJECT_C_FLAGS
     -march=rv32imb_zicsr_zifencei_zicntr
     #-march=rv32im_zicsr_zifencei_zicntr
     -mabi=ilp32
-    -mcmodel=medany
+    -mcmodel=medlow
     -mstrict-align
 
     -MD

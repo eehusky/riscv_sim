@@ -71,7 +71,7 @@ set(PROJECT_C_FLAGS
     -march=rv32im_zicsr_zifencei_zicntr
     -mabi=ilp32
     -MD
-    -mcmodel=medany
+    -mcmodel=medlow
     -mstrict-align
     #-D__riscv_float_abi_soft
 )
