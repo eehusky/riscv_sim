@@ -46,30 +46,37 @@ target_link_libraries(${TARGET}.elf
         /opt/riscv/riscv64-unknown-elf/lib/rv32im/ilp32/libgloss_nano.a
 )
 
-set(PROJECT_C_FLAGS
+set(PROJECT_OPT_FLAGS
     -O3
     #-flto
+)
+set(PROJECT_M_FLAGS
+    #-march=rv32imb_zicsr_zifencei_zicntr_zcmp_zcb
+    #-march=rv32im_zicsr_zifencei_zicntr
+    -march=rv32imb_zicsr_zifencei_zicntr
+    -mabi=ilp32
+    -mcmodel=medlow
+    -mstrict-align
+)
+set(PROJECT_DEFINES
+    -DDHRY_ITERS=1000
+)
+set(PROJECT_HOUSEKEEPING_FLAGS
     -nostartfiles
     -fno-exceptions
     -ffunction-sections
     -fdata-sections
     -falign-functions=4
-    #-march=rv32imb_zicsr_zifencei_zicntr_zcmp_zcb
-    -march=rv32imb_zicsr_zifencei_zicntr
-    #-march=rv32im_zicsr_zifencei_zicntr
-    -mabi=ilp32
-    -mcmodel=medlow
-    -mstrict-align
-
-    -MD
     -Wall
+    -MD
+
     -Wno-old-style-definition
     -Wno-return-type
     -Wno-implicit
-
-    -DDHRY_ITERS=10000
-     CACHE STRING "PROJECT_C_FLAGS"
 )
+
+set(PROJECT_C_FLAGS ${PROJECT_OPT_FLAGS} ${PROJECT_M_FLAGS} ${PROJECT_DEFINES} ${PROJECT_HOUSEKEEPING_FLAGS})
+
 set(PROJECT_LINKER_FLAGS
     -nostdlib
     -T${LINKER_SCRIPT}
@@ -80,7 +87,6 @@ set(PROJECT_LINKER_FLAGS
     -Wl,-belf32-littleriscv
     #-flto=auto
     #-fwhole-program
-    CACHE STRING "PROJECT_LINKER_FLAGS"
 )
 list(APPEND PROJECT_C_FLAGS -DCOMPILER_FLAGS='\"${PROJECT_C_FLAGS}\"')
 list(APPEND PROJECT_C_FLAGS -DLINKER_FLAGS='\"${PROJECT_LINKER_FLAGS}\"')

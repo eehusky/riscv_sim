@@ -59,7 +59,9 @@ set(PROJECT_OPT_FLAGS
     -flto
 )
 set(PROJECT_M_FLAGS
-    -march=rv32imb_zicsr_zifencei_zicntr_zcmp_zcb
+    #-march=rv32im_zicsr_zifencei_zicntr
+    -march=rv32imb_zicsr_zifencei_zicntr
+    #-march=rv32imbc_zicsr_zifencei_zicntr_zcmp_zcb
     -mabi=ilp32
     -mcmodel=medlow
     -mstrict-align
