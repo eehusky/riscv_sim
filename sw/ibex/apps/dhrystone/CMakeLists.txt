@@ -49,6 +49,7 @@ target_link_libraries(${TARGET}.elf
 set(PROJECT_OPT_FLAGS
     -O3
     #-flto
+    CACHE STRING "PROJECT_OPT_FLAGS"
 )
 set(PROJECT_M_FLAGS
     #-march=rv32imb_zicsr_zifencei_zicntr_zcmp_zcb
@@ -57,9 +58,11 @@ set(PROJECT_M_FLAGS
     -mabi=ilp32
     -mcmodel=medlow
     -mstrict-align
+    CACHE STRING "PROJECT_M_FLAGS"
 )
 set(PROJECT_DEFINES
     -DDHRY_ITERS=1000
+    CACHE STRING "PROJECT_DEFINES"
 )
 set(PROJECT_HOUSEKEEPING_FLAGS
     -nostartfiles

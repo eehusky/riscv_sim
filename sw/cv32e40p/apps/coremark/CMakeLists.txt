@@ -57,12 +57,14 @@ target_link_libraries(${TARGET}.elf
 set(PROJECT_OPT_FLAGS
     -O3
     -flto
+    CACHE STRING "PROJECT_OPT_FLAGS"
 )
 set(PROJECT_M_FLAGS
     -march=rv32im_zicsr_zifencei_zicntr
     -mabi=ilp32
     -mcmodel=medlow
     -mstrict-align
+    CACHE STRING "PROJECT_M_FLAGS"
 )
 set(PROJECT_DEFINES
     -DITERATIONS=10
@@ -75,6 +77,7 @@ set(PROJECT_DEFINES
     -DPERFORMANCE_RUN=1
     -DHAS_TIME_H=0
     -DUSE_CLOCK=0
+    CACHE STRING "PROJECT_DEFINES"
 )
 set(PROJECT_HOUSEKEEPING_FLAGS
     -nostartfiles
