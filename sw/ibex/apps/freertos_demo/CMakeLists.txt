@@ -61,7 +61,6 @@ target_link_libraries(${TARGET}.elf
 
 set(PROJECT_C_FLAGS
     -O3
-    -flto
     -nostartfiles
     -fno-exceptions
     -ffunction-sections
